@@ -17,17 +17,20 @@ export default function DashboardNavbar() {
   const router = useRouter();
 
   return (
-    <nav className="w-full border-b border-gray-200 bg-white py-4">
-      <div className="container mx-auto px-4 flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <Link href="/" prefetch className="text-xl font-bold">
-            ProjectControl Pro
+    <nav className="w-full bg-arsd-red shadow-lg sticky top-0 z-50">
+      <div className="container mx-auto px-4 flex justify-between items-center py-3">
+        <div className="flex items-center gap-3">
+          <Link href="/dashboard" className="flex items-center space-x-2">
+            <span className="inline-block w-8 h-8 rounded-full bg-white flex items-center justify-center">
+              <Home className="text-arsd-red w-6 h-6" />
+            </span>
+            <span className="text-lg font-bold text-white tracking-wide">ARSD Dashboard</span>
           </Link>
         </div>
         <div className="flex gap-4 items-center">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="text-white hover:bg-arsd-red-dark">
                 <UserCircle className="h-6 w-6" />
               </Button>
             </DropdownMenuTrigger>
@@ -37,6 +40,7 @@ export default function DashboardNavbar() {
                   await supabase.auth.signOut();
                   router.refresh();
                 }}
+                className="text-arsd-red hover:bg-arsd-red-light"
               >
                 Sign out
               </DropdownMenuItem>
