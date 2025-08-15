@@ -29,6 +29,8 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import Image from "next/image";
+import dynamic from "next/dynamic";
+const DashboardCharts = dynamic(() => import("@/components/dashboard-charts"), { ssr: false });
 
 export default async function Dashboard() {
   const supabase = await createClient();
@@ -379,15 +381,7 @@ export default async function Dashboard() {
                           <h3 className="text-lg font-semibold text-gray-900 mb-4">
                             Cost Analysis & Progress Charts
                           </h3>
-                          <div className="flex justify-center">
-                            <Image
-                              src="/images/chart-reference.png"
-                              alt="Project Cost Analysis Bar Graph and S-Curve Chart"
-                              width={800}
-                              height={600}
-                              className="rounded-lg border"
-                            />
-                          </div>
+                          <DashboardCharts costData={costData} />
                           <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
                             <div>
                               <h4 className="font-medium text-gray-900 mb-2">
