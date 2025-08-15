@@ -100,7 +100,7 @@ export default async function Navbar() {
                 <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                   <div className="py-2">
                     <Link
-                      href="#building-construction"
+                      href="/services#building-construction"
                       className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-arsd-red transition-colors"
                     >
                       <Building className="w-5 h-5 text-arsd-red" />
@@ -112,7 +112,7 @@ export default async function Navbar() {
                       </div>
                     </Link>
                     <Link
-                      href="#design-planning"
+                      href="/services#design-plan-preparation"
                       className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-arsd-red transition-colors"
                     >
                       <PenTool className="w-5 h-5 text-arsd-red" />
@@ -126,7 +126,7 @@ export default async function Navbar() {
                       </div>
                     </Link>
                     <Link
-                      href="#land-development"
+                      href="/services#land-development"
                       className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-arsd-red transition-colors"
                     >
                       <MapPin className="w-5 h-5 text-arsd-red" />
