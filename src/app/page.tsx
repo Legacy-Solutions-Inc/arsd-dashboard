@@ -27,61 +27,97 @@ export default async function Home() {
       <section id="features" className="py-24 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">
-              Complete Project Control Suite
-            </h2>
+            <h2 className="text-3xl font-bold mb-4">Featured Projects</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Everything you need to manage construction projects efficiently
-              with real-time insights and comprehensive tracking.
+              Explore our ongoing and completed projects, showcasing our expertise in commercial, residential, and industrial construction.
             </p>
           </div>
-
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              {
-                icon: <BarChart3 className="w-6 h-6" />,
-                title: "Project KPIs Dashboard",
-                description:
-                  "Track contract amounts, actual vs target progress, slippage, and savings with color-coded indicators",
-              },
-              {
-                icon: <Calendar className="w-6 h-6" />,
-                title: "Interactive Gantt Charts",
-                description:
-                  "Visualize project timelines, task breakdowns, and progress tracking with drag-and-drop functionality",
-              },
-              {
-                icon: <DollarSign className="w-6 h-6" />,
-                title: "Cost Management",
-                description:
-                  "Compare target vs SWA, billed vs direct costs with monthly and quarterly reporting views",
-              },
-              {
-                icon: <Package className="w-6 h-6" />,
-                title: "Materials Tracking",
-                description:
-                  "Monitor requested vs received materials with filterable lists and visual donut charts",
-              },
-              {
-                icon: <TrendingUp className="w-6 h-6" />,
-                title: "S-Curve Analysis",
-                description:
-                  "Compare planned vs actual project completion with progress visualization over time",
-              },
-              {
-                icon: <PieChart className="w-6 h-6" />,
-                title: "Data Visualizations",
-                description:
-                  "Interactive charts and graphs with filtering capabilities for detailed project analysis",
-              },
-            ].map((feature, index) => (
+            {[{
+              id: "2134.00",
+              title: "Metro Manila Commercial Complex",
+              type: "Commercial",
+              location: "Metro Manila, Philippines",
+              client: "ABC Construction Corp",
+              contractor: "XYZ Builders Inc",
+              contractAmount: 2000000,
+              progress: 65,
+              status: "In Progress",
+              startDate: "2024-01-01",
+              endDate: "2024-12-31",
+              description:
+                "A modern commercial complex featuring retail spaces, offices, and parking facilities.",
+              image: "/images/arsd-logo.png",
+              features: [
+                "5-story commercial building",
+                "200 parking spaces",
+                "Modern HVAC system",
+                "Green building certification",
+              ],
+            },
+            {
+              id: "2135.00",
+              title: "Iloilo Residential Development",
+              type: "Residential",
+              location: "Iloilo City, Philippines",
+              client: "Iloilo Housing Corp",
+              contractor: "ARSD Construction Corporation",
+              contractAmount: 1500000,
+              progress: 85,
+              status: "Near Completion",
+              startDate: "2023-06-01",
+              endDate: "2024-03-31",
+              description:
+                "Affordable housing project with 50 residential units and community amenities.",
+              image: "/images/arsd-logo.png",
+              features: [
+                "50 residential units",
+                "Community center",
+                "Playground area",
+                "24/7 security",
+              ],
+            },
+            {
+              id: "2136.00",
+              title: "Industrial Warehouse Facility",
+              type: "Industrial",
+              location: "Bataan, Philippines",
+              client: "Industrial Solutions Inc",
+              contractor: "ARSD Construction Corporation",
+              contractAmount: 3500000,
+              progress: 40,
+              status: "In Progress",
+              startDate: "2024-02-01",
+              endDate: "2025-01-31",
+              description:
+                "Large-scale warehouse and distribution center with modern logistics infrastructure.",
+              image: "/images/arsd-logo.png",
+              features: [
+                "50,000 sqm warehouse",
+                "Loading docks",
+                "Office complex",
+                "Fire safety systems",
+              ],
+            }].map((project, index) => (
               <div
-                key={index}
-                className="p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border"
+                key={project.id}
+                className="p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border flex flex-col"
               >
-                <div className="text-orange-600 mb-4">{feature.icon}</div>
-                <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
+                <img src={project.image} alt={project.title} className="w-16 h-16 mb-4 rounded-full mx-auto" />
+                <h3 className="text-xl font-semibold mb-2 text-arsd-red">{project.title}</h3>
+                <div className="mb-2 text-sm text-gray-500">{project.type} | {project.location}</div>
+                <div className="mb-2 text-sm text-gray-600">Client: <span className="font-medium">{project.client}</span></div>
+                <div className="mb-2 text-sm text-gray-600">Contractor: <span className="font-medium">{project.contractor}</span></div>
+                <div className="mb-2 text-sm text-gray-600">Contract Amount: <span className="font-bold text-green-600">₱{project.contractAmount.toLocaleString()}</span></div>
+                <div className="mb-2 text-sm text-gray-600">Progress: <span className="font-bold text-blue-600">{project.progress}%</span></div>
+                <div className="mb-2 text-sm text-gray-600">Status: <span className="font-bold text-orange-600">{project.status}</span></div>
+                <div className="mb-2 text-sm text-gray-600">Start: {project.startDate} | End: {project.endDate}</div>
+                <p className="text-gray-600 mb-2">{project.description}</p>
+                <ul className="list-disc pl-5 text-gray-500 text-sm mb-2">
+                  {project.features.map((f, i) => (
+                    <li key={i}>{f}</li>
+                  ))}
+                </ul>
               </div>
             ))}
           </div>
@@ -89,7 +125,7 @@ export default async function Home() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-20 bg-orange-600 text-white">
+      <section className="py-20 bg-arsd-red text-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">
@@ -102,11 +138,11 @@ export default async function Home() {
           </div>
           <div className="grid md:grid-cols-4 gap-8 text-center">
             <div>
-              <div className="text-4xl font-bold mb-2">$2B+</div>
+              <div className="text-4xl font-bold mb-2">PHP2M+</div>
               <div className="text-orange-100">Projects Managed</div>
             </div>
             <div>
-              <div className="text-4xl font-bold mb-2">1,200+</div>
+              <div className="text-4xl font-bold mb-2">20+</div>
               <div className="text-orange-100">Active Projects</div>
             </div>
             <div>
@@ -125,17 +161,18 @@ export default async function Home() {
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-4">
-            Ready to Transform Your Project Management?
+            Ready to Transform Your Project?
           </h2>
           <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
-            Start managing your construction projects with comprehensive
-            dashboards, real-time tracking, and powerful analytics.
+            Interested in partnering or have a project in mind? Message us today and let's build success together. We're ready to collaborate and deliver excellence for your construction needs.
           </p>
           <a
-            href="/dashboard"
-            className="inline-flex items-center px-8 py-4 text-white bg-orange-600 rounded-lg hover:bg-orange-700 transition-colors text-lg font-medium"
+            href="https://www.facebook.com/arsdconstruction"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center px-8 py-4 text-white bg-arsd-red rounded-lg hover:bg-orange-700 transition-colors text-lg font-medium"
           >
-            Access Your Dashboard
+            Message Us on Facebook!
             <ArrowUpRight className="ml-2 w-5 h-5" />
           </a>
         </div>
