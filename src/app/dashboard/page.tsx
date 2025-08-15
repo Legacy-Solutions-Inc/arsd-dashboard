@@ -28,6 +28,7 @@ import {
   TrendingDown,
   AlertTriangle,
 } from "lucide-react";
+import Image from "next/image";
 
 export default async function Dashboard() {
   const supabase = await createClient();
@@ -227,15 +228,15 @@ export default async function Dashboard() {
 
             {/* Key Metrics Cards */}
             <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
-              <Card>
+              <Card className="border-l-4 border-l-arsd-red">
                 <CardContent className="p-4">
                   <div className="text-sm text-gray-600">Contract Amount</div>
-                  <div className="text-lg font-bold">
+                  <div className="text-lg font-bold text-arsd-red">
                     ₱{projectData.contractAmount.toLocaleString()}.00
                   </div>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="border-l-4 border-l-green-500">
                 <CardContent className="p-4">
                   <div className="text-sm text-gray-600">Actual %</div>
                   <div className="text-lg font-bold text-green-600">
@@ -243,7 +244,7 @@ export default async function Dashboard() {
                   </div>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="border-l-4 border-l-yellow-500">
                 <CardContent className="p-4">
                   <div className="text-sm text-gray-600">Target %</div>
                   <div className="text-lg font-bold text-yellow-600">
@@ -251,7 +252,7 @@ export default async function Dashboard() {
                   </div>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="border-l-4 border-l-red-500">
                 <CardContent className="p-4">
                   <div className="text-sm text-gray-600">Slippage</div>
                   <div className="text-lg font-bold text-red-600">
@@ -259,18 +260,18 @@ export default async function Dashboard() {
                   </div>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="border-l-4 border-l-blue-500">
                 <CardContent className="p-4">
                   <div className="text-sm text-gray-600">Balance</div>
-                  <div className="text-lg font-bold">
+                  <div className="text-lg font-bold text-blue-600">
                     ₱{projectData.balance.toLocaleString()}
                   </div>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="border-l-4 border-l-orange-500">
                 <CardContent className="p-4">
                   <div className="text-sm text-gray-600">Collectible</div>
-                  <div className="text-lg font-bold text-red-600">
+                  <div className="text-lg font-bold text-orange-600">
                     ₱{projectData.collectible.toLocaleString()}
                   </div>
                 </CardContent>
@@ -349,26 +350,96 @@ export default async function Dashboard() {
                       </div>
 
                       <div className="grid grid-cols-3 gap-4">
-                        <div className="text-center p-4 bg-green-50 rounded-lg">
+                        <div className="text-center p-4 bg-green-50 rounded-lg border-l-4 border-l-green-500">
                           <TrendingUp className="w-8 h-8 text-green-600 mx-auto mb-2" />
                           <div className="text-2xl font-bold text-green-600">
                             76
                           </div>
                           <div className="text-sm text-gray-600">Requests</div>
                         </div>
-                        <div className="text-center p-4 bg-blue-50 rounded-lg">
-                          <TrendingUp className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                          <div className="text-2xl font-bold text-blue-600">
+                        <div className="text-center p-4 bg-red-50 rounded-lg border-l-4 border-l-arsd-red">
+                          <TrendingUp className="w-8 h-8 text-arsd-red mx-auto mb-2" />
+                          <div className="text-2xl font-bold text-arsd-red">
                             62.22%
                           </div>
                           <div className="text-sm text-gray-600">Savings</div>
                         </div>
-                        <div className="text-center p-4 bg-orange-50 rounded-lg">
+                        <div className="text-center p-4 bg-orange-50 rounded-lg border-l-4 border-l-orange-500">
                           <AlertTriangle className="w-8 h-8 text-orange-600 mx-auto mb-2" />
                           <div className="text-2xl font-bold text-orange-600">
                             6.67%
                           </div>
                           <div className="text-sm text-gray-600">Variance</div>
+                        </div>
+                      </div>
+
+                      {/* Bar Graph and S-Curve Charts */}
+                      <div className="mt-8 space-y-6">
+                        <div className="bg-white p-6 rounded-lg shadow-sm">
+                          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                            Cost Analysis & Progress Charts
+                          </h3>
+                          <div className="flex justify-center">
+                            <Image
+                              src="/images/chart-reference.png"
+                              alt="Project Cost Analysis Bar Graph and S-Curve Chart"
+                              width={800}
+                              height={600}
+                              className="rounded-lg border"
+                            />
+                          </div>
+                          <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <h4 className="font-medium text-gray-900 mb-2">
+                                Cost Comparison (Bar Graph)
+                              </h4>
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-3 h-3 bg-blue-500 rounded"></div>
+                                  <span className="text-gray-600">
+                                    Target Cost
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <div className="w-3 h-3 bg-green-500 rounded"></div>
+                                  <span className="text-gray-600">
+                                    SWA Cost
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <div className="w-3 h-3 bg-orange-500 rounded"></div>
+                                  <span className="text-gray-600">
+                                    Billed Cost
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <div className="w-3 h-3 bg-red-500 rounded"></div>
+                                  <span className="text-gray-600">
+                                    Direct Cost
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            <div>
+                              <h4 className="font-medium text-gray-900 mb-2">
+                                S-Curve Progress
+                              </h4>
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-3 h-3 bg-arsd-red rounded"></div>
+                                  <span className="text-gray-600">
+                                    Actual Progress
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <div className="w-3 h-3 bg-gray-400 rounded"></div>
+                                  <span className="text-gray-600">
+                                    Planned Progress
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -436,59 +507,112 @@ export default async function Dashboard() {
             </TabsContent>
 
             <TabsContent value="costs" className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card>
+              <div className="grid grid-cols-1 gap-6">
+                <Card className="border-l-4 border-l-arsd-red">
                   <CardHeader>
-                    <CardTitle>Monthly Cost Analysis</CardTitle>
+                    <CardTitle className="text-arsd-red">
+                      Cost Analysis Dashboard
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      {costData.map((month, index) => (
-                        <div key={index} className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span>{month.month}</span>
-                            <span>₱{month.target.toLocaleString()}</span>
+                    <div className="flex justify-center mb-6">
+                      <Image
+                        src="/images/chart-reference.png"
+                        alt="Detailed Cost Analysis Charts"
+                        width={900}
+                        height={700}
+                        className="rounded-lg border shadow-sm"
+                      />
+                    </div>
+
+                    <div className="grid lg:grid-cols-2 gap-8">
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                          Monthly Cost Breakdown
+                        </h3>
+                        <div className="space-y-4">
+                          {costData.map((month, index) => (
+                            <div
+                              key={index}
+                              className="bg-gray-50 p-4 rounded-lg"
+                            >
+                              <div className="flex justify-between text-sm font-medium mb-2">
+                                <span className="text-arsd-red">
+                                  {month.month} 2024
+                                </span>
+                                <span className="text-gray-900">
+                                  ₱{month.target.toLocaleString()}
+                                </span>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2 text-xs">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-3 h-3 bg-blue-500 rounded"></div>
+                                  <span>
+                                    Target: ₱{month.target.toLocaleString()}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <div className="w-3 h-3 bg-green-500 rounded"></div>
+                                  <span>
+                                    SWA: ₱{month.swa.toLocaleString()}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <div className="w-3 h-3 bg-orange-500 rounded"></div>
+                                  <span>
+                                    Billed: ₱{month.billed.toLocaleString()}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <div className="w-3 h-3 bg-red-500 rounded"></div>
+                                  <span>
+                                    Direct: ₱{month.direct.toLocaleString()}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                          Progress Analysis
+                        </h3>
+                        <div className="space-y-4">
+                          <div className="bg-red-50 p-4 rounded-lg border-l-4 border-l-arsd-red">
+                            <h4 className="font-medium text-arsd-red mb-2">
+                              S-Curve Insights
+                            </h4>
+                            <ul className="text-sm text-gray-600 space-y-1">
+                              <li>
+                                • Current progress: {projectData.actualProgress}
+                                % vs target {projectData.targetProgress}%
+                              </li>
+                              <li>
+                                • Project timeline on track with minor
+                                adjustments needed
+                              </li>
+                              <li>
+                                • Cost performance within acceptable variance
+                              </li>
+                            </ul>
                           </div>
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <div className="w-3 h-3 bg-blue-500 rounded"></div>
-                              <span className="text-xs">
-                                Target: ₱{month.target.toLocaleString()}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <div className="w-3 h-3 bg-green-500 rounded"></div>
-                              <span className="text-xs">
-                                SWA: ₱{month.swa.toLocaleString()}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <div className="w-3 h-3 bg-orange-500 rounded"></div>
-                              <span className="text-xs">
-                                Billed: ₱{month.billed.toLocaleString()}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <div className="w-3 h-3 bg-red-500 rounded"></div>
-                              <span className="text-xs">
-                                Direct: ₱{month.direct.toLocaleString()}
-                              </span>
-                            </div>
+                          <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-l-blue-500">
+                            <h4 className="font-medium text-blue-600 mb-2">
+                              Cost Performance
+                            </h4>
+                            <ul className="text-sm text-gray-600 space-y-1">
+                              <li>• Total budget utilization: 65%</li>
+                              <li>
+                                • Projected savings: ₱
+                                {Math.abs(projectData.savings).toLocaleString()}
+                              </li>
+                              <li>• Monthly variance trending downward</li>
+                            </ul>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>S-Curve Progress</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-64 flex items-center justify-center text-gray-500">
-                      S-Curve visualization would be implemented here with a
-                      charting library
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -497,27 +621,49 @@ export default async function Dashboard() {
 
             <TabsContent value="materials" className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card>
+                <Card className="border-l-4 border-l-arsd-red">
                   <CardHeader>
-                    <CardTitle>Material Requests Overview</CardTitle>
+                    <CardTitle className="text-arsd-red">
+                      Material Requests Overview
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
                       <div className="text-center">
-                        <div className="text-3xl font-bold mb-2">
+                        <div className="text-2xl font-bold mb-4 text-arsd-red">
                           1/2 Ordinary Plywood - pcs
                         </div>
-                        <div className="w-32 h-32 mx-auto bg-gradient-to-r from-pink-300 to-red-600 rounded-full flex items-center justify-center">
-                          <div className="w-16 h-16 bg-white rounded-full"></div>
+                        <div className="w-32 h-32 mx-auto bg-gradient-to-r from-red-300 to-arsd-red rounded-full flex items-center justify-center shadow-lg">
+                          <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center">
+                            <span className="text-arsd-red font-bold text-sm">
+                              85%
+                            </span>
+                          </div>
                         </div>
                         <div className="mt-4 space-y-2">
-                          <div className="flex justify-between">
-                            <span className="text-sm">Requested:</span>
-                            <span className="font-medium">100 pcs</span>
+                          <div className="flex justify-between bg-gray-50 p-2 rounded">
+                            <span className="text-sm font-medium">
+                              Requested:
+                            </span>
+                            <span className="font-bold text-arsd-red">
+                              100 pcs
+                            </span>
                           </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm">Received:</span>
-                            <span className="font-medium">85 pcs</span>
+                          <div className="flex justify-between bg-gray-50 p-2 rounded">
+                            <span className="text-sm font-medium">
+                              Received:
+                            </span>
+                            <span className="font-bold text-green-600">
+                              85 pcs
+                            </span>
+                          </div>
+                          <div className="flex justify-between bg-red-50 p-2 rounded">
+                            <span className="text-sm font-medium">
+                              Pending:
+                            </span>
+                            <span className="font-bold text-red-600">
+                              15 pcs
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -525,9 +671,11 @@ export default async function Dashboard() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="border-l-4 border-l-blue-500">
                   <CardHeader>
-                    <CardTitle>Materials List</CardTitle>
+                    <CardTitle className="text-blue-600">
+                      Materials List
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <Table>

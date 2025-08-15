@@ -28,6 +28,12 @@ const config = {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
         },
+        arsd: {
+          red: "#DC2626",
+          "red-dark": "#B91C1C",
+          gray: "#6B7280",
+          "gray-dark": "#374151",
+        },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",

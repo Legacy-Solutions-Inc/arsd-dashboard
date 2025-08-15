@@ -1,35 +1,44 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowUpRight, Check } from "lucide-react";
 
 export default function Hero() {
   return (
     <div className="relative overflow-hidden bg-white">
       {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-orange-50 via-white to-blue-50 opacity-70" />
+      <div className="absolute inset-0 bg-gradient-to-br from-red-50 via-white to-gray-50 opacity-70" />
 
       <div className="relative pt-24 pb-32 sm:pt-32 sm:pb-40">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-4xl mx-auto">
+            <div className="flex justify-center mb-8">
+              <Image
+                src="/images/arsd-logo.png"
+                alt="ARSD Construction Corporation Logo"
+                width={120}
+                height={120}
+                className="rounded-full"
+              />
+            </div>
             <h1 className="text-5xl sm:text-6xl font-bold text-gray-900 mb-8 tracking-tight">
-              Master Your{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-blue-600">
-                Construction
-              </span>{" "}
-              Projects
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-gray-600">
+                ARSD Construction Corporation
+              </span>
             </h1>
 
             <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto leading-relaxed">
-              Comprehensive project controls dashboard with real-time KPIs,
-              interactive Gantt charts, cost tracking, and materials management.
-              Take control of your construction projects today.
+              Your trusted construction partner in Iloilo City. Comprehensive
+              project management with real-time tracking, cost control, and
+              materials management. Building excellence with integrity and
+              innovation.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link
                 href="/dashboard"
-                className="inline-flex items-center px-8 py-4 text-white bg-orange-600 rounded-lg hover:bg-orange-700 transition-colors text-lg font-medium"
+                className="inline-flex items-center px-8 py-4 text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors text-lg font-medium"
               >
-                Start Managing Projects
+                View Our Projects
                 <ArrowUpRight className="ml-2 w-5 h-5" />
               </Link>
 
