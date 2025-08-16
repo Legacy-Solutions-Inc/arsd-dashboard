@@ -1,17 +1,82 @@
 import Footer from "@/components/footer";
 import Hero from "@/components/hero";
 import Navbar from "@/components/navbar";
-import {
-  ArrowUpRight,
-  BarChart3,
-  Calendar,
-  DollarSign,
-  Package,
-  PieChart,
-  TrendingUp,
-} from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { createClient } from "../../supabase/server";
+import { Project, ProjectCard } from "@/components/ProjectCard";
 
+
+// Featured projects data
+const featuredProjects: Project[] = [
+  {
+    id: "2134.00",
+    title: "Metro Manila Commercial Complex",
+    type: "Commercial",
+    location: "Metro Manila, Philippines",
+    client: "ABC Construction Corp",
+    contractor: "XYZ Builders Inc",
+    contractAmount: 2000000,
+    progress: 65,
+    status: "In Progress",
+    startDate: "2024-01-01",
+    endDate: "2024-12-31",
+    description:
+      "A modern commercial complex featuring retail spaces, offices, and parking facilities.",
+    image: "/images/arsd-logo.png",
+    features: [
+      "5-story commercial building",
+      "200 parking spaces",
+      "Modern HVAC system",
+      "Green building certification",
+    ],
+  },
+  {
+    id: "2135.00",
+    title: "Iloilo Residential Development",
+    type: "Residential",
+    location: "Iloilo City, Philippines",
+    client: "Iloilo Housing Corp",
+    contractor: "ARSD Construction Corporation",
+    contractAmount: 1500000,
+    progress: 85,
+    status: "Near Completion",
+    startDate: "2023-06-01",
+    endDate: "2024-03-31",
+    description:
+      "Affordable housing project with 50 residential units and community amenities.",
+    image: "/images/arsd-logo.png",
+    features: [
+      "50 residential units",
+      "Community center",
+      "Playground area",
+      "24/7 security",
+    ],
+  },
+  {
+    id: "2136.00",
+    title: "Industrial Warehouse Facility",
+    type: "Industrial",
+    location: "Bataan, Philippines",
+    client: "Industrial Solutions Inc",
+    contractor: "ARSD Construction Corporation",
+    contractAmount: 3500000,
+    progress: 40,
+    status: "In Progress",
+    startDate: "2024-02-01",
+    endDate: "2025-01-31",
+    description:
+      "Large-scale warehouse and distribution center with modern logistics infrastructure.",
+    image: "/images/arsd-logo.png",
+    features: [
+      "50,000 sqm warehouse",
+      "Loading docks",
+      "Office complex",
+      "Fire safety systems",
+    ],
+  },
+];
+
+/** Homepage for ARSD Construction.*/
 export default async function Home() {
   const supabase = await createClient();
   const {
@@ -19,8 +84,10 @@ export default async function Home() {
   } = await supabase.auth.getUser();
 
   return (
-  <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
+      {/* NavBar Section */}
       <Navbar />
+      {/* Hero Section */}
       <Hero />
 
       {/* Features Section */}
@@ -33,92 +100,8 @@ export default async function Home() {
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {[{
-              id: "2134.00",
-              title: "Metro Manila Commercial Complex",
-              type: "Commercial",
-              location: "Metro Manila, Philippines",
-              client: "ABC Construction Corp",
-              contractor: "XYZ Builders Inc",
-              contractAmount: 2000000,
-              progress: 65,
-              status: "In Progress",
-              startDate: "2024-01-01",
-              endDate: "2024-12-31",
-              description:
-                "A modern commercial complex featuring retail spaces, offices, and parking facilities.",
-              image: "/images/arsd-logo.png",
-              features: [
-                "5-story commercial building",
-                "200 parking spaces",
-                "Modern HVAC system",
-                "Green building certification",
-              ],
-            },
-            {
-              id: "2135.00",
-              title: "Iloilo Residential Development",
-              type: "Residential",
-              location: "Iloilo City, Philippines",
-              client: "Iloilo Housing Corp",
-              contractor: "ARSD Construction Corporation",
-              contractAmount: 1500000,
-              progress: 85,
-              status: "Near Completion",
-              startDate: "2023-06-01",
-              endDate: "2024-03-31",
-              description:
-                "Affordable housing project with 50 residential units and community amenities.",
-              image: "/images/arsd-logo.png",
-              features: [
-                "50 residential units",
-                "Community center",
-                "Playground area",
-                "24/7 security",
-              ],
-            },
-            {
-              id: "2136.00",
-              title: "Industrial Warehouse Facility",
-              type: "Industrial",
-              location: "Bataan, Philippines",
-              client: "Industrial Solutions Inc",
-              contractor: "ARSD Construction Corporation",
-              contractAmount: 3500000,
-              progress: 40,
-              status: "In Progress",
-              startDate: "2024-02-01",
-              endDate: "2025-01-31",
-              description:
-                "Large-scale warehouse and distribution center with modern logistics infrastructure.",
-              image: "/images/arsd-logo.png",
-              features: [
-                "50,000 sqm warehouse",
-                "Loading docks",
-                "Office complex",
-                "Fire safety systems",
-              ],
-            }].map((project, index) => (
-              <div
-                key={project.id}
-                className="p-4 sm:p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border flex flex-col items-center text-center"
-              >
-                <img src={project.image} alt={project.title} className="w-14 h-14 sm:w-16 sm:h-16 mb-4 rounded-full mx-auto" />
-                <h3 className="text-lg sm:text-xl font-semibold mb-2 text-arsd-red">{project.title}</h3>
-                <div className="mb-2 text-xs sm:text-sm text-gray-500">{project.type} | {project.location}</div>
-                <div className="mb-2 text-xs sm:text-sm text-gray-600">Client: <span className="font-medium">{project.client}</span></div>
-                <div className="mb-2 text-xs sm:text-sm text-gray-600">Contractor: <span className="font-medium">{project.contractor}</span></div>
-                <div className="mb-2 text-xs sm:text-sm text-gray-600">Contract Amount: <span className="font-bold text-green-600">₱{project.contractAmount.toLocaleString()}</span></div>
-                <div className="mb-2 text-xs sm:text-sm text-gray-600">Progress: <span className="font-bold text-blue-600">{project.progress}%</span></div>
-                <div className="mb-2 text-xs sm:text-sm text-gray-600">Status: <span className="font-bold text-orange-600">{project.status}</span></div>
-                <div className="mb-2 text-xs sm:text-sm text-gray-600">Start: {project.startDate} | End: {project.endDate}</div>
-                <p className="text-gray-600 mb-2 text-xs sm:text-sm">{project.description}</p>
-                <ul className="list-disc pl-4 sm:pl-5 text-gray-500 text-xs sm:text-sm mb-2 text-left">
-                  {project.features.map((f, i) => (
-                    <li key={i}>{f}</li>
-                  ))}
-                </ul>
-              </div>
+            {featuredProjects.map((project) => (
+              <ProjectCard key={project.id} project={project} />
             ))}
           </div>
         </div>
@@ -177,6 +160,7 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* Footer Section */}
       <Footer />
     </div>
   );
