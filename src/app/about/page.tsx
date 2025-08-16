@@ -4,22 +4,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Award,
-  Users,
-  Calendar,
   Target,
   Shield,
   Heart,
   Lightbulb,
-  CheckCircle,
   ArrowRight,
   Building,
   Hammer,
   HardHat,
 } from "lucide-react";
 import Link from "next/link";
+import { ValueCard } from "@/components/ValueCard";
+import { MilestoneCard, Milestone } from "@/components/MilestoneCard";
+import { TeamMemberCard, TeamMember } from "@/components/TeamMemberCard";
 import Image from "next/image";
 
-export default function About() {
+  // Core values data
   const values = [
     {
       icon: <Shield className="w-8 h-8 text-arsd-red" />,
@@ -47,7 +47,8 @@ export default function About() {
     },
   ];
 
-  const milestones = [
+  // Company milestones data
+  const milestones: Milestone[] = [
     {
       year: "2009",
       title: "Company Founded",
@@ -86,7 +87,8 @@ export default function About() {
     },
   ];
 
-  const team = [
+  // Leadership team data
+  const team: TeamMember[] = [
     {
       name: "Engr. Antonio R. Santos",
       position: "Chief Executive Officer",
@@ -110,6 +112,7 @@ export default function About() {
     },
   ];
 
+  // Achievements data
   const achievements = [
     { number: "15+", label: "Years of Experience" },
     { number: "50+", label: "Projects Completed" },
@@ -117,9 +120,10 @@ export default function About() {
     { number: "₱7B+", label: "Total Project Value" },
   ];
 
-  return (
-    <div className="min-h-screen bg-white">
-      <Navbar />
+  export default function AboutPage() {
+    return (
+      <div className="min-h-screen bg-white">
+        <Navbar />
 
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-arsd-red to-red-700 text-white py-20">
@@ -258,15 +262,9 @@ export default function About() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {values.map((value, index) => (
-              <div key={index} className="text-center">
-                <div className="flex justify-center mb-4">{value.icon}</div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                  {value.title}
-                </h3>
-                <p className="text-gray-600">{value.description}</p>
-              </div>
+              <ValueCard key={index} value={value} />
             ))}
           </div>
         </div>
@@ -276,31 +274,15 @@ export default function About() {
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Our Journey
-            </h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Our Journey</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              From our humble beginnings to becoming a trusted name in
-              construction, here's our story.
+              From our humble beginnings to becoming a trusted name in construction, here's our story.
             </p>
           </div>
-
           <div className="max-w-4xl mx-auto">
             <div className="space-y-8">
-              {milestones.map((milestone, index) => (
-                <div key={index} className="flex gap-6">
-                  <div className="flex-shrink-0">
-                    <div className="w-16 h-16 bg-arsd-red text-white rounded-full flex items-center justify-center font-bold">
-                      {milestone.year}
-                    </div>
-                  </div>
-                  <div className="flex-grow">
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                      {milestone.title}
-                    </h3>
-                    <p className="text-gray-600">{milestone.description}</p>
-                  </div>
-                </div>
+              {milestones.map((milestone) => (
+                <MilestoneCard key={milestone.year} milestone={milestone} />
               ))}
             </div>
           </div>
@@ -311,32 +293,14 @@ export default function About() {
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Our Leadership Team
-            </h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Our Leadership Team</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Meet the experienced professionals who lead our company and drive
-              our success.
+              Meet the experienced professionals who lead our company and drive our success.
             </p>
           </div>
-
           <div className="grid md:grid-cols-3 gap-8">
-            {team.map((member, index) => (
-              <Card
-                key={index}
-                className="text-center hover:shadow-lg transition-shadow"
-              >
-                <CardHeader>
-                  <div className="flex justify-center mb-4">{member.icon}</div>
-                  <CardTitle className="text-xl text-gray-900">
-                    {member.name}
-                  </CardTitle>
-                  <p className="text-arsd-red font-medium">{member.position}</p>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600">{member.description}</p>
-                </CardContent>
-              </Card>
+            {team.map((member) => (
+              <TeamMemberCard key={member.name} member={member} />
             ))}
           </div>
         </div>
@@ -418,7 +382,7 @@ export default function About() {
         </div>
       </section>
 
-      <Footer />
-    </div>
-  );
-}
+        <Footer />
+      </div>
+    );
+  }
