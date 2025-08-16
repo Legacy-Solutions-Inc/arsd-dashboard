@@ -14,11 +14,13 @@ import {
   CheckCircle,
   ArrowRight,
 } from "lucide-react";
+import { ServiceCard, Service } from "@/components/ServiceCard";
 import Link from "next/link";
 import Image from "next/image";
 
 export default function Services() {
-  const services = [
+  // Services data
+  const services: Service[] = [
     {
       icon: <Building className="w-12 h-12 text-arsd-red" />,
       title: "Building Construction",
@@ -132,28 +134,8 @@ export default function Services() {
           </div>
 
           <div className="grid md:grid-cols-1 lg:grid-cols-3 gap-8">
-            {services.map((service, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow">
-                <CardHeader className="text-center">
-                  <div className="flex justify-center mb-4">{service.icon}</div>
-                  <CardTitle className="text-2xl text-gray-900">
-                    {service.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 mb-6 text-center">
-                    {service.description}
-                  </p>
-                  <ul className="space-y-3">
-                    {service.features.map((feature, idx) => (
-                      <li key={idx} className="flex items-start gap-3">
-                        <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
+            {services.map((service) => (
+              <ServiceCard key={service.title} service={service} />
             ))}
           </div>
         </div>
