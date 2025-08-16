@@ -8,7 +8,6 @@ import {
   PenTool,
   MapPin,
   Phone,
-  Mail,
 } from "lucide-react";
 import UserProfile from "./user-profile";
 
