@@ -19,16 +19,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ProjectOverview } from "./sections/ProjectOverview";
+import { ScheduleTasks } from "./sections/ScheduleTasks";
+import { CostAnalysis } from "./sections/CostAnalysis";
+import { Materials } from "./sections/Materials";
 import { Button } from "@/components/ui/button";
 import {
-  Calendar,
   Download,
   Filter,
-  TrendingUp,
-  TrendingDown,
-  AlertTriangle,
 } from "lucide-react";
-import Image from "next/image";
 import dynamic from "next/dynamic";
 const DashboardCharts = dynamic(() => import("@/components/dashboard-charts"), { ssr: false });
 
@@ -228,7 +227,7 @@ export default async function Dashboard() {
               </div>
             </div>
 
-            {/* Key Metrics Cards */}
+            {/* Key Metrics Cards for each Project*/}
             <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
               <Card className="border-l-4 border-l-arsd-red">
                 <CardContent className="p-4">
@@ -289,422 +288,24 @@ export default async function Dashboard() {
               <TabsTrigger value="materials">Materials</TabsTrigger>
             </TabsList>
 
+            {/* Project Profile Tab */}
             <TabsContent value="overview" className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Project Information */}
-                <Card className="lg:col-span-1">
-                  <CardHeader>
-                    <CardTitle>Project Information</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <div className="text-sm text-gray-600">Project ID</div>
-                      <div className="font-medium">{projectData.projectId}</div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-gray-600">Client</div>
-                      <div className="font-medium">{projectData.client}</div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-gray-600">Contractor</div>
-                      <div className="font-medium">
-                        {projectData.contractor}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-gray-600">Location</div>
-                      <div className="font-medium">{projectData.location}</div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-gray-600">PM Name</div>
-                      <div className="font-medium">{projectData.pmName}</div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-gray-600">Site Engineer</div>
-                      <div className="font-medium">
-                        {projectData.siteEngineer}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Progress Overview */}
-                <Card className="lg:col-span-2">
-                  <CardHeader>
-                    <CardTitle>Progress Overview</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-6">
-                      <div>
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="text-sm font-medium">
-                            Overall Progress
-                          </span>
-                          <span className="text-sm text-gray-600">
-                            {projectData.actualProgress}% of{" "}
-                            {projectData.targetProgress}%
-                          </span>
-                        </div>
-                        <Progress
-                          value={projectData.actualProgress}
-                          className="h-3"
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-3 gap-4">
-                        <div className="text-center p-4 bg-green-50 rounded-lg border-l-4 border-l-green-500">
-                          <TrendingUp className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                          <div className="text-2xl font-bold text-green-600">
-                            76
-                          </div>
-                          <div className="text-sm text-gray-600">Requests</div>
-                        </div>
-                        <div className="text-center p-4 bg-red-50 rounded-lg border-l-4 border-l-arsd-red">
-                          <TrendingUp className="w-8 h-8 text-arsd-red mx-auto mb-2" />
-                          <div className="text-2xl font-bold text-arsd-red">
-                            62.22%
-                          </div>
-                          <div className="text-sm text-gray-600">Savings</div>
-                        </div>
-                        <div className="text-center p-4 bg-orange-50 rounded-lg border-l-4 border-l-orange-500">
-                          <AlertTriangle className="w-8 h-8 text-orange-600 mx-auto mb-2" />
-                          <div className="text-2xl font-bold text-orange-600">
-                            6.67%
-                          </div>
-                          <div className="text-sm text-gray-600">Variance</div>
-                        </div>
-                      </div>
-
-                      {/* Bar Graph and S-Curve Charts */}
-                      <div className="mt-8 space-y-6">
-                        <div className="bg-white p-6 rounded-lg shadow-sm">
-                          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                            Cost Analysis & Progress Charts
-                          </h3>
-                          <DashboardCharts costData={costData} />
-                          <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
-                            <div>
-                              <h4 className="font-medium text-gray-900 mb-2">
-                                Cost Comparison (Bar Graph)
-                              </h4>
-                              <div className="space-y-1">
-                                <div className="flex items-center gap-2">
-                                  <div className="w-3 h-3 bg-blue-500 rounded"></div>
-                                  <span className="text-gray-600">
-                                    Target Cost
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <div className="w-3 h-3 bg-green-500 rounded"></div>
-                                  <span className="text-gray-600">
-                                    SWA Cost
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <div className="w-3 h-3 bg-orange-500 rounded"></div>
-                                  <span className="text-gray-600">
-                                    Billed Cost
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <div className="w-3 h-3 bg-red-500 rounded"></div>
-                                  <span className="text-gray-600">
-                                    Direct Cost
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                            <div>
-                              <h4 className="font-medium text-gray-900 mb-2">
-                                S-Curve Progress
-                              </h4>
-                              <div className="space-y-1">
-                                <div className="flex items-center gap-2">
-                                  <div className="w-3 h-3 bg-arsd-red rounded"></div>
-                                  <span className="text-gray-600">
-                                    Actual Progress
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <div className="w-3 h-3 bg-gray-400 rounded"></div>
-                                  <span className="text-gray-600">
-                                    Planned Progress
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+                <ProjectOverview projectData={projectData} costData={costData} />
             </TabsContent>
 
+            {/* Schedule & Tasks Tab */}
             <TabsContent value="schedule" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Task Schedule & Progress</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Task Name</TableHead>
-                        <TableHead>Progress</TableHead>
-                        <TableHead>Weight %</TableHead>
-                        <TableHead>Cost</TableHead>
-                        <TableHead>Start Date</TableHead>
-                        <TableHead>End Date</TableHead>
-                        <TableHead>Status</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {tasks.map((task) => (
-                        <TableRow key={task.id}>
-                          <TableCell className="font-medium">
-                            {task.name}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Progress
-                                value={task.progress}
-                                className="w-20 h-2"
-                              />
-                              <span className="text-sm">{task.progress}%</span>
-                            </div>
-                          </TableCell>
-                          <TableCell>{task.weight}%</TableCell>
-                          <TableCell>₱{task.cost.toLocaleString()}</TableCell>
-                          <TableCell>{task.startDate}</TableCell>
-                          <TableCell>{task.endDate}</TableCell>
-                          <TableCell>
-                            <span
-                              className={`px-2 py-1 rounded-full text-xs ${
-                                task.status === "completed"
-                                  ? "bg-green-100 text-green-800"
-                                  : task.status === "in-progress"
-                                    ? "bg-blue-100 text-blue-800"
-                                    : "bg-gray-100 text-gray-800"
-                              }`}
-                            >
-                              {task.status.replace("-", " ")}
-                            </span>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
+                <ScheduleTasks tasks={tasks} />
             </TabsContent>
 
+            {/* Cost Analysis Tab */}
             <TabsContent value="costs" className="space-y-6">
-              <div className="grid grid-cols-1 gap-6">
-                <Card className="border-l-4 border-l-arsd-red">
-                  <CardHeader>
-                    <CardTitle className="text-arsd-red">
-                      Cost Analysis Dashboard
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex justify-center mb-6">
-                      <Image
-                        src="/images/chart-reference.png"
-                        alt="Detailed Cost Analysis Charts"
-                        width={900}
-                        height={700}
-                        className="rounded-lg border shadow-sm"
-                      />
-                    </div>
-
-                    <div className="grid lg:grid-cols-2 gap-8">
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                          Monthly Cost Breakdown
-                        </h3>
-                        <div className="space-y-4">
-                          {costData.map((month, index) => (
-                            <div
-                              key={index}
-                              className="bg-gray-50 p-4 rounded-lg"
-                            >
-                              <div className="flex justify-between text-sm font-medium mb-2">
-                                <span className="text-arsd-red">
-                                  {month.month} 2024
-                                </span>
-                                <span className="text-gray-900">
-                                  ₱{month.target.toLocaleString()}
-                                </span>
-                              </div>
-                              <div className="grid grid-cols-2 gap-2 text-xs">
-                                <div className="flex items-center gap-2">
-                                  <div className="w-3 h-3 bg-blue-500 rounded"></div>
-                                  <span>
-                                    Target: ₱{month.target.toLocaleString()}
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <div className="w-3 h-3 bg-green-500 rounded"></div>
-                                  <span>
-                                    SWA: ₱{month.swa.toLocaleString()}
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <div className="w-3 h-3 bg-orange-500 rounded"></div>
-                                  <span>
-                                    Billed: ₱{month.billed.toLocaleString()}
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <div className="w-3 h-3 bg-red-500 rounded"></div>
-                                  <span>
-                                    Direct: ₱{month.direct.toLocaleString()}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                          Progress Analysis
-                        </h3>
-                        <div className="space-y-4">
-                          <div className="bg-red-50 p-4 rounded-lg border-l-4 border-l-arsd-red">
-                            <h4 className="font-medium text-arsd-red mb-2">
-                              S-Curve Insights
-                            </h4>
-                            <ul className="text-sm text-gray-600 space-y-1">
-                              <li>
-                                • Current progress: {projectData.actualProgress}
-                                % vs target {projectData.targetProgress}%
-                              </li>
-                              <li>
-                                • Project timeline on track with minor
-                                adjustments needed
-                              </li>
-                              <li>
-                                • Cost performance within acceptable variance
-                              </li>
-                            </ul>
-                          </div>
-                          <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-l-blue-500">
-                            <h4 className="font-medium text-blue-600 mb-2">
-                              Cost Performance
-                            </h4>
-                            <ul className="text-sm text-gray-600 space-y-1">
-                              <li>• Total budget utilization: 65%</li>
-                              <li>
-                                • Projected savings: ₱
-                                {Math.abs(projectData.savings).toLocaleString()}
-                              </li>
-                              <li>• Monthly variance trending downward</li>
-                            </ul>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+                <CostAnalysis costData={costData} projectData={projectData} />
             </TabsContent>
 
+            {/* Materials Tab */}
             <TabsContent value="materials" className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card className="border-l-4 border-l-arsd-red">
-                  <CardHeader>
-                    <CardTitle className="text-arsd-red">
-                      Material Requests Overview
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="text-center">
-                        <div className="text-2xl font-bold mb-4 text-arsd-red">
-                          1/2 Ordinary Plywood - pcs
-                        </div>
-                        <div className="w-32 h-32 mx-auto bg-gradient-to-r from-red-300 to-arsd-red rounded-full flex items-center justify-center shadow-lg">
-                          <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center">
-                            <span className="text-arsd-red font-bold text-sm">
-                              85%
-                            </span>
-                          </div>
-                        </div>
-                        <div className="mt-4 space-y-2">
-                          <div className="flex justify-between bg-gray-50 p-2 rounded">
-                            <span className="text-sm font-medium">
-                              Requested:
-                            </span>
-                            <span className="font-bold text-arsd-red">
-                              100 pcs
-                            </span>
-                          </div>
-                          <div className="flex justify-between bg-gray-50 p-2 rounded">
-                            <span className="text-sm font-medium">
-                              Received:
-                            </span>
-                            <span className="font-bold text-green-600">
-                              85 pcs
-                            </span>
-                          </div>
-                          <div className="flex justify-between bg-red-50 p-2 rounded">
-                            <span className="text-sm font-medium">
-                              Pending:
-                            </span>
-                            <span className="font-bold text-red-600">
-                              15 pcs
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-l-4 border-l-blue-500">
-                  <CardHeader>
-                    <CardTitle className="text-blue-600">
-                      Materials List
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Material</TableHead>
-                          <TableHead>Unit</TableHead>
-                          <TableHead>Requested</TableHead>
-                          <TableHead>Received</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {materials.map((material, index) => (
-                          <TableRow key={index}>
-                            <TableCell className="font-medium">
-                              {material.name}
-                            </TableCell>
-                            <TableCell>{material.unit}</TableCell>
-                            <TableCell>{material.requested}</TableCell>
-                            <TableCell
-                              className={
-                                material.received < material.requested
-                                  ? "text-red-600"
-                                  : "text-green-600"
-                              }
-                            >
-                              {material.received}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </CardContent>
-                </Card>
-              </div>
+                <Materials materials={materials} />
             </TabsContent>
           </Tabs>
         </div>
