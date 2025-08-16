@@ -19,7 +19,8 @@ interface ScheduleTasksProps {
 
 export function ScheduleTasks({ tasks }: ScheduleTasksProps) {
   return (
-    <Card>
+    
+    <Card className="border-l-4 border-l-arsd-red mt-6">
       <CardHeader>
         <CardTitle>Task Schedule & Progress</CardTitle>
       </CardHeader>
@@ -27,13 +28,13 @@ export function ScheduleTasks({ tasks }: ScheduleTasksProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Task Name</TableHead>
-              <TableHead>Progress</TableHead>
-              <TableHead>Weight %</TableHead>
-              <TableHead>Cost</TableHead>
-              <TableHead>Start Date</TableHead>
-              <TableHead>End Date</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead className="text-arsd-red">Task Name</TableHead>
+              <TableHead className="text-arsd-red">Progress</TableHead>
+              <TableHead className="text-arsd-red">Weight %</TableHead>
+              <TableHead className="text-arsd-red">Cost</TableHead>
+              <TableHead className="text-arsd-red">Start Date</TableHead>
+              <TableHead className="text-arsd-red">End Date</TableHead>
+              <TableHead className="text-arsd-red">Status</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
