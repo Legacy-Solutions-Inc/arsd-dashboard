@@ -17,11 +17,13 @@ import {
   Calendar,
   CheckCircle,
 } from "lucide-react";
+import { ContactInfoCard, ContactInfo } from "@/components/ContactInfoCard";
 import Link from "next/link";
 import Image from "next/image";
 
 export default function Contact() {
-  const contactInfo = [
+  // Contact information data
+  const contactInfo: ContactInfo[] = [
     {
       icon: <MapPin className="w-6 h-6 text-arsd-red" />,
       title: "Our Location",
@@ -121,26 +123,7 @@ export default function Contact() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {contactInfo.map((info, index) => (
-              <Card
-                key={index}
-                className="text-center hover:shadow-lg transition-shadow"
-              >
-                <CardHeader>
-                  <div className="flex justify-center mb-4">{info.icon}</div>
-                  <CardTitle className="text-xl text-gray-900">
-                    {info.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {info.details.map((detail, idx) => (
-                      <p key={idx} className="text-gray-600 text-sm">
-                        {detail}
-                      </p>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+              <ContactInfoCard key={index} info={info} />
             ))}
           </div>
         </div>
