@@ -21,7 +21,7 @@ export default function DashboardNavbar() {
       <div className="container mx-auto px-4 flex justify-between items-center py-3">
         <div className="flex items-center gap-3">
           <Link href="/dashboard" className="flex items-center space-x-2">
-            <span className="inline-block w-8 h-8 rounded-full bg-white flex items-center justify-center">
+            <span className="w-8 h-8 rounded-full bg-white flex items-center justify-center">
               <Home className="text-arsd-red w-6 h-6" />
             </span>
             <span className="text-lg font-bold text-white tracking-wide">ARSD Dashboard</span>
