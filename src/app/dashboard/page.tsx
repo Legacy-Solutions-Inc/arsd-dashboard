@@ -1,46 +1,7 @@
-import DashboardNavbar from "@/components/dashboard-navbar";
-import { redirect } from "next/navigation";
-import { createClient } from "../../../supabase/server";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Progress } from "@/components/ui/progress";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+"use client";
 import { ProjectOverview } from "./sections/ProjectOverview";
-import { ScheduleTasks } from "./sections/ScheduleTasks";
-import { CostAnalysis } from "./sections/CostAnalysis";
-import { Materials } from "./sections/Materials";
-import { Button } from "@/components/ui/button";
-import {
-  Download,
-  Filter,
-} from "lucide-react";
-import dynamic from "next/dynamic";
-const DashboardCharts = dynamic(() => import("@/components/dashboard-charts"), { ssr: false });
-
-export default async function Dashboard() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/sign-in");
-  }
+import ProjectList from "./sections/ProjectList";
+import { useRouter } from "next/navigation";
 
   // Mock data for demonstration
   const projectData = {
@@ -61,6 +22,30 @@ export default async function Dashboard() {
     pmName: "John Doe",
     siteEngineer: "Jane Smith",
   };
+
+  const projects = [
+    {
+      id: "2134.00",
+      name: "Main Office Construction",
+      client: "ABC Construction Corp",
+      location: "Metro Manila, Philippines",
+      status: "active",
+    },
+    {
+      id: "2135.00",
+      name: "Warehouse Expansion",
+      client: "DEF Holdings",
+      location: "Cebu City, Philippines",
+      status: "active",
+    },
+    {
+      id: "2136.00",
+      name: "Retail Store Renovation",
+      client: "GHI Retailers",
+      location: "Davao City, Philippines",
+      status: "completed",
+    },
+  ];
 
   const tasks = [
     {
@@ -194,122 +179,20 @@ export default async function Dashboard() {
     },
   ];
 
+export default function DashboardPage() {
+  const router = useRouter();
+  const handleSelectProject = (projectId: string) => {
+    router.push(`/dashboard/projects/${projectId}`);
+  };
   return (
-    <>
-      <DashboardNavbar />
-      <main className="w-full bg-gray-50 min-h-screen">
-        <div className="container mx-auto px-4 py-6">
-          {/* Project Header */}
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-4">
-                <h1 className="text-2xl font-bold">Project Dashboard</h1>
-                <Select defaultValue={projectData.projectId}>
-                  <SelectTrigger className="w-48">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="2134.00">Project 2134.00</SelectItem>
-                    <SelectItem value="2135.00">Project 2135.00</SelectItem>
-                    <SelectItem value="2136.00">Project 2136.00</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm">
-                  <Filter className="w-4 h-4 mr-2" />
-                  Filter
-                </Button>
-                <Button variant="outline" size="sm">
-                  <Download className="w-4 h-4 mr-2" />
-                  Export
-                </Button>
-              </div>
-            </div>
-
-            {/* Key Metrics Cards for each Project*/}
-            <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
-              <Card className="border-l-4 border-l-arsd-red">
-                <CardContent className="p-4">
-                  <div className="text-sm text-gray-600">Contract Amount</div>
-                  <div className="text-lg font-bold text-arsd-red">
-                    ₱{projectData.contractAmount.toLocaleString()}.00
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="border-l-4 border-l-green-500">
-                <CardContent className="p-4">
-                  <div className="text-sm text-gray-600">Actual %</div>
-                  <div className="text-lg font-bold text-green-600">
-                    {projectData.actualProgress}%
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="border-l-4 border-l-yellow-500">
-                <CardContent className="p-4">
-                  <div className="text-sm text-gray-600">Target %</div>
-                  <div className="text-lg font-bold text-yellow-600">
-                    {projectData.targetProgress}%
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="border-l-4 border-l-red-500">
-                <CardContent className="p-4">
-                  <div className="text-sm text-gray-600">Slippage</div>
-                  <div className="text-lg font-bold text-red-600">
-                    {projectData.slippage}%
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="border-l-4 border-l-blue-500">
-                <CardContent className="p-4">
-                  <div className="text-sm text-gray-600">Balance</div>
-                  <div className="text-lg font-bold text-blue-600">
-                    ₱{projectData.balance.toLocaleString()}
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="border-l-4 border-l-orange-500">
-                <CardContent className="p-4">
-                  <div className="text-sm text-gray-600">Collectible</div>
-                  <div className="text-lg font-bold text-orange-600">
-                    ₱{projectData.collectible.toLocaleString()}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-
-          <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="overview">Project Overview</TabsTrigger>
-              <TabsTrigger value="schedule">Schedule & Tasks</TabsTrigger>
-              <TabsTrigger value="costs">Cost Analysis</TabsTrigger>
-              <TabsTrigger value="materials">Materials</TabsTrigger>
-            </TabsList>
-
-            {/* Project Profile Tab */}
-            <TabsContent value="overview" className="space-y-6">
-                <ProjectOverview projectData={projectData} costData={costData} />
-            </TabsContent>
-
-            {/* Schedule & Tasks Tab */}
-            <TabsContent value="schedule" className="space-y-6">
-                <ScheduleTasks tasks={tasks} />
-            </TabsContent>
-
-            {/* Cost Analysis Tab */}
-            <TabsContent value="costs" className="space-y-6">
-                <CostAnalysis costData={costData} projectData={projectData} />
-            </TabsContent>
-
-            {/* Materials Tab */}
-            <TabsContent value="materials" className="space-y-6">
-                <Materials materials={materials} />
-            </TabsContent>
-          </Tabs>
-        </div>
-      </main>
-    </>
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold mb-4">Project Overview</h1>
+      {/* Summary Section */}
+      <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
+        <ProjectOverview projectData={projectData} costData={costData} />
+      </div>
+      {/* Project List Section */}
+      <ProjectList projects={projects} onSelect={handleSelectProject} />
+    </div>
   );
 }
