@@ -40,7 +40,7 @@ export function CostAnalysis({ costData, projectData, sCurveData }: CostAnalysis
   const chartSCurveData = sCurveData ?? defaultSCurveData;
 
   return (
-    <Card className="border-l-4 border-l-arsd-red">
+    <Card className="border-l-4 border-l-arsd-red mt-6">
 
       <CardHeader>
         <CardTitle className="text-arsd-red">Cost Analysis Dashboard</CardTitle>
