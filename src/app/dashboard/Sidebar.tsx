@@ -21,9 +21,9 @@ export default function Sidebar() {
   return (
     <aside className="w-64 bg-arsd-red flex flex-col min-h-screen shadow-xl">
       {/* Header Section */}
-      <div className="flex items-center gap-3 px-6 py-6 border-b border-[#1746A2]/30">
-        <div className="bg-yellow-400 rounded-full p-3 flex items-center justify-center">
-          <svg width="28" height="28" fill="none" stroke="#1746A2" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      <div className="flex items-center gap-3 px-6 py-6 border-b">
+        <div className="bg-white rounded-full p-2 flex items-center justify-center">
+          <img src="/images/arsd-logo.png" alt="Company Logo" className="w-10 h-10 object-contain" />
         </div>
         <div className="flex flex-col">
           <span className="font-bold text-3xl text-yellow-400 tracking-wide">ARSD</span>
