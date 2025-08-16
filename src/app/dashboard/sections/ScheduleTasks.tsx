@@ -26,6 +26,7 @@ export function ScheduleTasks({ tasks }: ScheduleTasksProps) {
       </CardHeader>
       <CardContent>
         <Table>
+          
           <TableHeader>
             <TableRow>
               <TableHead className="text-arsd-red">Task Name</TableHead>
@@ -37,6 +38,7 @@ export function ScheduleTasks({ tasks }: ScheduleTasksProps) {
               <TableHead className="text-arsd-red">Status</TableHead>
             </TableRow>
           </TableHeader>
+
           <TableBody>
             {tasks.map((task) => (
               <TableRow key={task.id}>
