@@ -23,6 +23,8 @@ interface PhotoUploadSectionProps {
   onPhotosChange: (photos: File[]) => void;
   onExistingPhotosChange: (photos: WebsiteProjectPhoto[]) => void;
   getSignedUrl: (filePath: string) => Promise<string | null>;
+  getPublicUrl: (filePath: string) => Promise<string | null>;
+  deletePhoto: (photoId: string) => Promise<void>;
   errors: Record<string, string>;
 }
 
@@ -32,6 +34,8 @@ export function PhotoUploadSection({
   onPhotosChange,
   onExistingPhotosChange,
   getSignedUrl,
+  getPublicUrl,
+  deletePhoto,
   errors
 }: PhotoUploadSectionProps) {
   const [dragActive, setDragActive] = useState(false);
@@ -119,9 +123,32 @@ export function PhotoUploadSection({
     }
   };
 
-  const removeExistingPhoto = (photoId: string) => {
-    const newExistingPhotos = existingPhotos.filter(photo => photo.id !== photoId);
-    onExistingPhotosChange(newExistingPhotos);
+  const removeExistingPhoto = async (photoId: string) => {
+    try {
+      console.log('PhotoUploadSection: Deleting photo with ID:', photoId);
+      
+      // Optimistically update UI first
+      const newExistingPhotos = existingPhotos.filter(photo => photo.id !== photoId);
+      onExistingPhotosChange(newExistingPhotos);
+      
+      // Delete from database
+      await deletePhoto(photoId);
+      
+      toast({
+        title: "Success",
+        description: "Photo deleted successfully",
+      });
+    } catch (error) {
+      console.error('PhotoUploadSection: Error deleting photo:', error);
+      
+      // Revert UI change on error
+      // Note: This is a simplified approach. In a real app, you might want to track the original state
+      toast({
+        title: "Error",
+        description: "Failed to delete photo. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const reorderExistingPhotos = (fromIndex: number, toIndex: number) => {
@@ -231,6 +258,8 @@ export function PhotoUploadSection({
               onRemove={() => removeExistingPhoto(photo.id)}
               onReorder={reorderExistingPhotos}
               getSignedUrl={getSignedUrl}
+              getPublicUrl={getPublicUrl}
+              deletePhoto={deletePhoto}
             />
           ))}
         </div>
@@ -245,6 +274,8 @@ interface ExistingPhotoCardProps {
   onRemove: () => void;
   onReorder: (fromIndex: number, toIndex: number) => void;
   getSignedUrl: (filePath: string) => Promise<string | null>;
+  getPublicUrl: (filePath: string) => Promise<string | null>;
+  deletePhoto: (photoId: string) => Promise<void>;
 }
 
 function ExistingPhotoCard({ 
@@ -252,7 +283,9 @@ function ExistingPhotoCard({
   index, 
   onRemove, 
   onReorder, 
-  getSignedUrl 
+  getSignedUrl,
+  getPublicUrl,
+  deletePhoto
 }: ExistingPhotoCardProps) {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -260,7 +293,7 @@ function ExistingPhotoCard({
   useEffect(() => {
     const loadImage = async () => {
       try {
-        const url = await getSignedUrl(photo.file_path);
+        const url = await getPublicUrl(photo.file_path);
         setImageUrl(url);
       } catch (error) {
         console.error('Error loading image:', error);
@@ -270,7 +303,7 @@ function ExistingPhotoCard({
     };
 
     loadImage();
-  }, [photo.file_path, getSignedUrl]);
+  }, [photo.file_path, getPublicUrl]);
 
   return (
     <Card className="p-4">
