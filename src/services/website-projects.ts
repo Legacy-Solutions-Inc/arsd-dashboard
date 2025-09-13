@@ -43,9 +43,21 @@ export class WebsiteProjectsService {
 
   static async createProject(payload: CreateWebsiteProjectData) {
     const supabase = createClient();
+   
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('User must be authenticated to create projects');
+    }
+    
     const { data: insertData, error: insertError } = await supabase
       .from("website_projects")
-      .insert({ name: payload.name, location: payload.location })
+      .insert({ 
+        name: payload.name, 
+        location: payload.location,
+        created_by: user.id,
+        updated_by: user.id
+      })
       .select("id")
       .single();
     
@@ -62,9 +74,20 @@ export class WebsiteProjectsService {
 
   static async updateProject(projectId: string, payload: UpdateWebsiteProjectData) {
     const supabase = createClient();
+    
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('User must be authenticated to update projects');
+    }
+    
     const { error: updateError } = await supabase
       .from("website_projects")
-      .update({ name: payload.name, location: payload.location })
+      .update({ 
+        name: payload.name, 
+        location: payload.location,
+        updated_by: user.id
+      })
       .eq("id", projectId);
     
     if (updateError) throw updateError;
@@ -85,12 +108,60 @@ export class WebsiteProjectsService {
 
   static async deleteProject(projectId: string) {
     const supabase = createClient();
-    const { error } = await supabase
-      .from("website_projects")
-      .update({ is_deleted: true })
-      .eq("id", projectId);
+    console.log('Service: Deleting project with ID:', projectId);
     
-    if (error) throw error;
+    // First, let's check if the project exists and get current user
+    const { data: { user } } = await supabase.auth.getUser();
+    console.log('Service: Current user:', user?.id);
+    
+    if (!user) {
+      throw new Error('User must be authenticated to delete projects');
+    }
+    
+    // Check if project exists
+    const { data: existingProject, error: fetchError } = await supabase
+      .from("website_projects")
+      .select("id, name, is_deleted, created_by, updated_by")
+      .eq("id", projectId)
+      .single();
+    
+    if (fetchError) {
+      console.error('Service: Error fetching project:', fetchError);
+      throw new Error(`Project not found: ${fetchError.message}`);
+    }
+    
+    console.log('Service: Found project:', existingProject);
+    console.log('Service: Project created_by:', existingProject.created_by);
+    console.log('Service: Project updated_by:', existingProject.updated_by);
+    
+    // Check if user has permission to delete this project
+    if (existingProject.created_by !== user.id && existingProject.updated_by !== user.id) {
+      console.warn('Service: User does not have permission to delete this project');
+      // For now, we'll still try to delete (the RLS policy will handle it)
+    }
+    
+    // Try to update the project
+    const { data, error } = await supabase
+      .from("website_projects")
+      .update({ 
+        is_deleted: true,
+        updated_by: user.id 
+      })
+      .eq("id", projectId)
+      .select();
+    
+    if (error) {
+      console.error('Service: Error deleting project:', error);
+      console.error('Service: Error details:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
+      throw error;
+    }
+    
+    console.log('Service: Project deleted successfully:', data);
   }
 
   static async getSignedUrl(filePath: string): Promise<string | null> {
@@ -101,6 +172,58 @@ export class WebsiteProjectsService {
     
     if (error) return null;
     return data.signedUrl ?? null;
+  }
+
+  static async deletePhoto(photoId: string): Promise<void> {
+    const supabase = createClient();
+    console.log('Service: Deleting photo with ID:', photoId);
+    
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('User must be authenticated to delete photos');
+    }
+
+    // First, get the photo details to delete from storage
+    const { data: photo, error: fetchError } = await supabase
+      .from("website_project_photos")
+      .select("file_path")
+      .eq("id", photoId)
+      .single();
+
+    if (fetchError) {
+      console.error('Service: Error fetching photo:', fetchError);
+      throw new Error(`Photo not found: ${fetchError.message}`);
+    }
+
+    console.log('Service: Found photo to delete:', photo);
+
+    // Delete from database
+    const { error: deleteError } = await supabase
+      .from("website_project_photos")
+      .delete()
+      .eq("id", photoId);
+
+    if (deleteError) {
+      console.error('Service: Error deleting photo from database:', deleteError);
+      throw deleteError;
+    }
+
+    // Delete from storage
+    if (photo.file_path) {
+      const { error: storageError } = await supabase.storage
+        .from("website-projects")
+        .remove([photo.file_path]);
+
+      if (storageError) {
+        console.error('Service: Error deleting photo from storage:', storageError);
+        // Don't throw here as the database deletion succeeded
+      } else {
+        console.log('Service: Photo deleted from storage successfully');
+      }
+    }
+
+    console.log('Service: Photo deleted successfully');
   }
 
   private static async uploadPhotos(projectId: string, files: File[]) {
