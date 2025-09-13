@@ -1,12 +1,12 @@
 "use client";
 
 import { useCallback, useMemo, useRef, useState } from "react";
-import { createClient } from "@/utils/auth";
+import { WebsiteProjectsService } from "@/services/website-projects";
+import { useOptimisticUpdates } from "./useOptimisticUpdates";
+import { useLoadingStates } from "./useLoadingStates";
 import type {
   WebsiteProject,
-  WebsiteProjectPhoto,
   ProjectListFilters,
-  ProjectListResponse,
   CreateWebsiteProjectData,
   UpdateWebsiteProjectData,
 } from "@/types/website-projects";
@@ -18,7 +18,32 @@ interface UseWebsiteProjectsState {
   error: string | null;
 }
 
-export function useWebsiteProjects() {
+interface UseWebsiteProjectsReturn {
+  // State
+  projects: WebsiteProject[];
+  total: number;
+  loading: boolean;
+  error: string | null;
+  
+  // Actions
+  fetchProjects: (filters: ProjectListFilters) => Promise<void>;
+  createProject: (data: CreateWebsiteProjectData) => Promise<void>;
+  updateProject: (id: string, data: UpdateWebsiteProjectData) => Promise<void>;
+  deleteProject: (id: string) => Promise<void>;
+  getSignedUrl: (filePath: string) => Promise<string | null>;
+  
+  // Utilities
+  clearError: () => void;
+  refresh: () => Promise<void>;
+  
+  // Loading states
+  isCreating: boolean;
+  isUpdating: boolean;
+  isDeleting: boolean;
+  isUploading: boolean;
+}
+
+export function useWebsiteProjects(): UseWebsiteProjectsReturn {
   const [{ projects, total, loading, error }, setState] = useState<UseWebsiteProjectsState>({
     projects: [],
     total: 0,
@@ -27,159 +52,176 @@ export function useWebsiteProjects() {
   });
 
   const isMountedRef = useRef(true);
+  const currentFiltersRef = useRef<ProjectListFilters | null>(null);
 
-  const supabase = useMemo(() => createClient(), []);
+  const { setLoading, isLoading, clearLoading } = useLoadingStates();
+  const {
+    addOptimisticUpdate,
+    removeOptimisticUpdate,
+    applyOptimisticUpdates,
+    hasOptimisticUpdates,
+  } = useOptimisticUpdates();
 
   const setSafeState = useCallback((updater: (prev: UseWebsiteProjectsState) => UseWebsiteProjectsState) => {
     if (!isMountedRef.current) return;
     setState(updater);
   }, []);
 
-  // Fetch list of projects with basic filtering/pagination
+  const handleError = useCallback((err: any, operation: string) => {
+    console.error(`WebsiteProjects ${operation} error:`, err);
+    setSafeState((prev) => ({
+      ...prev,
+      loading: false,
+      error: err.message ?? `Failed to ${operation}`,
+    }));
+  }, [setSafeState]);
+
   const fetchProjects = useCallback(async (filters: ProjectListFilters): Promise<void> => {
     setSafeState((prev) => ({ ...prev, loading: true, error: null }));
+    currentFiltersRef.current = filters;
 
     try {
-      const from = (filters.page - 1) * filters.limit;
-      const to = from + filters.limit - 1;
-
-      let query = supabase
-        .from("website_projects")
-        .select(
-          `id, name, location, slug, is_deleted, created_by, updated_by, created_at, updated_at,
-           photos:website_project_photos(id, project_id, file_path, order_index, alt_text, created_at)`,
-          { count: "exact" }
-        )
-        .eq("is_deleted", false)
-        .order(filters.sort_by, { ascending: filters.sort_order === "asc" })
-        .range(from, to);
-
-      if (filters.search) {
-        // Simple ilike search on name/location
-        query = query.or(
-          `name.ilike.%${filters.search}%,location.ilike.%${filters.search}%`
-        );
-      }
-
-      const { data, error, count } = await query;
-      if (error) throw error;
-
-      const projects = (data || []) as unknown as WebsiteProject[];
+      const result = await WebsiteProjectsService.fetchProjects(filters);
       setSafeState((prev) => ({
         ...prev,
-        projects,
-        total: count ?? projects.length,
+        projects: result.projects,
+        total: result.total,
         loading: false,
         error: null,
       }));
     } catch (err: any) {
-      setSafeState((prev) => ({ ...prev, loading: false, error: err.message ?? "Failed to load projects" }));
+      handleError(err, "fetch projects");
     }
-  }, [supabase, setSafeState]);
+  }, [setSafeState, handleError]);
 
-  // Create a project and upload photos
-  const createProject = useCallback(async (payload: CreateWebsiteProjectData): Promise<void> => {
-    setSafeState((prev) => ({ ...prev, loading: true, error: null }));
+  const createProject = useCallback(async (data: CreateWebsiteProjectData): Promise<void> => {
+    setLoading('create', true);
+    setSafeState((prev) => ({ ...prev, error: null }));
+
+    // Create optimistic update
+    const tempId = `temp_${Date.now()}`;
+    const optimisticProject: WebsiteProject = {
+      id: tempId,
+      name: data.name,
+      location: data.location,
+      slug: data.name.toLowerCase().replace(/\s+/g, '-'),
+      is_deleted: false,
+      created_by: null,
+      updated_by: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      photos: [],
+    };
+
+    const updateId = addOptimisticUpdate('create', optimisticProject);
+
     try {
-      const { data: insertData, error: insertError } = await supabase
-        .from("website_projects")
-        .insert({ name: payload.name, location: payload.location })
-        .select("id")
-        .single();
-      if (insertError) throw insertError;
-
-      const projectId = insertData!.id as string;
-
-      if (payload.photos && payload.photos.length > 0) {
-        await uploadPhotos(projectId, payload.photos);
+      const projectId = await WebsiteProjectsService.createProject(data);
+      
+      // Remove optimistic update and refresh
+      removeOptimisticUpdate(updateId);
+      if (currentFiltersRef.current) {
+        await fetchProjects(currentFiltersRef.current);
       }
-
-      setSafeState((prev) => ({ ...prev, loading: false }));
     } catch (err: any) {
-      setSafeState((prev) => ({ ...prev, loading: false, error: err.message ?? "Failed to create project" }));
+      removeOptimisticUpdate(updateId);
+      handleError(err, "create project");
       throw err;
+    } finally {
+      setLoading('create', false);
     }
-  }, [supabase, setSafeState]);
+  }, [setLoading, setSafeState, addOptimisticUpdate, removeOptimisticUpdate, fetchProjects, handleError]);
 
-  // Update a project and reconcile photos
-  const updateProject = useCallback(async (projectId: string, payload: UpdateWebsiteProjectData): Promise<void> => {
-    setSafeState((prev) => ({ ...prev, loading: true, error: null }));
+  const updateProject = useCallback(async (id: string, data: UpdateWebsiteProjectData): Promise<void> => {
+    setLoading('update', true);
+    setSafeState((prev) => ({ ...prev, error: null }));
+
+    // Find original project for rollback
+    const originalProject = projects.find(p => p.id === id);
+    if (!originalProject) {
+      setLoading('update', false);
+      throw new Error('Project not found');
+    }
+
+    // Create optimistic update
+    const optimisticProject = { ...originalProject, ...data };
+    const updateId = addOptimisticUpdate('update', optimisticProject, originalProject);
+
     try {
-      const { error: updateError } = await supabase
-        .from("website_projects")
-        .update({ name: payload.name, location: payload.location })
-        .eq("id", projectId);
-      if (updateError) throw updateError;
-
-      if (payload.photos && payload.photos.length > 0) {
-        await uploadPhotos(projectId, payload.photos);
+      await WebsiteProjectsService.updateProject(id, data);
+      
+      // Remove optimistic update and refresh
+      removeOptimisticUpdate(updateId);
+      if (currentFiltersRef.current) {
+        await fetchProjects(currentFiltersRef.current);
       }
-
-      if (payload.existing_photos) {
-        // Update order for existing photos
-        for (const photo of payload.existing_photos) {
-          await supabase
-            .from("website_project_photos")
-            .update({ order_index: photo.order_index })
-            .eq("id", photo.id);
-        }
-      }
-
-      setSafeState((prev) => ({ ...prev, loading: false }));
     } catch (err: any) {
-      setSafeState((prev) => ({ ...prev, loading: false, error: err.message ?? "Failed to update project" }));
+      removeOptimisticUpdate(updateId);
+      handleError(err, "update project");
       throw err;
+    } finally {
+      setLoading('update', false);
     }
-  }, [supabase, setSafeState]);
+  }, [setLoading, setSafeState, projects, addOptimisticUpdate, removeOptimisticUpdate, fetchProjects, handleError]);
 
-  // Soft delete project; cascade removes photos via FK
-  const deleteProject = useCallback(async (projectId: string): Promise<void> => {
-    setSafeState((prev) => ({ ...prev, loading: true, error: null }));
+  const deleteProject = useCallback(async (id: string): Promise<void> => {
+    setLoading('delete', true);
+    setSafeState((prev) => ({ ...prev, error: null }));
+
+    // Find original project for rollback
+    const originalProject = projects.find(p => p.id === id);
+    if (!originalProject) {
+      setLoading('delete', false);
+      throw new Error('Project not found');
+    }
+
+    // Create optimistic update
+    const updateId = addOptimisticUpdate('delete', originalProject, originalProject);
+
     try {
-      const { error: delError } = await supabase
-        .from("website_projects")
-        .update({ is_deleted: true })
-        .eq("id", projectId);
-      if (delError) throw delError;
-
-      setSafeState((prev) => ({ ...prev, loading: false }));
+      await WebsiteProjectsService.deleteProject(id);
+      
+      // Remove optimistic update and refresh
+      removeOptimisticUpdate(updateId);
+      if (currentFiltersRef.current) {
+        await fetchProjects(currentFiltersRef.current);
+      }
     } catch (err: any) {
-      setSafeState((prev) => ({ ...prev, loading: false, error: err.message ?? "Failed to delete project" }));
+      removeOptimisticUpdate(updateId);
+      handleError(err, "delete project");
       throw err;
+    } finally {
+      setLoading('delete', false);
     }
-  }, [supabase, setSafeState]);
+  }, [setLoading, setSafeState, projects, addOptimisticUpdate, removeOptimisticUpdate, fetchProjects, handleError]);
 
-  // Storage helpers
   const getSignedUrl = useCallback(async (filePath: string): Promise<string | null> => {
-    const { data, error } = await supabase.storage
-      .from("website-projects")
-      .createSignedUrl(filePath, 60 * 60); // 1 hour
-    if (error) return null;
-    return data.signedUrl ?? null;
-  }, [supabase]);
-
-  const uploadPhotos = useCallback(async (projectId: string, files: File[]): Promise<void> => {
-    for (let index = 0; index < files.length; index += 1) {
-      const file = files[index];
-      const path = `${projectId}/${Date.now()}-${index}.${file.name.split(".").pop()}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("website-projects")
-        .upload(path, file, {
-          upsert: false,
-        });
-      if (uploadError) throw uploadError;
-
-      const { error: insertPhotoError } = await supabase
-        .from("website_project_photos")
-        .insert({
-          project_id: projectId,
-          file_path: path,
-          order_index: index,
-        });
-      if (insertPhotoError) throw insertPhotoError;
+    setLoading('upload', true);
+    try {
+      return await WebsiteProjectsService.getSignedUrl(filePath);
+    } catch (err: any) {
+      console.error("Failed to get signed URL:", err);
+      return null;
+    } finally {
+      setLoading('upload', false);
     }
-  }, [supabase]);
+  }, [setLoading]);
+
+  const clearError = useCallback(() => {
+    setSafeState((prev) => ({ ...prev, error: null }));
+  }, [setSafeState]);
+
+  const refresh = useCallback(async (): Promise<void> => {
+    if (currentFiltersRef.current) {
+      await fetchProjects(currentFiltersRef.current);
+    }
+  }, [fetchProjects]);
+
+  // Apply optimistic updates to projects
+  const projectsWithOptimisticUpdates = useMemo(() => {
+    if (!hasOptimisticUpdates) return projects;
+    return applyOptimisticUpdates(projects);
+  }, [projects, hasOptimisticUpdates, applyOptimisticUpdates]);
 
   // Cleanup
   useMemo(() => {
@@ -189,18 +231,27 @@ export function useWebsiteProjects() {
   }, []);
 
   return {
-    // state
-    projects,
+    // State
+    projects: projectsWithOptimisticUpdates,
     total,
     loading,
     error,
-    // operations
+    
+    // Actions
     fetchProjects,
     createProject,
     updateProject,
     deleteProject,
     getSignedUrl,
+    
+    // Utilities
+    clearError,
+    refresh,
+    
+    // Loading states
+    isCreating: isLoading('create'),
+    isUpdating: isLoading('update'),
+    isDeleting: isLoading('delete'),
+    isUploading: isLoading('upload'),
   } as const;
 }
-
-
