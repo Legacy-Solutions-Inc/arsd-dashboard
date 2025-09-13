@@ -2,12 +2,29 @@
 
 const nextConfig = {
     images: {
-        domains: ['images.unsplash.com'],
+        domains: [
+            'images.unsplash.com',
+            'iuikicfdwryukkxeieeg.supabase.co'
+        ],
+    },
+    experimental: {
+        suppressHydrationWarning: true
+    },
+    webpack: (config, { isServer }) => {
+        // Disable tempo-devtools in production
+        if (!isServer && process.env.NODE_ENV === 'production') {
+            config.resolve.alias = {
+                ...config.resolve.alias,
+                'tempo-devtools': false
+            };
+        }
+        return config;
     }
 };
 
 if (process.env.NEXT_PUBLIC_TEMPO) {
-    nextConfig["experimental"] = {
+    nextConfig.experimental = {
+        ...nextConfig.experimental,
         // NextJS 13.4.8 up to 14.1.3:
         // swcPlugins: [[require.resolve("tempo-devtools/swc/0.86"), {}]],
         // NextJS 14.1.3 to 14.2.11:
