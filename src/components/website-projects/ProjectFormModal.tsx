@@ -30,7 +30,7 @@ export function ProjectFormModal({ isOpen, onClose, onSubmit, project }: Project
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const { toast } = useToast();
-  const { getSignedUrl, isUploading } = useWebsiteProjects();
+  const { getSignedUrl, getPublicUrl, deletePhoto, isUploading } = useWebsiteProjects();
 
   useEffect(() => {
     if (project) {
@@ -195,6 +195,8 @@ export function ProjectFormModal({ isOpen, onClose, onSubmit, project }: Project
                 onPhotosChange={handlePhotosChange}
                 onExistingPhotosChange={handleExistingPhotosChange}
                 getSignedUrl={getSignedUrl}
+                getPublicUrl={getPublicUrl}
+                deletePhoto={deletePhoto}
                 errors={errors}
               />
             )}
