@@ -31,6 +31,8 @@ interface UseWebsiteProjectsReturn {
   updateProject: (id: string, data: UpdateWebsiteProjectData) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
   getSignedUrl: (filePath: string) => Promise<string | null>;
+  getPublicUrl: (filePath: string) => Promise<string | null>;
+  deletePhoto: (photoId: string) => Promise<void>;
   
   // Utilities
   clearError: () => void;
@@ -81,7 +83,9 @@ export function useWebsiteProjects(): UseWebsiteProjectsReturn {
     currentFiltersRef.current = filters;
 
     try {
+      console.log('Fetching projects with filters:', filters);
       const result = await WebsiteProjectsService.fetchProjects(filters);
+      console.log('Fetched projects:', result.projects.length, 'total:', result.total);
       setSafeState((prev) => ({
         ...prev,
         projects: result.projects,
@@ -175,18 +179,24 @@ export function useWebsiteProjects(): UseWebsiteProjectsReturn {
       throw new Error('Project not found');
     }
 
+    console.log('Deleting project:', { id, name: originalProject.name });
+
     // Create optimistic update
     const updateId = addOptimisticUpdate('delete', originalProject, originalProject);
 
     try {
       await WebsiteProjectsService.deleteProject(id);
+      console.log('Project deleted successfully from database');
       
       // Remove optimistic update and refresh
       removeOptimisticUpdate(updateId);
       if (currentFiltersRef.current) {
+        console.log('Refreshing projects list...');
         await fetchProjects(currentFiltersRef.current);
+        console.log('Projects list refreshed');
       }
     } catch (err: any) {
+      console.error('Error deleting project:', err);
       removeOptimisticUpdate(updateId);
       handleError(err, "delete project");
       throw err;
@@ -206,6 +216,36 @@ export function useWebsiteProjects(): UseWebsiteProjectsReturn {
       setLoading('upload', false);
     }
   }, [setLoading]);
+
+  const getPublicUrl = useCallback(async (filePath: string): Promise<string | null> => {
+    try {
+      // For existing photos, we can use public URLs instead of signed URLs
+      const publicUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/website-projects/${filePath}`;
+      return publicUrl;
+    } catch (err: any) {
+      console.error("Failed to get public URL:", err);
+      return null;
+    }
+  }, []);
+
+  const deletePhoto = useCallback(async (photoId: string): Promise<void> => {
+    try {
+      console.log('Hook: Deleting photo with ID:', photoId);
+      await WebsiteProjectsService.deletePhoto(photoId);
+      console.log('Hook: Photo deleted successfully');
+      
+      // Refresh the projects list to reflect the changes
+      if (currentFiltersRef.current) {
+        console.log('Hook: Refreshing projects list after photo deletion...');
+        await fetchProjects(currentFiltersRef.current);
+        console.log('Hook: Projects list refreshed');
+      }
+    } catch (err: any) {
+      console.error('Hook: Error deleting photo:', err);
+      handleError(err, "delete photo");
+      throw err;
+    }
+  }, [fetchProjects, handleError]);
 
   const clearError = useCallback(() => {
     setSafeState((prev) => ({ ...prev, error: null }));
@@ -243,6 +283,8 @@ export function useWebsiteProjects(): UseWebsiteProjectsReturn {
     updateProject,
     deleteProject,
     getSignedUrl,
+    getPublicUrl,
+    deletePhoto,
     
     // Utilities
     clearError,
