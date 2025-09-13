@@ -5,10 +5,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
+import { Loader2, Save, X } from "lucide-react";
 import { WebsiteProject, ProjectFormData, VALID_IMAGE_TYPES, MAX_FILE_SIZE, MAX_PHOTOS_PER_PROJECT } from "@/types/website-projects";
 import { PhotoUploadSection } from "./PhotoUploadSection";
+import { ProjectFormSkeleton } from "./ProjectSkeleton";
 import { useWebsiteProjects } from "../../hooks/useWebsiteProjects";
 
 interface ProjectFormModalProps {
@@ -25,11 +26,11 @@ export function ProjectFormModal({ isOpen, onClose, onSubmit, project }: Project
     photos: [],
     existing_photos: []
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const { toast } = useToast();
-  const { getSignedUrl } = useWebsiteProjects();
+  const { getSignedUrl, isUploading } = useWebsiteProjects();
 
   useEffect(() => {
     if (project) {
@@ -133,11 +134,14 @@ export function ProjectFormModal({ isOpen, onClose, onSubmit, project }: Project
     handleInputChange('existing_photos', photos);
   };
 
+  const isFormDisabled = isSubmitting || isUploading;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
             {project ? "Edit Project" : "Add New Project"}
           </DialogTitle>
         </DialogHeader>
@@ -153,6 +157,7 @@ export function ProjectFormModal({ isOpen, onClose, onSubmit, project }: Project
                 onChange={(e) => handleInputChange('name', e.target.value)}
                 placeholder="Enter project name"
                 className={errors.name ? "border-red-500" : ""}
+                disabled={isFormDisabled}
               />
               {errors.name && (
                 <p className="text-sm text-red-500">{errors.name}</p>
@@ -167,6 +172,7 @@ export function ProjectFormModal({ isOpen, onClose, onSubmit, project }: Project
                 onChange={(e) => handleInputChange('location', e.target.value)}
                 placeholder="Enter project location"
                 className={errors.location ? "border-red-500" : ""}
+                disabled={isFormDisabled}
               />
               {errors.location && (
                 <p className="text-sm text-red-500">{errors.location}</p>
@@ -177,14 +183,21 @@ export function ProjectFormModal({ isOpen, onClose, onSubmit, project }: Project
           {/* Photos Section */}
           <div className="space-y-4">
             <Label>Photos</Label>
-            <PhotoUploadSection
-              photos={formData.photos}
-              existingPhotos={formData.existing_photos}
-              onPhotosChange={handlePhotosChange}
-              onExistingPhotosChange={handleExistingPhotosChange}
-              getSignedUrl={getSignedUrl}
-              errors={errors}
-            />
+            {isUploading ? (
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                <Loader2 className="h-8 w-8 mx-auto mb-2 animate-spin text-gray-400" />
+                <p className="text-sm text-gray-500">Uploading photos...</p>
+              </div>
+            ) : (
+              <PhotoUploadSection
+                photos={formData.photos}
+                existingPhotos={formData.existing_photos}
+                onPhotosChange={handlePhotosChange}
+                onExistingPhotosChange={handleExistingPhotosChange}
+                getSignedUrl={getSignedUrl}
+                errors={errors}
+              />
+            )}
             {errors.photos && (
               <p className="text-sm text-red-500">{errors.photos}</p>
             )}
@@ -196,15 +209,26 @@ export function ProjectFormModal({ isOpen, onClose, onSubmit, project }: Project
               type="button"
               variant="outline"
               onClick={onClose}
-              disabled={isSubmitting}
+              disabled={isFormDisabled}
             >
+              <X className="h-4 w-4 mr-2" />
               Cancel
             </Button>
             <Button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isFormDisabled}
             >
-              {isSubmitting ? "Saving..." : project ? "Update Project" : "Create Project"}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  {project ? "Updating..." : "Creating..."}
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  {project ? "Update Project" : "Create Project"}
+                </>
+              )}
             </Button>
           </div>
         </form>
@@ -212,4 +236,3 @@ export function ProjectFormModal({ isOpen, onClose, onSubmit, project }: Project
     </Dialog>
   );
 }
-
