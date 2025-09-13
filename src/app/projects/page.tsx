@@ -1,16 +1,97 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { MapPin, ArrowRight, Loader2, Eye, Calendar, Building2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { WebsiteProjectsServerService } from "@/services/website-projects-server";
+import { WebsiteProjectsService } from "@/services/website-projects";
 import { ProjectSkeleton } from "@/components/website-projects/ProjectSkeleton";
 import { ProjectCard } from "@/components/ProjectCard";
+import { useToast } from "@/components/ui/use-toast";
 
-export default async function Projects() {
+interface ProjectWithUrls {
+  id: string;
+  name: string;
+  location: string;
+  created_at: string;
+  photoUrls: string[];
+}
+
+export default function Projects() {
+  const [projectsWithUrls, setProjectsWithUrls] = useState<ProjectWithUrls[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
+
   // Fetch website projects with photos from Supabase
-  const projectsWithUrls = await WebsiteProjectsServerService.fetchProjectsForDisplay();
+  const fetchProjects = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Use the client-side service to fetch projects
+      const result = await WebsiteProjectsService.fetchProjects({
+        page: 1,
+        limit: 100, // Get all projects for display
+        search: "",
+        sort_by: "created_at",
+        sort_order: "desc"
+      });
+
+      // Transform the data to include photo URLs
+      const projectsWithPhotoUrls = await Promise.all(
+        result.projects.map(async (project) => {
+          // Generate photo URLs for each project
+          const photoUrls = project.photos?.map(photo => {
+            // Create a public URL for the photo
+            const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/website-projects/${photo.file_path}`;
+            return url;
+          }) || [];
+
+          return {
+            id: project.id,
+            name: project.name,
+            location: project.location,
+            created_at: project.created_at,
+            photoUrls: photoUrls
+          };
+        })
+      );
+
+      console.log(`Fetched ${projectsWithPhotoUrls.length} projects from database:`, projectsWithPhotoUrls.map(p => ({ id: p.id, name: p.name, photoCount: p.photoUrls.length })));
+      setProjectsWithUrls(projectsWithPhotoUrls);
+    } catch (err: any) {
+      console.error('Error fetching projects:', err);
+      setError(err.message || 'Failed to fetch projects');
+      toast({
+        title: "Error",
+        description: "Failed to load projects. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProjects();
+  }, []);
+
+  // Refresh data when page becomes visible (user switches back to tab)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && !loading) {
+        console.log('Page became visible, refreshing projects...');
+        fetchProjects();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [loading]);
 
   return (
     <div className="min-h-screen bg-white">
@@ -72,16 +153,52 @@ export default async function Projects() {
               <Building2 className="h-4 w-4" />
               Our Portfolio
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Featured Construction Projects
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Discover our latest construction achievements across the Philippines. 
-              Each project represents our commitment to excellence and innovation.
-            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+              <div>
+                <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                  Featured Construction Projects
+                </h2>
+                <p className="text-xl text-gray-600 max-w-3xl leading-relaxed">
+                  Discover our latest construction achievements across the Philippines. 
+                  Each project represents our commitment to excellence and innovation.
+                </p>
+              </div>
+              <Button 
+                onClick={fetchProjects} 
+                disabled={loading}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                {loading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Building2 className="h-4 w-4" />
+                )}
+                {loading ? 'Loading...' : 'Refresh'}
+              </Button>
+            </div>
           </div>
 
-          {projectsWithUrls.length === 0 ? (
+          {loading ? (
+            <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-8">
+              {Array.from({ length: 6 }).map((_, index) => (
+                <ProjectSkeleton key={index} />
+              ))}
+            </div>
+          ) : error ? (
+            <div className="text-center py-20">
+              <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Building2 className="h-12 w-12 text-red-400" />
+              </div>
+              <div className="text-2xl font-semibold text-gray-700 mb-4">Error loading projects</div>
+              <p className="text-gray-500 max-w-md mx-auto mb-6">
+                {error}
+              </p>
+              <Button onClick={fetchProjects} variant="outline">
+                Try Again
+              </Button>
+            </div>
+          ) : projectsWithUrls.length === 0 ? (
             <div className="text-center py-20">
               <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Building2 className="h-12 w-12 text-gray-400" />
