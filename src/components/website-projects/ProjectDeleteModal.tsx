@@ -1,9 +1,6 @@
-"use client";
-
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, Trash2 } from "lucide-react";
+import { AlertTriangle, Loader2, Trash2 } from "lucide-react";
 import { WebsiteProject } from "@/types/website-projects";
 
 interface ProjectDeleteModalProps {
@@ -11,23 +8,16 @@ interface ProjectDeleteModalProps {
   onClose: () => void;
   onConfirm: () => Promise<void>;
   project: WebsiteProject | null;
+  isDeleting?: boolean;
 }
 
-export function ProjectDeleteModal({ isOpen, onClose, onConfirm, project }: ProjectDeleteModalProps) {
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const handleConfirm = async () => {
-    setIsDeleting(true);
-    try {
-      await onConfirm();
-      onClose();
-    } catch (error) {
-      // Error handling is done in the parent component
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
+export function ProjectDeleteModal({ 
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  project, 
+  isDeleting = false 
+}: ProjectDeleteModalProps) {
   if (!project) return null;
 
   return (
@@ -38,51 +28,52 @@ export function ProjectDeleteModal({ isOpen, onClose, onConfirm, project }: Proj
             <AlertTriangle className="h-5 w-5 text-red-500" />
             Delete Project
           </DialogTitle>
+          <DialogDescription>
+            This action cannot be undone. This will permanently delete the project
+            and remove all associated photos from our servers.
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="py-4">
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-              <Trash2 className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
-              <div>
-                <h4 className="font-medium text-red-900 mb-1">
-                  Are you sure you want to delete this project?
-                </h4>
-                <p className="text-sm text-red-700">
-                  This action cannot be undone. The project and all associated photos will be permanently removed.
-                </p>
-              </div>
-            </div>
+            <h4 className="font-medium text-red-900 mb-1">Project to be deleted:</h4>
+            <p className="text-red-700 font-medium">{project.name}</p>
+            <p className="text-red-600 text-sm">{project.location}</p>
+            {project.photos && project.photos.length > 0 && (
+              <p className="text-red-600 text-sm mt-1">
+                {project.photos.length} photo{project.photos.length !== 1 ? 's' : ''} will also be deleted
+              </p>
+            )}
           </div>
+        </div>
 
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h5 className="font-medium text-gray-900 mb-2">Project Details:</h5>
-            <div className="space-y-1 text-sm text-gray-600">
-              <p><span className="font-medium">Name:</span> {project.name}</p>
-              <p><span className="font-medium">Location:</span> {project.location}</p>
-              <p><span className="font-medium">Photos:</span> {project.photos?.length || 0} photos</p>
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4">
-            <Button
-              variant="outline"
-              onClick={onClose}
-              disabled={isDeleting}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleConfirm}
-              disabled={isDeleting}
-            >
-              {isDeleting ? "Deleting..." : "Delete Project"}
-            </Button>
-          </div>
+        <div className="flex justify-end gap-3">
+          <Button
+            variant="outline"
+            onClick={onClose}
+            disabled={isDeleting}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={onConfirm}
+            disabled={isDeleting}
+          >
+            {isDeleting ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Deleting...
+              </>
+            ) : (
+              <>
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete Project
+              </>
+            )}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
   );
 }
-
