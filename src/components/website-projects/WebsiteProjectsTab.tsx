@@ -89,14 +89,21 @@ export function WebsiteProjectsTab() {
     if (!selectedProject) return;
     
     try {
+      console.log('Starting delete process for project:', selectedProject.id);
       await deleteProject(selectedProject.id);
+      console.log('Delete completed, showing success toast');
       toast({
         title: "Success",
         description: "Project deleted successfully",
       });
       setIsDeleteModalOpen(false);
       setSelectedProject(null);
+      
+      // Force refresh the projects list
+      console.log('Force refreshing projects list...');
+      await fetchProjects(filters);
     } catch (error) {
+      console.error('Delete failed:', error);
       // Error is handled by the hook
       toast({
         title: "Error",
