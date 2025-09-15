@@ -153,29 +153,14 @@ export default function Projects() {
               <Building2 className="h-4 w-4" />
               Our Portfolio
             </div>
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
-              <div>
-                <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-                  Featured Construction Projects
-                </h2>
-                <p className="text-xl text-gray-600 max-w-3xl leading-relaxed">
-                  Discover our latest construction achievements across the Philippines. 
-                  Each project represents our commitment to excellence and innovation.
-                </p>
-              </div>
-              <Button 
-                onClick={fetchProjects} 
-                disabled={loading}
-                variant="outline"
-                className="flex items-center gap-2"
-              >
-                {loading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Building2 className="h-4 w-4" />
-                )}
-                {loading ? 'Loading...' : 'Refresh'}
-              </Button>
+            <div className="flex flex-col items-center gap-4 mb-6">
+              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                Featured Construction Projects
+              </h2>
+              <p className="text-xl text-gray-600 max-w-3xl leading-relaxed">
+                Discover our latest construction achievements across the Philippines. 
+                Each project represents our commitment to excellence and innovation.
+              </p>
             </div>
           </div>
 
