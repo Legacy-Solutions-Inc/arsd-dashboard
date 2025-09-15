@@ -1,4 +1,4 @@
-import React from "react";
+"use client";
 interface Project {
   id: string;
   name: string;

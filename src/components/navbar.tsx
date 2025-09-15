@@ -1,6 +1,9 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { createClient } from "../../supabase/server";
+import { createClient } from "@/utils/auth";
 import { Button } from "./ui/button";
 import {
   ChevronDown,
@@ -11,12 +14,31 @@ import {
 } from "lucide-react";
 import UserProfile from "./user-profile";
 
-export default async function Navbar() {
-  const supabase = createClient();
+export default function Navbar() {
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  const {
-    data: { user },
-  } = await (await supabase).auth.getUser();
+  useEffect(() => {
+    const supabase = createClient();
+    
+    // Get initial user
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      setLoading(false);
+    };
+
+    getUser();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user ?? null);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   return (
     <nav className="w-full bg-white shadow-lg sticky top-0 z-50">
@@ -35,7 +57,9 @@ export default async function Navbar() {
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              {user ? (
+              {loading ? (
+                <div className="text-white text-sm">Loading...</div>
+              ) : user ? (
                 <UserProfile />
               ) : (
                 <>

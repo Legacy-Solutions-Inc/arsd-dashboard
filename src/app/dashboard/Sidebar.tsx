@@ -1,7 +1,7 @@
 "use client";
+
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import React from "react";
 import { createClient } from "@/../supabase/client";
 
 const navItems = [

@@ -3,78 +3,7 @@ import Hero from "@/components/hero";
 import Navbar from "@/components/navbar";
 import { ArrowUpRight } from "lucide-react";
 import { createClient } from "../../supabase/server";
-import { Project, ProjectCard } from "@/components/ProjectCard";
-
-
-// Featured projects data
-const featuredProjects: Project[] = [
-  {
-    id: "2134.00",
-    title: "Metro Manila Commercial Complex",
-    type: "Commercial",
-    location: "Metro Manila, Philippines",
-    client: "ABC Construction Corp",
-    contractor: "XYZ Builders Inc",
-    contractAmount: 2000000,
-    progress: 65,
-    status: "In Progress",
-    startDate: "2024-01-01",
-    endDate: "2024-12-31",
-    description:
-      "A modern commercial complex featuring retail spaces, offices, and parking facilities.",
-    image: "/images/arsd-logo.png",
-    features: [
-      "5-story commercial building",
-      "200 parking spaces",
-      "Modern HVAC system",
-      "Green building certification",
-    ],
-  },
-  {
-    id: "2135.00",
-    title: "Iloilo Residential Development",
-    type: "Residential",
-    location: "Iloilo City, Philippines",
-    client: "Iloilo Housing Corp",
-    contractor: "ARSD Construction Corporation",
-    contractAmount: 1500000,
-    progress: 85,
-    status: "Near Completion",
-    startDate: "2023-06-01",
-    endDate: "2024-03-31",
-    description:
-      "Affordable housing project with 50 residential units and community amenities.",
-    image: "/images/arsd-logo.png",
-    features: [
-      "50 residential units",
-      "Community center",
-      "Playground area",
-      "24/7 security",
-    ],
-  },
-  {
-    id: "2136.00",
-    title: "Industrial Warehouse Facility",
-    type: "Industrial",
-    location: "Bataan, Philippines",
-    client: "Industrial Solutions Inc",
-    contractor: "ARSD Construction Corporation",
-    contractAmount: 3500000,
-    progress: 40,
-    status: "In Progress",
-    startDate: "2024-02-01",
-    endDate: "2025-01-31",
-    description:
-      "Large-scale warehouse and distribution center with modern logistics infrastructure.",
-    image: "/images/arsd-logo.png",
-    features: [
-      "50,000 sqm warehouse",
-      "Loading docks",
-      "Office complex",
-      "Fire safety systems",
-    ],
-  },
-];
+import { ProjectCard } from "@/components/ProjectCard";
 
 /** Homepage for ARSD Construction.*/
 export default async function Home() {
@@ -99,11 +28,11 @@ export default async function Home() {
               Explore our ongoing and completed projects, showcasing our expertise in commercial, residential, and industrial construction.
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {featuredProjects.map((project) => (
               <ProjectCard key={project.id} project={project} />
             ))}
-          </div>
+          </div> */}
         </div>
       </section>
 
