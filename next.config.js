@@ -7,9 +7,6 @@ const nextConfig = {
             'iuikicfdwryukkxeieeg.supabase.co'
         ],
     },
-    experimental: {
-        suppressHydrationWarning: true
-    },
     webpack: (config, { isServer }) => {
         // Disable tempo-devtools in production
         if (!isServer && process.env.NODE_ENV === 'production') {
