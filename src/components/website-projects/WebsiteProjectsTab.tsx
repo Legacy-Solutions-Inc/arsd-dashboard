@@ -11,7 +11,7 @@ import { ProjectFormModal } from "./ProjectFormModal";
 import { ProjectDeleteModal } from "./ProjectDeleteModal";
 import { ProjectTable } from "./ProjectTable";
 import { ProjectPagination } from "./ProjectPagination";
-import { ProjectTableSkeleton, ProjectSkeleton } from "./ProjectSkeleton";
+import { ProjectTableSkeleton } from "./ProjectSkeleton";
 import { useWebsiteProjects } from "../../hooks/useWebsiteProjects";
 import { useProjectFilters } from "../../hooks/useProjectFilters";
 

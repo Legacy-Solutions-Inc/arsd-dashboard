@@ -128,21 +128,12 @@ export function ProjectCard({ project }: ProjectCardProps) {
               <MapPin className="h-4 w-4 flex-shrink-0" />
               <span className="text-sm font-medium">{project.location}</span>
             </div>
-
-            <div className="flex items-center gap-2 text-gray-500">
-              <Calendar className="h-4 w-4 flex-shrink-0" />
-              <span className="text-sm">{formatDate(project.created_at)}</span>
-            </div>
+            
           </div>
         </CardHeader>
 
         <CardContent className="p-6 pt-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-arsd-red font-medium text-sm">
-              <span>View Details</span>
-              <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
-            </div>
-            
+          <div className="flex items-center justify-between">            
             {photoUrls.length > 0 && (
               <Button
                 onClick={() => handlePhotoClick(0)}

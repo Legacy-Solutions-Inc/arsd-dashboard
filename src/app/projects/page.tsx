@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
-import { MapPin, ArrowRight, Loader2, Eye, Calendar, Building2 } from "lucide-react";
+import { ArrowRight, Loader2, Building2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { WebsiteProjectsService } from "@/services/website-projects";
