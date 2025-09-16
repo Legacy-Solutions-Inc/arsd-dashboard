@@ -57,22 +57,22 @@ export default function UserManagementPage() {
     }
   };
 
-  const handleCreateUser = async () => {
-    try {
-      await rbacClient.createUser(newUser);
-      await fetchUsers();
-      setIsCreateDialogOpen(false);
-      setNewUser({
-        email: '',
-        password: '',
-        full_name: '',
-        role: 'pending',
-        status: 'pending'
-      });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create user');
-    }
-  };
+  // const handleCreateUser = async () => {
+  //   try {
+  //     await rbacClient.createUser(newUser);
+  //     await fetchUsers();
+  //     setIsCreateDialogOpen(false);
+  //     setNewUser({
+  //       email: '',
+  //       password: '',
+  //       full_name: '',
+  //       role: 'pending',
+  //       status: 'pending'
+  //     });
+  //   } catch (err) {
+  //     setError(err instanceof Error ? err.message : 'Failed to create user');
+  //   }
+  // };
 
   const getRoleBadgeColor = (role: UserRole) => {
     switch (role) {
@@ -110,7 +110,7 @@ export default function UserManagementPage() {
               <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">User Management</h1>
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          {/* <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
@@ -189,7 +189,7 @@ export default function UserManagementPage() {
                 </div>
               </div>
             </DialogContent>
-          </Dialog>
+          </Dialog> */}
         </div>
 
         {error && (
