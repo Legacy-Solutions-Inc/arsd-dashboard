@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/auth";
 import { Button } from "./ui/button";
 import {
@@ -13,10 +14,14 @@ import {
   Phone,
 } from "lucide-react";
 import UserProfile from "./user-profile";
+import { useRBAC } from "@/hooks/useRBAC";
+import { getDefaultDashboardRoute } from "@/utils/dashboard-routing";
 
 export default function Navbar() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const { user: userWithRole } = useRBAC();
 
   useEffect(() => {
     const supabase = createClient();
@@ -39,6 +44,11 @@ export default function Navbar() {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const handleDashboardClick = () => {
+    const defaultRoute = getDefaultDashboardRoute(userWithRole?.role as any);
+    router.push(defaultRoute);
+  };
 
   return (
     <nav className="w-full bg-white shadow-lg sticky top-0 z-50">
@@ -186,11 +196,12 @@ export default function Navbar() {
               </Link>
 
               {user && (
-                <Link href="/dashboard">
-                  <Button className="bg-arsd-red hover:bg-arsd-red-dark text-white">
-                    Dashboard
-                  </Button>
-                </Link>
+                <Button 
+                  onClick={handleDashboardClick}
+                  className="bg-arsd-red hover:bg-arsd-red-dark text-white"
+                >
+                  Dashboard
+                </Button>
               )}
             </div>
 

@@ -26,6 +26,8 @@ export type Database = {
           token_identifier: string
           updated_at: string | null
           user_id: string | null
+          role: 'superadmin' | 'hr' | 'project_manager' | 'project_inspector' | 'pending'
+          status: 'active' | 'inactive' | 'pending'
         }
         Insert: {
           avatar_url?: string | null
@@ -38,6 +40,8 @@ export type Database = {
           token_identifier: string
           updated_at?: string | null
           user_id?: string | null
+          role?: 'superadmin' | 'hr' | 'project_manager' | 'project_inspector' | 'pending'
+          status?: 'active' | 'inactive' | 'pending'
         }
         Update: {
           avatar_url?: string | null
@@ -50,6 +54,8 @@ export type Database = {
           token_identifier?: string
           updated_at?: string | null
           user_id?: string | null
+          role?: 'superadmin' | 'hr' | 'project_manager' | 'project_inspector' | 'pending'
+          status?: 'active' | 'inactive' | 'pending'
         }
         Relationships: []
       }
@@ -58,10 +64,30 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      user_has_role: {
+        Args: {
+          required_role: 'superadmin' | 'hr' | 'project_manager' | 'project_inspector' | 'pending'
+        }
+        Returns: boolean
+      }
+      user_has_any_role: {
+        Args: {
+          required_roles: ('superadmin' | 'hr' | 'project_manager' | 'project_inspector' | 'pending')[]
+        }
+        Returns: boolean
+      }
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: 'superadmin' | 'hr' | 'project_manager' | 'project_inspector' | 'pending'
+      }
+      get_current_user_status: {
+        Args: Record<PropertyKey, never>
+        Returns: 'active' | 'inactive' | 'pending'
+      }
     }
     Enums: {
-      [_ in never]: never
+      user_role: 'superadmin' | 'hr' | 'project_manager' | 'project_inspector' | 'pending'
+      user_status: 'active' | 'inactive' | 'pending'
     }
     CompositeTypes: {
       [_ in never]: never
@@ -188,6 +214,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ['superadmin', 'hr', 'project_manager', 'project_inspector', 'pending'],
+      user_status: ['active', 'inactive', 'pending']
+    },
   },
 } as const

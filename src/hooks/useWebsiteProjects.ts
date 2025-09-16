@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useRef, useState } from "react";
-import { WebsiteProjectsService } from "@/services/website-projects";
+import { WebsiteProjectsService } from "@/services/projects/website-projects";
 import { useOptimisticUpdates } from "./useOptimisticUpdates";
 import { useLoadingStates } from "./useLoadingStates";
 import type {

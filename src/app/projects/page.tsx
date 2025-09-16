@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Loader2, Building2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { WebsiteProjectsService } from "@/services/website-projects";
+import { WebsiteProjectsService } from "@/services/projects/website-projects";
 import { ProjectSkeleton } from "@/components/website-projects/ProjectSkeleton";
 import { ProjectCard } from "@/components/ProjectCard";
 import { useToast } from "@/components/ui/use-toast";
