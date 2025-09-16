@@ -42,7 +42,6 @@ export default function PendingApprovalPage() {
               <p className="font-medium">What happens next?</p>
               <p className="mt-1">
                 An administrator will review your account and assign you the appropriate role and permissions. 
-                You'll receive an email notification once your account is approved.
               </p>
             </div>
           </div>
@@ -52,11 +51,11 @@ export default function PendingApprovalPage() {
               Check Status
             </Button>
             <Button 
-              onClick={() => window.location.href = '/sign-out'} 
+              onClick={() => window.location.href = '/'} 
               variant="ghost" 
               className="w-full"
             >
-              Sign Out
+              Go to Homepage
             </Button>
           </div>
         </CardContent>

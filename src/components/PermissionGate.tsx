@@ -1,80 +1,86 @@
-"use client";
+// Clean Permission Gate Component with proper error handling
+'use client';
 
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import { Permission } from '@/types/rbac';
 import { useRBAC } from '@/hooks/useRBAC';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader2, ShieldX } from 'lucide-react';
 
 interface PermissionGateProps {
+  permission: Permission;
   children: ReactNode;
-  permission?: Permission;
-  permissions?: Permission[];
-  requireAll?: boolean;
   fallback?: ReactNode;
-  loading?: ReactNode;
+  showError?: boolean;
+  requireAll?: boolean; // If true, user must have ALL permissions
+  permissions?: Permission[]; // Alternative to single permission
 }
 
 export function PermissionGate({
-  children,
   permission,
-  permissions = [],
+  children,
+  fallback,
+  showError = true,
   requireAll = false,
-  fallback = null,
-  loading = <div>Loading...</div>
+  permissions
 }: PermissionGateProps) {
-  const { user, loading: userLoading, hasPermission, hasAnyPermission } = useRBAC();
+  const { hasPermission, hasAnyPermission, loading, user } = useRBAC();
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    const checkAccess = async () => {
-      if (userLoading || !user) {
-        setChecking(false);
-        return;
-      }
-
+    const checkPermissions = async () => {
       try {
-        let access = false;
-
-        if (permission) {
-          access = await hasPermission(permission);
-        } else if (permissions.length > 0) {
+        setChecking(true);
+        
+        if (permissions && permissions.length > 0) {
           if (requireAll) {
-            // Check if user has ALL permissions
+            // User must have ALL permissions
             const results = await Promise.all(
               permissions.map(p => hasPermission(p))
             );
-            access = results.every(result => result);
+            setHasAccess(results.every(result => result));
           } else {
-            // Check if user has ANY permission
-            access = await hasAnyPermission(permissions);
+            // User must have ANY permission
+            const result = await hasAnyPermission(permissions);
+            setHasAccess(result);
           }
         } else {
-          // No permission specified, allow access
-          access = true;
+          // Single permission check
+          const result = await hasPermission(permission);
+          setHasAccess(result);
         }
-        setHasAccess(access);
       } catch (error) {
-        console.error('Error checking permissions:', error);
+        console.error('Permission check failed:', error);
         setHasAccess(false);
       } finally {
         setChecking(false);
       }
     };
 
-    checkAccess();
-  }, [user, userLoading, permission, permissions, requireAll, hasPermission, hasAnyPermission]);
+    checkPermissions();
+  }, [permission, permissions, hasPermission, hasAnyPermission, requireAll]);
 
-  if (userLoading || checking) {
-    return <>{loading}</>;
+  // Show loading state
+  if (loading || checking) {
+    return (
+      <div className="flex items-center justify-center p-4">
+        <Loader2 className="h-4 w-4 animate-spin" />
+        <span className="ml-2 text-sm text-muted-foreground">Checking permissions...</span>
+      </div>
+    );
   }
 
-  if (!user) {
-    return <>{fallback}</>;
-  }
-
+  // User doesn't have access
   if (hasAccess === false) {
-    return <>{fallback}</>;
+    if (fallback) {
+      return <>{fallback}</>;
+    }
+
+
+    return null;
   }
 
+  // User has access
   return <>{children}</>;
 }
