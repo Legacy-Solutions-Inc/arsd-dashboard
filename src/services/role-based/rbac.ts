@@ -200,46 +200,43 @@ export class RBACService {
     }
   }
 
-  // Create new user (superadmin only)
-  async createUser(userData: {
-    email: string;
-    password: string;
-    full_name: string;
-    role: UserRole;
-    status: UserStatus;
-  }): Promise<void> {
-    // First create auth user
-    const { data: authData, error: authError } = await this.supabase.auth.admin.createUser({
-      email: userData.email,
-      password: userData.password,
-      email_confirm: true,
-      user_metadata: {
-        full_name: userData.full_name
-      }
-    });
+  // // Create new user (superadmin only)
+  // async createUser(userData: {
+  //   email: string;
+  //   password: string;
+  //   full_name: string;
+  //   role: UserRole;
+  //   status: UserStatus;
+  // }): Promise<void> {
+  //   // First create auth user
+  //   const { data: authData, error: authError } = await this.supabase.auth.admin.createUser({
+  //     email: userData.email,
+  //     password: userData.password,
+  //     email_confirm: true,
+  //     user_metadata: {
+  //       full_name: userData.full_name
+  //     }
+  //   });
 
-    if (authError || !authData.user) {
-      throw new Error(`Failed to create auth user: ${authError?.message}`);
-    }
+  //   if (authError || !authData.user) {
+  //     throw new Error(`Failed to create auth user: ${authError?.message}`);
+  //   }
 
-    // Then create user record with role and status
-    const { error: userError } = await this.supabase
-      .from('users')
-      .insert({
-        id: authData.user.id,
-        user_id: authData.user.id,
-        email: userData.email,
-        full_name: userData.full_name,
-        name: userData.full_name,
-        token_identifier: userData.email,
-        role: userData.role,
-        status: userData.status
-      });
+  //   // Then create user record with role and status
+  //   const { error: userError } = await this.supabase
+  //     .from('profiles')
+  //     .insert({
+  //       user_id: authData.user.id,
+  //       display_name: userData.full_name,
+  //       email: userData.email,
+  //       role: userData.role,
+  //       status: userData.status
+  //     });
 
-    if (userError) {
-      throw new Error(`Failed to create user record: ${userError.message}`);
-    }
-  }
+  //   if (userError) {
+  //     throw new Error(`Failed to create user record: ${userError.message}`);
+  //   }
+  // }
 
   // Get user by ID (superadmin only)
   async getUserById(userId: string): Promise<UserWithRole | null> {
