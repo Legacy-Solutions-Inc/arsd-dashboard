@@ -26,11 +26,68 @@ export async function middleware(req: NextRequest) {
     }
   )
 
-  // Refresh session if expired - required for Server Components
-  const { data: { session }, error } = await supabase.auth.getSession()
+  // Get authenticated user - more secure than session
+  const { data: { user }, error } = await supabase.auth.getUser()
 
   if (error) {
-    console.error('Auth session error:', error)
+    console.error('Auth user error:', error)
+  }
+
+  // Check if user is trying to access protected routes
+  if (req.nextUrl.pathname.startsWith("/dashboard")) {
+    if (error || !user) {
+      return NextResponse.redirect(new URL("/sign-in", req.url))
+    }
+
+    // Check user role and status
+    const { data: userData, error: userError } = await supabase
+      .from('profiles')
+      .select('role, status')
+      .eq('user_id', user.id)
+      .single()
+
+    if (userError || !userData) {
+      return NextResponse.redirect(new URL("/sign-in", req.url))
+    }
+
+    // Block access for pending or inactive users
+    if (userData.status === 'pending' || userData.status === 'inactive') {
+      return NextResponse.redirect(new URL("/pending-approval", req.url))
+    }
+
+    // Block access for pending role users
+    if (userData.role === 'pending') {
+      return NextResponse.redirect(new URL("/pending-approval", req.url))
+    }
+
+    // Role-based route protection
+    const path = req.nextUrl.pathname
+
+    // Base dashboard - Superadmin only
+    if (path === "/dashboard" && userData.role !== 'superadmin') {
+      return NextResponse.redirect(new URL("/", req.url))
+    }
+
+    // Superadmin-only routes
+    if (path.startsWith("/dashboard/users") && userData.role !== 'superadmin') {
+      return NextResponse.redirect(new URL("/dashboard", req.url))
+    }
+
+
+    // Project Manager, Project Inspector, Superadmin-only routes
+    if (path.startsWith("/dashboard/uploads") && userData.role !== 'project_manager' && userData.role !== 'project_inspector' && userData.role !== 'superadmin') {
+      return NextResponse.redirect(new URL("/", req.url))
+    }
+
+    // HR, Superadmin-only routes
+    if (path.startsWith("/dashboard/website-details") && userData.role !== 'hr' && userData.role !== 'superadmin') {
+      return NextResponse.redirect(new URL("/", req.url))
+    }
+  }
+
+  // Redirect authenticated users away from auth pages
+  if ((req.nextUrl.pathname === "/sign-in" || req.nextUrl.pathname === "/sign-up") && user) {
+    return NextResponse.redirect(new URL("/dashboard", req.url))
   }
 
   return res
