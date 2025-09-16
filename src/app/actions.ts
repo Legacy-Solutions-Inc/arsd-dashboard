@@ -43,19 +43,18 @@ export const signUpAction = async (formData: FormData) => {
   if (user) {
     try {
       const { error: updateError } = await supabase
-        .from('users')
+        .from('profiles')
         .insert({
-          id: user.id,
-          name: fullName,
-          full_name: fullName,
-          email: email,
           user_id: user.id,
-          token_identifier: user.id,
-          created_at: new Date().toISOString()
+          display_name: fullName || email,
+          role: 'pending',
+          status: 'pending'
         });
 
       if (updateError) {
-        console.error('Error updating user profile:', updateError);
+        console.error('Error creating user profile:', updateError);
+      } else {
+        console.log('User profile created successfully:', user.id);
       }
     } catch (err) {
       console.error('Error in user profile creation:', err);
@@ -74,14 +73,23 @@ export const signInAction = async (formData: FormData) => {
   const password = formData.get("password") as string;
   const supabase = await createClient();
 
-  const { error } = await supabase.auth.signInWithPassword({
+  console.log('SignIn Action - Attempting sign in for:', email);
+
+  const { data: { user }, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
 
+  console.log('SignIn Action - Auth result:', { user: user?.id, error: error?.message });
+
   if (error) {
+    console.error('SignIn Action - Auth error:', error);
     return encodedRedirect("error", "/sign-in", error.message);
   }
+
+  // User authentication successful, redirect to dashboard
+  // The RBAC service will handle fetching user data from the database
+  console.log('SignIn Action - User authenticated successfully:', user?.id);
 
   return redirect("/dashboard");
 };
@@ -127,7 +135,7 @@ export const resetPasswordAction = async (formData: FormData) => {
   const confirmPassword = formData.get("confirmPassword") as string;
 
   if (!password || !confirmPassword) {
-    encodedRedirect(
+    return encodedRedirect(
       "error",
       "/protected/reset-password",
       "Password and confirm password are required",
@@ -135,7 +143,7 @@ export const resetPasswordAction = async (formData: FormData) => {
   }
 
   if (password !== confirmPassword) {
-    encodedRedirect(
+    return encodedRedirect(
       "error",
       "/dashboard/reset-password",
       "Passwords do not match",
@@ -147,14 +155,14 @@ export const resetPasswordAction = async (formData: FormData) => {
   });
 
   if (error) {
-    encodedRedirect(
+    return encodedRedirect(
       "error",
       "/dashboard/reset-password",
       "Password update failed",
     );
   }
 
-  encodedRedirect("success", "/protected/reset-password", "Password updated");
+  return encodedRedirect("success", "/protected/reset-password", "Password updated");
 };
 
 export const signOutAction = async () => {
