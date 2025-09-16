@@ -42,19 +42,35 @@ export const signUpAction = async (formData: FormData) => {
 
   if (user) {
     try {
-      const { error: updateError } = await supabase
+      // Check if profile already exists first
+      const { data: existingProfile, error: checkError } = await supabase
         .from('profiles')
-        .insert({
-          user_id: user.id,
-          display_name: fullName || email,
-          role: 'pending',
-          status: 'pending'
-        });
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
 
-      if (updateError) {
-        console.error('Error creating user profile:', updateError);
+      if (checkError && checkError.code === 'PGRST116') {
+        // Profile doesn't exist, create it
+        console.log('Creating new profile for user:', user.id);
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: user.id,
+            display_name: fullName || email,
+            email: email,
+            role: 'pending',
+            status: 'pending'
+          });
+
+        if (insertError) {
+          console.error('Error creating user profile:', insertError);
+        } else {
+          console.log('User profile created successfully:', user.id);
+        }
+      } else if (existingProfile) {
+        console.log('Profile already exists for user:', user.id, '- skipping creation');
       } else {
-        console.log('User profile created successfully:', user.id);
+        console.error('Error checking existing profile:', checkError);
       }
     } catch (err) {
       console.error('Error in user profile creation:', err);
@@ -87,10 +103,7 @@ export const signInAction = async (formData: FormData) => {
     return encodedRedirect("error", "/sign-in", error.message);
   }
 
-  // User authentication successful, redirect to dashboard
-  // The RBAC service will handle fetching user data from the database
   console.log('SignIn Action - User authenticated successfully:', user?.id);
-
   return redirect("/dashboard");
 };
 
