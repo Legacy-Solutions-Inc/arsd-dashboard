@@ -4,7 +4,7 @@ const nextConfig = {
     images: {
         domains: [
             'images.unsplash.com',
-            'iuikicfdwryukkxeieeg.supabase.co'
+            'uoffxmrnpukibgcmmgus.supabase.co'
         ],
     },
     webpack: (config, { isServer }) => {
