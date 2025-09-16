@@ -28,7 +28,9 @@ export const ROLE_PERMISSIONS = {
     'view_all_projects',
     'edit_all_projects',
     'delete_projects',
-    'manage_system_settings'
+    'manage_system_settings',
+    'manage_website_details',
+    'manage_uploads'
   ],
   hr: [
     'manage_website_details'
