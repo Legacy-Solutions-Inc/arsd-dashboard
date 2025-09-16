@@ -47,7 +47,10 @@ export async function middleware(req: NextRequest) {
       .single()
 
     if (userError || !userData) {
-      return NextResponse.redirect(new URL("/sign-in", req.url))
+      // If user is authenticated but no profile exists, redirect to pending approval
+      // This handles the case where email confirmation completed but profile creation failed
+      console.log('User authenticated but no profile found:', user.id, userError?.message);
+      return NextResponse.redirect(new URL("/pending-approval", req.url))
     }
 
     // Block access for pending or inactive users

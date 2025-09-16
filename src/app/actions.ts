@@ -104,7 +104,7 @@ export const signInAction = async (formData: FormData) => {
   }
 
   console.log('SignIn Action - User authenticated successfully:', user?.id);
-  return redirect("/dashboard");
+  return redirect("/");
 };
 
 export const forgotPasswordAction = async (formData: FormData) => {
