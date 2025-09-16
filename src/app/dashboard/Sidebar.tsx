@@ -3,21 +3,53 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/../supabase/client";
+import { useRBAC } from '@/hooks/useRBAC';
+import { PermissionGate } from '@/components/PermissionGate';
+import { Permission } from '@/types/rbac';
 
-const navItems = [
-  { name: "Dashboard", href: "/dashboard", icon: <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 13h4v8H3v-8zm7-6h4v14h-4V7zm7 9h4v5h-4v-5z"/></svg> },
-  { name: "Website Details", href: "/dashboard/website-details", icon: <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 0 20M12 2a15.3 15.3 0 0 0 0 20"/></svg> },
-  { name: "Uploads", href: "/dashboard/uploads", icon: <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 19V6m0 0l-7 7m7-7l7 7"/></svg> },
+const navigationItems: Array<{
+  name: string;
+  href: string;
+  icon: React.ReactNode;
+  permission?: Permission;
+}> = [
+  { 
+    name: "Dashboard", 
+    href: "/dashboard", 
+    icon: <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 13h4v8H3v-8zm7-6h4v14h-4V7zm7 9h4v5h-4v-5z"/></svg>,
+    permission: 'manage_system_settings' as const
+  },
+  { 
+    name: "Website Details", 
+    href: "/dashboard/website-details", 
+    icon: <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 0 20M12 2a15.3 15.3 0 0 0 0 20"/></svg>,
+    permission: 'manage_website_details' as const
+  },
+  { 
+    name: "Uploads", 
+    href: "/dashboard/uploads", 
+    icon: <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 19V6m0 0l-7 7m7-7l7 7"/></svg>,
+    permission: 'manage_uploads' as const
+  },
+  { 
+    name: "User Management", 
+    href: "/dashboard/users", 
+    icon: <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>,
+    permission: 'manage_users' as const
+  },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { user } = useRBAC();
+  
   const handleLogout = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/sign-in");
   };
+
   return (
     <aside className="w-64 bg-arsd-red flex flex-col min-h-screen shadow-xl">
       {/* Header Section */}
@@ -33,26 +65,54 @@ export default function Sidebar() {
           <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
         </button>
       </div>
+      
+      {/* User Info */}
+      {user && (
+        <div className="px-6 py-4 border-b border-white/20">
+          <div className="text-white/90 text-sm">
+            <div className="font-medium">{user.full_name || user.name || 'User'}</div>
+            <div className="text-xs text-white/70 capitalize">{user.role}</div>
+          </div>
+        </div>
+      )}
+
       {/* Navigation */}
       <nav className="flex-1 py-8">
         <ul className="space-y-2 px-4">
-          {navItems.map((item) => (
+          {navigationItems.map((item) => (
             <li key={item.href}>
-              <Link
-                href={item.href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg font-semibold transition-all duration-150 text-base border-l-4 shadow-sm ${
-                  pathname === item.href
-                    ? "bg-[#233D8F] text-yellow-400 border-yellow-400"
-                    : "text-white/90 border-transparent hover:bg-[#233D8F] hover:text-yellow-400"
-                }`}
-              >
-                <span>{item.icon}</span>
-                {item.name}
-              </Link>
+              {item.permission ? (
+                <PermissionGate permission={item.permission}>
+                  <Link
+                    href={item.href}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg font-semibold transition-all duration-150 text-base border-l-4 shadow-sm ${
+                      pathname === item.href
+                        ? "bg-[#233D8F] text-yellow-400 border-yellow-400"
+                        : "text-white/90 border-transparent hover:bg-[#233D8F] hover:text-yellow-400"
+                    }`}
+                  >
+                    <span>{item.icon}</span>
+                    {item.name}
+                  </Link>
+                </PermissionGate>
+              ) : (
+                <Link
+                  href={item.href}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg font-semibold transition-all duration-150 text-base border-l-4 shadow-sm ${
+                    pathname === item.href
+                      ? "bg-[#233D8F] text-yellow-400 border-yellow-400"
+                      : "text-white/90 border-transparent hover:bg-[#233D8F] hover:text-yellow-400"
+                  }`}
+                >
+                  <span>{item.icon}</span>
+                  {item.name}
+                </Link>
+              )}
             </li>
           ))}
         </ul>
       </nav>
+      
       {/* Log Out Button */}
       <div className="px-4 pb-6 mt-auto">
         <button
