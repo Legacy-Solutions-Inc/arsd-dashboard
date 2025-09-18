@@ -103,6 +103,7 @@ export const projects = [
     id: "2136.00",
     name: "Retail Store Renovation",
     client: "GHI Retailers",
+
     location: "Davao City, Philippines",
     status: "completed",
     overview: {
