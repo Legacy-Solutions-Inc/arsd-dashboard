@@ -103,6 +103,43 @@ export const signInAction = async (formData: FormData) => {
     return encodedRedirect("error", "/sign-in", error.message);
   }
 
+  if (user) {
+    try {
+      // Check if profile already exists first
+      const { data: existingProfile, error: checkError } = await supabase
+        .from('profiles')
+        .select('id, display_name, email, role, status')
+        .eq('user_id', user.id)
+        .single();
+
+      if (checkError && checkError.code === 'PGRST116') {
+        // Profile doesn't exist, create it
+        console.log('Creating new profile for user during sign in:', user.id);
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: user.id,
+            display_name: user.user_metadata?.full_name || email,
+            email: email,
+            role: 'pending',
+            status: 'pending'
+          });
+
+        if (insertError) {
+          console.error('Error creating user profile during sign in:', insertError);
+        } else {
+          console.log('User profile created successfully during sign in:', user.id);
+        }
+      } else if (existingProfile) {
+        console.log('Profile already exists for user during sign in:', user.id, '- profile found');
+      } else {
+        console.error('Error checking existing profile during sign in:', checkError);
+      }
+    } catch (err) {
+      console.error('Error in user profile creation during sign in:', err);
+    }
+  }
+
   console.log('SignIn Action - User authenticated successfully:', user?.id);
   return redirect("/");
 };
