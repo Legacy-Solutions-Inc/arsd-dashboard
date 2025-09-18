@@ -1,0 +1,224 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { ProjectStatus, CreateProjectData, ProjectManager } from '@/types/projects';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { ProjectService } from '@/services/projects/project.service';
+
+interface ProjectCreateFormProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  projectManagers: ProjectManager[];
+}
+
+export default function ProjectCreateForm({
+  isOpen,
+  onClose,
+  onSuccess,
+  projectManagers,
+}: ProjectCreateFormProps) {
+  const [formData, setFormData] = useState<CreateProjectData>({
+    project_name: '',
+    client: '',
+    location: '',
+    status: 'in_planning',
+    project_manager_id: 'none',
+  });
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const projectService = new ProjectService();
+
+  useEffect(() => {
+    if (!isOpen) {
+      // Reset form when dialog closes
+      setFormData({
+        project_name: '',
+        client: '',
+        location: '',
+        status: 'in_planning',
+        project_manager_id: 'none',
+      });
+      setErrors({});
+    }
+  }, [isOpen]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setFormData((prev) => ({ ...prev, [id]: value }));
+    if (errors[id]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[id];
+        return newErrors;
+      });
+    }
+  };
+
+  const handleSelectChange = (id: keyof CreateProjectData, value: string) => {
+    setFormData((prev) => ({ ...prev, [id]: value }));
+    if (errors[id]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[id];
+        return newErrors;
+      });
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    if (!formData.project_name.trim()) newErrors.project_name = 'Project Name is required.';
+    if (!formData.client.trim()) newErrors.client = 'Client is required.';
+    if (!formData.location.trim()) newErrors.location = 'Location is required.';
+    if (!formData.status) newErrors.status = 'Status is required.';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateForm()) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Convert 'none' to undefined for project_manager_id
+      const dataToSubmit = {
+        ...formData,
+        project_manager_id: formData.project_manager_id === 'none' ? undefined : formData.project_manager_id
+      };
+      
+      await projectService.createProject(dataToSubmit);
+      onSuccess();
+      onClose();
+    } catch (error) {
+      console.error('Failed to create project:', error);
+      setErrors({ submit: 'Failed to create project. Please try again.' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>Create New Project</DialogTitle>
+          <DialogDescription>
+            Fill in the details for the new project. Project ID will be auto-generated.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="project_name">Project Name *</Label>
+            <Input
+              id="project_name"
+              value={formData.project_name}
+              onChange={handleChange}
+              placeholder="Enter project name"
+              required
+            />
+            {errors.project_name && <p className="text-red-500 text-sm">{errors.project_name}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="client">Client *</Label>
+            <Input
+              id="client"
+              value={formData.client}
+              onChange={handleChange}
+              placeholder="Enter client name"
+              required
+            />
+            {errors.client && <p className="text-red-500 text-sm">{errors.client}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="location">Location *</Label>
+            <Input
+              id="location"
+              value={formData.location}
+              onChange={handleChange}
+              placeholder="Enter project location"
+              required
+            />
+            {errors.location && <p className="text-red-500 text-sm">{errors.location}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="status">Status *</Label>
+            <Select
+              value={formData.status}
+              onValueChange={(value: ProjectStatus) => handleSelectChange('status', value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="in_planning">In Planning</SelectItem>
+                <SelectItem value="in_progress">In Progress</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.status && <p className="text-red-500 text-sm">{errors.status}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="project_manager_id">Project Manager</Label>
+            <Select
+              value={formData.project_manager_id}
+              onValueChange={(value) => handleSelectChange('project_manager_id', value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Assign Project Manager (Optional)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Unassigned</SelectItem>
+                {projectManagers.map((pm) => (
+                  <SelectItem key={pm.user_id} value={pm.user_id}>
+                    {pm.display_name} ({pm.email})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {errors.submit && (
+            <div className="text-red-500 text-sm bg-red-50 p-3 rounded">
+              {errors.submit}
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? 'Creating...' : 'Create Project'}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
