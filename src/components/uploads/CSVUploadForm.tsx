@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Upload, FileText, X, CheckCircle, AlertCircle } from 'lucide-react';
 import { AccomplishmentReportsService } from '@/services/accomplishment-reports/accomplishment-reports.service';
 import { getWeekEndingDate, formatFileSize } from '@/types/accomplishment-reports';
+import { STORAGE_CONFIG } from '@/config/storage.config';
 import { createClient } from '@/lib/supabase';
 import type { Project } from '@/types/projects';
 
@@ -31,17 +32,16 @@ export default function CSVUploadForm({ project, onUploadSuccess, onCancel }: CS
   const handleFileSelect = (selectedFile: File) => {
     // Validate file type
     const fileName = selectedFile.name.toLowerCase();
-    const allowedExtensions = ['.csv', '.xlsx', '.xls'];
-    const isValidFile = allowedExtensions.some(ext => fileName.endsWith(ext));
+    const isValidFile = STORAGE_CONFIG.UPLOAD.ALLOWED_EXTENSIONS.some(ext => fileName.endsWith(ext));
     
     if (!isValidFile) {
-      setError('Please select a CSV or Excel file (.csv, .xlsx, .xls)');
+      setError(`Please select a valid file type: ${STORAGE_CONFIG.UPLOAD.ALLOWED_EXTENSIONS.join(', ')}`);
       return;
     }
 
-    // Validate file size (max 20MB)
-    if (selectedFile.size > 20 * 1024 * 1024) {
-      setError('File size must be less than 20MB');
+    // Validate file size
+    if (selectedFile.size > STORAGE_CONFIG.UPLOAD.MAX_FILE_SIZE) {
+      setError(`File size must be less than ${STORAGE_CONFIG.UPLOAD.MAX_FILE_SIZE / (1024 * 1024)}MB`);
       return;
     }
 
@@ -185,7 +185,7 @@ export default function CSVUploadForm({ project, onUploadSuccess, onCancel }: CS
             <input
               ref={fileInputRef}
               type="file"
-              accept=".csv,.xlsx,.xls"
+              accept={STORAGE_CONFIG.UPLOAD.ALLOWED_EXTENSIONS.join(',')}
               onChange={handleFileInputChange}
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             />
@@ -223,7 +223,7 @@ export default function CSVUploadForm({ project, onUploadSuccess, onCancel }: CS
                   </p>
                 </div>
                 <p className="text-xs text-gray-400">
-                  Maximum file size: 20MB
+                  Maximum file size: {STORAGE_CONFIG.UPLOAD.MAX_FILE_SIZE / (1024 * 1024)}MB
                 </p>
               </div>
             )}
