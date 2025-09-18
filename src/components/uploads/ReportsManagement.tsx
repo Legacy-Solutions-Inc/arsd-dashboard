@@ -23,6 +23,7 @@ import {
   Eye
 } from 'lucide-react';
 import { useAllAccomplishmentReports } from '@/hooks/useAccomplishmentReports';
+import { useFileDownload } from '@/hooks/useFileDownload';
 import { getStatusText, getStatusColor, formatFileSize } from '@/types/accomplishment-reports';
 import type { AccomplishmentReport, AccomplishmentReportFilters } from '@/types/accomplishment-reports';
 
@@ -31,6 +32,7 @@ export default function ReportsManagement() {
   const [searchTerm, setSearchTerm] = useState('');
   
   const { reports, loading, error, refetch } = useAllAccomplishmentReports(filters);
+  const { downloadFile, isDownloading, error: downloadError } = useFileDownload();
 
   const handleStatusFilter = (status: string) => {
     setFilters(prev => ({
@@ -41,7 +43,6 @@ export default function ReportsManagement() {
 
   const handleSearch = (term: string) => {
     setSearchTerm(term);
-    // You could implement search logic here if needed
   };
 
   const filteredReports = reports.filter(report => {
@@ -68,72 +69,10 @@ export default function ReportsManagement() {
 
   const handleDownload = async (report: AccomplishmentReport) => {
     try {
-      // Import Supabase client
-      const { createClient } = await import('@/lib/supabase');
-      const supabase = createClient();
-      
-      // Get the file using the file_url (which should be the correct Supabase Storage URL)
-      if (report.file_url && report.file_url.includes('supabase')) {
-        const response = await fetch(report.file_url);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = report.file_name;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-        return;
-      }
-      
-      // Method 2: Construct URL using the correct pattern
-      const baseUrl = 'https://uoffxmrnpukibgcmmgus.supabase.co/storage/v1/object/public';
-      const bucketName = 'accomplishment-reports';
-      
-      // Search for files with the project ID pattern in the subfolder
-      const { data: files, error: listError } = await supabase.storage
-        .from('accomplishment-reports')
-        .list('accomplishment-reports', {
-          search: report.project_id
-        });
-      
-      if (listError) throw listError;
-      
-      // Find the file that matches our report
-      const matchingFile = files?.find(file => 
-        file.name.includes(report.project_id) && 
-        file.name.includes(report.file_name.split('.')[0])
-      );
-      
-      if (!matchingFile) {
-        throw new Error('File not found in storage');
-      }
-      
-      // Construct the full URL using the correct pattern
-      const fullUrl = `${baseUrl}/${bucketName}/${bucketName}/${matchingFile.name}`;
-      
-      // Download using the constructed URL
-      const response = await fetch(fullUrl);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = report.file_name;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      await downloadFile(report.project_id, report.file_name, report.file_url);
     } catch (error) {
       console.error('Download failed:', error);
-      alert(`Download failed: ${error instanceof Error ? error.message : 'Unknown error'} ${report.file_url}`);
+      alert(`Download failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -159,6 +98,15 @@ export default function ReportsManagement() {
       <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>{error}</AlertDescription>
+      </Alert>
+    );
+  }
+
+  if (downloadError) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>Download error: {downloadError}</AlertDescription>
       </Alert>
     );
   }
@@ -312,9 +260,19 @@ export default function ReportsManagement() {
                           variant="outline"
                           size="sm"
                           onClick={() => handleDownload(report)}
+                          disabled={isDownloading}
                         >
-                          <Download className="h-4 w-4 mr-1" />
-                          Download
+                          {isDownloading ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 mr-1" />
+                              Downloading...
+                            </>
+                          ) : (
+                            <>
+                              <Download className="h-4 w-4 mr-1" />
+                              Download
+                            </>
+                          )}
                         </Button>
                         <Button
                           variant="outline"
