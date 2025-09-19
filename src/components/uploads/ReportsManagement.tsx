@@ -378,7 +378,7 @@ export default function ReportsManagement() {
                               </>
                             )}
                           </Button>
-                          <Button
+                          {/* <Button
                             variant="outline"
                             size="sm"
                             onClick={() => window.open(report.file_url, '_blank')}
@@ -386,7 +386,7 @@ export default function ReportsManagement() {
                           >
                             <Eye className="h-4 w-4 mr-1" />
                             View
-                          </Button>
+                          </Button> */}
                           {canUpdateStatus(report) && report.status === 'pending' && (
                             <>
                               <Button
