@@ -145,4 +145,23 @@ export class ProjectService {
 
     return data || [];
   }
+
+  async updateLatestAccomplishmentDate(projectId: string, date: string): Promise<void> {
+    const { data: { user } } = await this.supabase.auth.getUser();
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
+    const { error } = await this.supabase
+      .from('projects')
+      .update({
+        latest_accomplishment_update: date,
+        updated_by: user.id
+      })
+      .eq('id', projectId);
+
+    if (error) {
+      throw new Error(`Failed to update project accomplishment date: ${error.message}`);
+    }
+  }
 }

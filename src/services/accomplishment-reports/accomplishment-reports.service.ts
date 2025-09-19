@@ -180,7 +180,7 @@ export class AccomplishmentReportsService extends BaseService {
     }
   }
 
-  // Update report status (for superadmins)
+  // Update report status (for superadmins and project inspectors)
   async updateReportStatus(
     reportId: string, 
     status: 'pending' | 'approved' | 'rejected',
@@ -189,35 +189,79 @@ export class AccomplishmentReportsService extends BaseService {
     try {
       const supabase = createClient();
       
-      const { data, error } = await supabase
+      console.log('Updating report status:', { reportId, status, notes });
+      
+      // First, get the report to access project_id
+      const { data: reportData, error: fetchError } = await supabase
         .from('accomplishment_reports')
-        .update({ 
-          status,
-          notes: notes || null,
-          updated_at: new Date().toISOString()
-        })
+        .select('project_id, week_ending_date')
         .eq('id', reportId)
-        .select(`
-          *,
-          project:projects(
-            id,
-            project_id,
-            project_name,
-            client,
-            location,
-            status
-          ),
-          uploader:profiles!accomplishment_reports_uploaded_by_fkey(
-            id,
-            display_name,
-            email
-          )
-        `)
         .single();
 
-      if (error) throw error;
-      return data;
+      if (fetchError) {
+        console.error('Error fetching report:', fetchError);
+        throw fetchError;
+      }
+
+      console.log('Report data fetched:', reportData);
+
+      // Update the report status (simplified - no complex joins)
+      const updateData: any = { 
+        status
+      };
+      
+      if (notes !== undefined) {
+        updateData.notes = notes;
+      }
+
+      console.log('Update data:', updateData);
+
+      const { error: updateError } = await supabase
+        .from('accomplishment_reports')
+        .update(updateData)
+        .eq('id', reportId);
+
+      if (updateError) {
+        console.error('Error updating report:', updateError);
+        throw updateError;
+      }
+
+      console.log('Report status updated successfully');
+
+      // If approved, update the project's latest accomplishment date
+      if (status === 'approved') {
+        console.log('Updating project accomplishment date...');
+        const { error: projectError } = await supabase
+          .from('projects')
+          .update({
+            latest_accomplishment_update: reportData.week_ending_date
+          })
+          .eq('id', reportData.project_id);
+
+        if (projectError) {
+          console.warn('Failed to update project accomplishment date:', projectError);
+          // Don't throw here as the main operation succeeded
+        } else {
+          console.log('Project accomplishment date updated successfully');
+        }
+      }
+
+      // Return the updated report by fetching it from the view
+      const { data: updatedReport, error: fetchUpdatedError } = await supabase
+        .from('accomplishment_reports_with_details')
+        .select('*')
+        .eq('id', reportId)
+        .single();
+
+      if (fetchUpdatedError) {
+        console.error('Error fetching updated report:', fetchUpdatedError);
+        throw fetchUpdatedError;
+      }
+
+      console.log('Updated report fetched successfully:', updatedReport);
+      return updatedReport;
     } catch (error) {
+      console.error('updateReportStatus error:', error);
       throw error;
     }
   }

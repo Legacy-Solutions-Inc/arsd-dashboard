@@ -113,3 +113,35 @@ export function useWeeklyUploadStatus() {
     refetch
   };
 }
+
+export function useUpdateReportStatus() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const service = new AccomplishmentReportsService();
+
+  const updateStatus = useCallback(async (
+    reportId: string, 
+    status: 'pending' | 'approved' | 'rejected',
+    notes?: string
+  ) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const result = await service.updateReportStatus(reportId, status, notes);
+      return result;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update report status';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  return {
+    updateStatus,
+    loading,
+    error
+  };
+}

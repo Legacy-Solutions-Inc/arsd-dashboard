@@ -24,17 +24,21 @@ import {
   BarChart3,
   FileUp
 } from 'lucide-react';
-import { useAllAccomplishmentReports } from '@/hooks/useAccomplishmentReports';
+import { useAllAccomplishmentReports, useUpdateReportStatus } from '@/hooks/useAccomplishmentReports';
 import { useFileDownload } from '@/hooks/useFileDownload';
+import { useRBAC } from '@/hooks/useRBAC';
 import { getStatusText, getStatusColor, formatFileSize } from '@/types/accomplishment-reports';
 import type { AccomplishmentReport, AccomplishmentReportFilters } from '@/types/accomplishment-reports';
 
 export default function ReportsManagement() {
   const [filters, setFilters] = useState<AccomplishmentReportFilters>({});
   const [searchTerm, setSearchTerm] = useState('');
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   
   const { reports, loading, error, refetch } = useAllAccomplishmentReports(filters);
   const { downloadFile, isDownloading, error: downloadError } = useFileDownload();
+  const { updateStatus, loading: statusLoading, error: statusError } = useUpdateReportStatus();
+  const { user, hasPermission } = useRBAC();
 
   const handleStatusFilter = (status: string) => {
     setFilters(prev => ({
@@ -76,6 +80,31 @@ export default function ReportsManagement() {
       console.error('Download failed:', error);
       alert(`Download failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+  };
+
+  const handleStatusUpdate = async (reportId: string, status: 'approved' | 'rejected', notes?: string) => {
+    try {
+      setUpdatingStatus(reportId);
+      await updateStatus(reportId, status, notes);
+      await refetch(); // Refresh the reports list
+      
+      // If approved, dispatch event to refresh projects dashboard
+      if (status === 'approved') {
+        window.dispatchEvent(new CustomEvent('projectReportApproved'));
+      }
+    } catch (error) {
+      console.error('Status update failed:', error);
+      alert(`Status update failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setUpdatingStatus(null);
+    }
+  };
+
+  const canUpdateStatus = (report: AccomplishmentReport): boolean => {
+    if (!user) return false;
+    
+    // Superadmin and project inspector can update any report
+    return ['superadmin', 'project_inspector'].includes(user.role);
   };
 
   const formatDate = (dateString: string) => {
@@ -143,6 +172,26 @@ export default function ReportsManagement() {
         <Alert variant="destructive" className="glass-elevated border-red-200/50 bg-red-50/10">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription className="text-red-800">Download error: {downloadError}</AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  if (statusError) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-glass-subtle rounded-xl flex items-center justify-center">
+            <BarChart3 className="h-6 w-6 text-arsd-red" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-glass-primary text-arsd-red">Accomplishment Reports</h2>
+            <p className="text-glass-secondary">View and manage all uploaded accomplishment reports</p>
+          </div>
+        </div>
+        <Alert variant="destructive" className="glass-elevated border-red-200/50 bg-red-50/10">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription className="text-red-800">Status update error: {statusError}</AlertDescription>
         </Alert>
       </div>
     );
@@ -309,7 +358,7 @@ export default function ReportsManagement() {
                         </div>
                       </TableCell>
                       <TableCell className="glass-table-cell">
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-wrap">
                           <Button
                             variant="outline"
                             size="sm"
@@ -329,7 +378,7 @@ export default function ReportsManagement() {
                               </>
                             )}
                           </Button>
-                          <Button
+                          {/* <Button
                             variant="outline"
                             size="sm"
                             onClick={() => window.open(report.file_url, '_blank')}
@@ -337,7 +386,49 @@ export default function ReportsManagement() {
                           >
                             <Eye className="h-4 w-4 mr-1" />
                             View
-                          </Button>
+                          </Button> */}
+                          {canUpdateStatus(report) && report.status === 'pending' && (
+                            <>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleStatusUpdate(report.id, 'approved')}
+                                disabled={updatingStatus === report.id || statusLoading}
+                                className="glass-button bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-700 border-green-300/50 hover:from-green-500/30 hover:to-emerald-500/30"
+                              >
+                                {updatingStatus === report.id ? (
+                                  <>
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 mr-1" />
+                                    Updating...
+                                  </>
+                                ) : (
+                                  <>
+                                    <CheckCircle className="h-4 w-4 mr-1" />
+                                    Approve
+                                  </>
+                                )}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleStatusUpdate(report.id, 'rejected')}
+                                disabled={updatingStatus === report.id || statusLoading}
+                                className="glass-button bg-gradient-to-r from-red-500/20 to-rose-500/20 text-red-700 border-red-300/50 hover:from-red-500/30 hover:to-rose-500/30"
+                              >
+                                {updatingStatus === report.id ? (
+                                  <>
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600 mr-1" />
+                                    Updating...
+                                  </>
+                                ) : (
+                                  <>
+                                    <AlertCircle className="h-4 w-4 mr-1" />
+                                    Reject
+                                  </>
+                                )}
+                              </Button>
+                            </>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
