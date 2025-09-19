@@ -29,6 +29,13 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
+    
+    /* ARSD Brand Colors */
+    --arsd-red: 0 84% 60%;
+    --arsd-red-light: 0 84% 70%;
+    --arsd-red-dark: 0 84% 50%;
+    --arsd-yellow: 45 100% 60%;
+    --arsd-yellow-light: 45 100% 70%;
   }
 
   .dark {
@@ -65,5 +72,168 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Glassmorphism Styles with ARSD Red Theme */
+@layer components {
+  .glass {
+    @apply bg-red-50/15 backdrop-blur-md border border-red-200/25;
+  }
+  
+  .glass-elevated {
+    @apply bg-red-50/25 backdrop-blur-lg border border-red-200/35 shadow-xl;
+  }
+  
+  .glass-subtle {
+    @apply bg-red-50/5 backdrop-blur-sm border border-red-200/15;
+  }
+  
+  .glass-card {
+    @apply glass rounded-2xl p-6 transition-all duration-300 hover:bg-red-50/20 hover:shadow-2xl hover:scale-[1.02];
+  }
+  
+  .glass-button {
+    @apply glass rounded-xl px-6 py-3 font-medium transition-all duration-300 hover:bg-red-50/25 hover:scale-105 active:scale-95;
+  }
+  
+  .glass-input {
+    @apply glass rounded-xl px-4 py-3 placeholder:text-red-600/60 focus:bg-red-50/25 focus:outline-none focus:ring-2 focus:ring-red-300/40;
+  }
+  
+  .glass-table {
+    @apply glass rounded-2xl overflow-hidden;
+  }
+  
+  .glass-table-header {
+    @apply bg-red-50/20 backdrop-blur-sm border-b border-red-200/30;
+  }
+  
+  .glass-table-row {
+    @apply border-b border-red-200/15 hover:bg-red-50/10 transition-all duration-200;
+  }
+  
+  .glass-table-cell {
+    @apply px-6 py-4 text-gray-800;
+  }
+  
+  .glass-table-header-cell {
+    @apply px-6 py-4 font-semibold text-red-800 text-sm uppercase tracking-wider;
+  }
+  
+  /* ARSD Text color utilities */
+  .text-arsd-primary {
+    @apply text-red-800;
+  }
+  
+  .text-arsd-secondary {
+    @apply text-red-600;
+  }
+  
+  .text-arsd-muted {
+    @apply text-red-500;
+  }
+  
+  .text-arsd-accent {
+    @apply text-red-600;
+  }
+  
+  .text-arsd-success {
+    @apply text-green-600;
+  }
+  
+  .text-arsd-warning {
+    @apply text-yellow-600;
+  }
+  
+  .text-arsd-error {
+    @apply text-red-700;
+  }
+  
+  /* ARSD Button variants */
+  .btn-arsd-primary {
+    @apply bg-red-600 text-white hover:bg-red-700 border-red-600;
+  }
+  
+  .btn-arsd-secondary {
+    @apply bg-red-50 text-red-800 hover:bg-red-100 border-red-200;
+  }
+  
+  .btn-arsd-outline {
+    @apply border-red-600 text-red-600 hover:bg-red-50;
+  }
+  
+  .btn-arsd-glass {
+    @apply glass-button bg-red-500/20 text-red-800 border-red-300/50 hover:bg-red-500/30;
+  }
+  
+  /* ARSD Badge variants */
+  .badge-arsd-primary {
+    @apply bg-red-100 text-red-800 border-red-200;
+  }
+  
+  .badge-arsd-secondary {
+    @apply bg-red-50 text-red-600 border-red-100;
+  }
+  
+  .badge-arsd-glass {
+    @apply glass-subtle text-red-800 border-red-200/20 hover:bg-red-50/15;
+  }
+}
+
+/* ARSD Animated Background */
+@layer utilities {
+  .bg-gradient-arsd {
+    background: linear-gradient(135deg, 
+      rgba(239, 68, 68, 0.1) 0%, 
+      rgba(220, 38, 38, 0.1) 25%, 
+      rgba(185, 28, 28, 0.1) 50%, 
+      rgba(153, 27, 27, 0.1) 75%, 
+      rgba(127, 29, 29, 0.1) 100%);
+  }
+  
+  .bg-gradient-arsd-dark {
+    background: linear-gradient(135deg, 
+      rgba(239, 68, 68, 0.2) 0%, 
+      rgba(220, 38, 38, 0.2) 25%, 
+      rgba(185, 28, 28, 0.2) 50%, 
+      rgba(153, 27, 27, 0.2) 75%, 
+      rgba(127, 29, 29, 0.2) 100%);
+  }
+  
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  .animate-float-delayed {
+    animation: float 6s ease-in-out infinite 2s;
+  }
+  
+  .animate-float-slow {
+    animation: float 8s ease-in-out infinite 4s;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(5deg);
+  }
+}
+
+/* Custom scrollbar for ARSD theme */
+@layer utilities {
+  .scrollbar-arsd::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .scrollbar-arsd::-webkit-scrollbar-track {
+    @apply bg-red-50/10 rounded-full;
+  }
+  
+  .scrollbar-arsd::-webkit-scrollbar-thumb {
+    @apply bg-red-300/30 rounded-full hover:bg-red-400/50;
   }
 }

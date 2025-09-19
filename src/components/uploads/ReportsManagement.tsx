@@ -4,10 +4,10 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { GlassCard, GlassCardContent, GlassCardHeader, GlassCardTitle } from '@/components/ui/glass-card';
 import { 
   FileText, 
   Download, 
@@ -20,7 +20,9 @@ import {
   AlertCircle,
   CheckCircle,
   Clock,
-  Eye
+  Eye,
+  BarChart3,
+  FileUp
 } from 'lucide-react';
 import { useAllAccomplishmentReports } from '@/hooks/useAccomplishmentReports';
 import { useFileDownload } from '@/hooks/useFileDownload';
@@ -86,68 +88,114 @@ export default function ReportsManagement() {
 
   if (loading) {
     return (
-      <div className="space-y-4">
-        <div className="h-8 bg-gray-200 rounded w-1/4 animate-pulse"></div>
-        <div className="h-64 bg-gray-200 rounded animate-pulse"></div>
+      <div className="space-y-6 mt-4">
+        <div className="flex items-center gap-4 mt-4">
+          <div className="w-12 h-12 bg-glass-subtle rounded-xl flex items-center justify-center">
+            <BarChart3 className="h-6 w-6 text-arsd-red" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-glass-primary text-arsd-red">Accomplishment Reports</h2>
+            <p className="text-glass-secondary text-sm">View and manage all uploaded accomplishment reports</p>
+          </div>
+        </div>
+        <GlassCard variant="elevated" className="text-center">
+          <GlassCardContent className="p-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-arsd-red mx-auto mb-4"></div>
+            <div className="text-glass-primary">Loading reports...</div>
+          </GlassCardContent>
+        </GlassCard>
       </div>
     );
   }
 
   if (error) {
     return (
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>{error}</AlertDescription>
-      </Alert>
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-glass-subtle rounded-xl flex items-center justify-center">
+            <BarChart3 className="h-6 w-6 text-arsd-red" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-glass-primary text-arsd-red">Accomplishment Reports</h2>
+            <p className="text-glass-secondary">View and manage all uploaded accomplishment reports</p>
+          </div>
+        </div>
+        <Alert variant="destructive" className="glass-elevated border-red-200/50 bg-red-50/10">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription className="text-red-800">{error}</AlertDescription>
+        </Alert>
+      </div>
     );
   }
 
   if (downloadError) {
     return (
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>Download error: {downloadError}</AlertDescription>
-      </Alert>
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-glass-subtle rounded-xl flex items-center justify-center">
+            <BarChart3 className="h-6 w-6 text-arsd-red" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-glass-primary text-arsd-red">Accomplishment Reports</h2>
+            <p className="text-glass-secondary">View and manage all uploaded accomplishment reports</p>
+          </div>
+        </div>
+        <Alert variant="destructive" className="glass-elevated border-red-200/50 bg-red-50/10">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription className="text-red-800">Download error: {downloadError}</AlertDescription>
+        </Alert>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* Header Section */}
       <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-semibold text-gray-900">Accomplishment Reports</h2>
-          <p className="text-sm text-gray-500">
-            View and manage all uploaded accomplishment reports
-          </p>
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-glass-subtle rounded-xl flex items-center justify-center">
+            <BarChart3 className="h-6 w-6 text-arsd-red" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-glass-primary text-arsd-red">Accomplishment Reports</h2>
+            <p className="text-glass-secondary text-md">
+              View and manage all uploaded accomplishment reports
+            </p>
+          </div>
         </div>
-        <Badge variant="outline" className="text-sm">
+        <Badge variant="glass" className="text-sm bg-arsd-red/20 text-arsd-red border-arsd-red/30">
           {filteredReports.length} report{filteredReports.length !== 1 ? 's' : ''}
         </Badge>
       </div>
 
       {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Filters</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Search</label>
+      <GlassCard variant="elevated">
+        <GlassCardHeader className="bg-gradient-to-r from-arsd-red/5 to-red-500/5 border-b border-arsd-red/10">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-arsd-red/20 rounded-lg flex items-center justify-center">
+              <Filter className="h-4 w-4 text-arsd-red" />
+            </div>
+            <GlassCardTitle className="text-lg text-arsd-red">Filters</GlassCardTitle>
+          </div>
+        </GlassCardHeader>
+        <GlassCardContent className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-glass-primary">Search</label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-arsd-red/60" />
                 <Input
                   placeholder="Search reports..."
                   value={searchTerm}
                   onChange={(e) => handleSearch(e.target.value)}
-                  className="pl-10"
+                  className="glass-input pl-10"
                 />
               </div>
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Status</label>
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-glass-primary">Status</label>
               <Select onValueChange={handleStatusFilter}>
-                <SelectTrigger>
+                <SelectTrigger className="glass-input">
                   <SelectValue placeholder="All Statuses" />
                 </SelectTrigger>
                 <SelectContent>
@@ -158,8 +206,8 @@ export default function ReportsManagement() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Week Ending</label>
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-glass-primary">Week Ending</label>
               <Input
                 type="date"
                 value={filters.week_ending_date || ''}
@@ -167,20 +215,23 @@ export default function ReportsManagement() {
                   ...prev,
                   week_ending_date: e.target.value || undefined
                 }))}
+                className="glass-input"
               />
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </GlassCardContent>
+      </GlassCard>
 
       {/* Reports Table */}
-      <Card>
-        <CardContent className="p-0">
+      <GlassCard variant="elevated" className="overflow-hidden">
+        <GlassCardContent className="p-0">
           {filteredReports.length === 0 ? (
-            <div className="p-8 text-center">
-              <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No Reports Found</h3>
-              <p className="text-gray-500">
+            <div className="p-12 text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-arsd-red/20 to-red-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <FileText className="h-8 w-8 text-arsd-red" />
+              </div>
+              <h3 className="text-xl font-bold text-glass-primary mb-3">No Reports Found</h3>
+              <p className="text-glass-secondary text-lg max-w-md mx-auto">
                 {searchTerm || filters.status || filters.week_ending_date
                   ? 'No reports match your current filters.'
                   : 'No accomplishment reports have been uploaded yet.'
@@ -188,109 +239,115 @@ export default function ReportsManagement() {
               </p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Uploaded By</TableHead>
-                  <TableHead>Week Ending</TableHead>
-                  <TableHead>File</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Upload Date</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredReports.map((report) => (
-                  <TableRow key={report.id}>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="font-medium">{report.project_name}</div>
-                        <div className="text-sm text-gray-500">
-                          <div className="flex items-center gap-1">
-                            <Building className="h-3 w-3" />
-                            {report.client}
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <MapPin className="h-3 w-3" />
-                            {report.location}
-                          </div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <User className="h-4 w-4 text-gray-400" />
-                        <div>
-                          <div className="font-medium">{report.display_name}</div>
-                          <div className="text-sm text-gray-500">{report.email}</div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-4 w-4 text-gray-400" />
-                        {formatDate(report.week_ending_date)}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="font-medium text-sm">{report.file_name}</div>
-                        <div className="text-xs text-gray-500">
-                          {formatFileSize(report.file_size)}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {getStatusIcon(report.status)}
-                        <Badge className={getStatusColor(report.status)}>
-                          {getStatusText(report.status)}
-                        </Badge>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm text-gray-600">
-                        {formatDate(report.upload_date)}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDownload(report)}
-                          disabled={isDownloading}
-                        >
-                          {isDownloading ? (
-                            <>
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 mr-1" />
-                              Downloading...
-                            </>
-                          ) : (
-                            <>
-                              <Download className="h-4 w-4 mr-1" />
-                              Download
-                            </>
-                          )}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => window.open(report.file_url, '_blank')}
-                        >
-                          <Eye className="h-4 w-4 mr-1" />
-                          View
-                        </Button>
-                      </div>
-                    </TableCell>
+            <div className="overflow-x-auto scrollbar-glass">
+              <Table>
+                <TableHeader>
+                  <TableRow className="glass-table-header">
+                    <TableHead className="glass-table-header-cell text-arsd-red">Project</TableHead>
+                    <TableHead className="glass-table-header-cell text-arsd-red">Uploaded By</TableHead>
+                    <TableHead className="glass-table-header-cell text-arsd-red">Week Ending</TableHead>
+                    <TableHead className="glass-table-header-cell text-arsd-red">File</TableHead>
+                    <TableHead className="glass-table-header-cell text-arsd-red">Status</TableHead>
+                    <TableHead className="glass-table-header-cell text-arsd-red">Upload Date</TableHead>
+                    <TableHead className="glass-table-header-cell text-arsd-red">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {filteredReports.map((report, index) => (
+                    <TableRow key={report.id} className={`glass-table-row ${index % 2 === 0 ? 'bg-white/5' : 'bg-white/2'}`}>
+                      <TableCell className="glass-table-cell">
+                        <div className="space-y-2">
+                          <div className="font-semibold text-glass-primary text-md">{report.project_name}</div>
+                          <div className="text-sm text-glass-secondary">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Building className="h-3 w-3 text-arsd-red" />
+                              <span>{report.client}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <MapPin className="h-3 w-3 text-arsd-red" />
+                              <span>{report.location}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="glass-table-cell">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-arsd-red/10 rounded-full flex items-center justify-center">
+                            <User className="h-4 w-4 text-arsd-red" />
+                          </div>
+                          <div>
+                            <div className="font-medium text-glass-primary text-md">{report.display_name}</div>
+                            <div className="text-sm text-glass-muted">{report.email}</div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="glass-table-cell">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4 text-arsd-red" />
+                          <span className="text-glass-primary font-medium">{formatDate(report.week_ending_date)}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="glass-table-cell">
+                        <div className="space-y-1">
+                          <div className="font-medium text-sm text-glass-primary">{report.file_name}</div>
+                          <div className="text-xs text-glass-muted bg-arsd-red/10 px-2 py-1 rounded-lg inline-block">
+                            {formatFileSize(report.file_size)}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="glass-table-cell">
+                        <div className="flex items-center gap-2">
+                          {getStatusIcon(report.status)}
+                          <Badge variant="glass" className={getStatusColor(report.status)}>
+                            {getStatusText(report.status)}
+                          </Badge>
+                        </div>
+                      </TableCell>
+                      <TableCell className="glass-table-cell">
+                        <div className="text-sm text-glass-secondary font-medium">
+                          {formatDate(report.upload_date)}
+                        </div>
+                      </TableCell>
+                      <TableCell className="glass-table-cell">
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDownload(report)}
+                            disabled={isDownloading}
+                            className="glass-button bg-gradient-to-r from-arsd-red/20 to-red-500/20 text-arsd-red border-arsd-red/30 hover:from-arsd-red/30 hover:to-red-500/30"
+                          >
+                            {isDownloading ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-arsd-red mr-1" />
+                                Downloading...
+                              </>
+                            ) : (
+                              <>
+                                <Download className="h-4 w-4 mr-1" />
+                                Download
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => window.open(report.file_url, '_blank')}
+                            className="glass-button bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-glass-primary border-blue-300/50 hover:from-blue-500/30 hover:to-cyan-500/30"
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            View
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
-        </CardContent>
-      </Card>
+        </GlassCardContent>
+      </GlassCard>
     </div>
   );
 }
