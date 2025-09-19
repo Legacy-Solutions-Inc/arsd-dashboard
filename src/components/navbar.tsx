@@ -110,7 +110,7 @@ export default function Navbar() {
                   ARSD Construction Corporation
                 </h1>
                 <p className="text-sm text-gray-600">
-                  Building Excellence Since Day One
+                  In God We Trust
                 </p>
               </div>
             </Link>
