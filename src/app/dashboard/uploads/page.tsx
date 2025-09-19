@@ -1,13 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Upload, FileText, Users } from 'lucide-react';
+import { Upload, FileText, Users, FileUp } from 'lucide-react';
 import { useRBAC } from '@/hooks/useRBAC';
 import AssignedProjectsList from '@/components/uploads/AssignedProjectsList';
 import ReportsManagement from '@/components/uploads/ReportsManagement';
+import { GlassCard, GlassCardContent, GlassCardHeader, GlassCardTitle } from '@/components/ui/glass-card';
 
 export default function Uploads() {
   const { user, hasPermission } = useRBAC();
@@ -30,41 +29,66 @@ export default function Uploads() {
 
   if (!user) {
     return (
-      <div className="space-y-6">
-        <h1 className="text-2xl font-bold mb-4">Uploads</h1>
-        <Card>
-          <CardContent className="p-6 text-center">
-            <p className="text-gray-500">Loading...</p>
-          </CardContent>
-        </Card>
+      <div className="space-y-8">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-glass-subtle rounded-xl flex items-center justify-center">
+            <FileUp className="h-10 w-10 text-arsd-red" />
+          </div>
+          <div>
+            <h1 className="text-4xl font-bold text-glass-primary flex items-center gap-3 text-arsd-red">
+              Uploads
+            </h1>
+            <p className="text-glass-secondary text-md">View and manage all accomplishment reports</p>
+          </div>
+        </div>
+        <GlassCard variant="elevated" className="text-center">
+          <GlassCardContent className="p-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-arsd-red mx-auto mb-4"></div>
+            <div className="text-glass-primary">Loading...</div>
+          </GlassCardContent>
+        </GlassCard>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 mb-4">
+      {/* Header Section */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Uploads</h1>
-          <p className="text-gray-500">
-            {user.role === 'project_manager' 
-              ? 'Upload and manage your weekly accomplishment reports'
-              : 'View and manage all accomplishment reports'
-            }
-          </p>
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-glass-subtle rounded-xl flex items-center justify-center">
+            <FileUp className="h-10 w-10 text-arsd-red" />
+          </div>
+          <div>
+            <h1 className="text-4xl font-bold text-glass-primary flex items-center gap-3 text-arsd-red">
+              Uploads
+            </h1>
+            <p className="text-glass-secondary text-md">
+              {user.role === 'project_manager' 
+                ? 'Upload and manage your weekly accomplishment reports'
+                : 'View and manage all accomplishment reports'
+              }
+            </p>
+          </div>
         </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="glass-elevated grid w-full grid-cols-2 p-1">
           {canUpload && (
-            <TabsTrigger value="upload" className="flex items-center gap-2">
+            <TabsTrigger 
+              value="upload" 
+              className="flex items-center gap-2 data-[state=active]:bg-arsd-red data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200"
+            >
               <Upload className="h-4 w-4" />
               Upload Reports
             </TabsTrigger>
           )}
           {canViewAll && (
-            <TabsTrigger value="manage" className="flex items-center gap-2">
+            <TabsTrigger 
+              value="manage" 
+              className="flex items-center gap-2 data-[state=active]:bg-arsd-red data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200"
+            >
               <FileText className="h-4 w-4" />
               Manage Reports
             </TabsTrigger>
@@ -72,28 +96,30 @@ export default function Uploads() {
         </TabsList>
 
         {canUpload && (
-          <TabsContent value="upload" className="space-y-6">
+          <TabsContent value="upload" className="space-y-8 mt-8">
             <AssignedProjectsList />
           </TabsContent>
         )}
 
         {canViewAll && (
-          <TabsContent value="manage" className="space-y-6">
+          <TabsContent value="manage" className="space-y-8 mt-8">
             <ReportsManagement />
           </TabsContent>
         )}
 
         {!canUpload && !canViewAll && (
-          <Card>
-            <CardContent className="p-6 text-center">
-              <Users className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Access Denied</h3>
-              <p className="text-gray-500">
+          <GlassCard variant="elevated" className="text-center">
+            <GlassCardContent className="p-12">
+              <div className="w-16 h-16 bg-gradient-to-br from-arsd-red/20 to-red-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Users className="h-8 w-8 text-arsd-red" />
+              </div>
+              <h3 className="text-2xl font-bold text-glass-primary mb-4">Access Denied</h3>
+              <p className="text-glass-secondary text-lg max-w-md mx-auto">
                 You don't have permission to access the uploads section. 
                 Contact your administrator for access.
               </p>
-            </CardContent>
-          </Card>
+            </GlassCardContent>
+          </GlassCard>
         )}
       </Tabs>
     </div>
