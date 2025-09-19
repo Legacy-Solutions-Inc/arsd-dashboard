@@ -41,6 +41,19 @@ export default function DashboardPage() {
     loadProjectManagers();
   }, []);
 
+  // Listen for project report approval events to refresh projects
+  useEffect(() => {
+    const handleProjectReportApproved = () => {
+      refetch(); // Refresh projects when a report is approved
+    };
+
+    window.addEventListener('projectReportApproved', handleProjectReportApproved);
+    
+    return () => {
+      window.removeEventListener('projectReportApproved', handleProjectReportApproved);
+    };
+  }, [refetch]);
+
   const handleViewProject = (project: any) => {
     router.push(`/dashboard/projects/${project.id}`);
   };
