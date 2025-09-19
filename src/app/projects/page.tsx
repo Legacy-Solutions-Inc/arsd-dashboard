@@ -108,18 +108,13 @@ export default function Projects() {
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
             <div className="flex items-center justify-center gap-4 mb-8">
-              <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+              <div className="w-20 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
                 <Building2 className="h-8 w-8 text-white" />
               </div>
               <div>
                 <h1 className="text-4xl md:text-5xl font-bold mb-2 flex items-center gap-3">
-                  <Sparkles className="h-10 w-10 text-yellow-300" />
                   Our Construction Projects
                 </h1>
-                <p className="text-xl text-red-100">
-                  Showcasing our commitment to excellence through successful project
-                  deliveries across the Philippines.
-                </p>
               </div>
             </div>
             <div className="flex justify-center">
@@ -138,7 +133,7 @@ export default function Projects() {
       {/* Project Stats */}
       <section className="py-20 bg-transparent">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8 text-center">
+          <div className="grid md:grid-cols-3 gap-8 text-center">
             <GlassCard variant="elevated" className="hover:shadow-2xl transition-all duration-300">
               <GlassCardContent className="p-8 text-center">
                 <div className="w-16 h-16 bg-gradient-to-br from-arsd-red/20 to-red-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -146,15 +141,6 @@ export default function Projects() {
                 </div>
                 <div className="text-4xl font-bold text-glass-primary mb-3">50+</div>
                 <div className="text-glass-secondary font-medium">Projects Completed</div>
-              </GlassCardContent>
-            </GlassCard>
-            <GlassCard variant="elevated" className="hover:shadow-2xl transition-all duration-300">
-              <GlassCardContent className="p-8 text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-arsd-red/20 to-red-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Building2 className="h-8 w-8 text-arsd-red" />
-                </div>
-                <div className="text-4xl font-bold text-glass-primary mb-3">₱7B+</div>
-                <div className="text-glass-secondary font-medium">Total Project Value</div>
               </GlassCardContent>
             </GlassCard>
             <GlassCard variant="elevated" className="hover:shadow-2xl transition-all duration-300">
@@ -193,11 +179,11 @@ export default function Projects() {
                   Our Portfolio
                 </div>
                 <h2 className="text-4xl md:text-5xl font-bold text-glass-primary mb-4 flex items-center justify-center gap-3">
-                  <Sparkles className="h-10 w-10 text-yellow-500" />
                   Featured Construction Projects
                 </h2>
                 <p className="text-xl text-glass-secondary max-w-3xl leading-relaxed">
                   Discover our latest construction achievements across the Philippines. 
+                  <br />
                   Each project represents our commitment to excellence and innovation.
                 </p>
               </div>
