@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Upload, FileText, Calendar, User, MapPin, Building, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import { GlassCard, GlassCardContent, GlassCardHeader, GlassCardTitle } from '@/components/ui/glass-card';
+import { Upload, FileText, Calendar, User, MapPin, Building, AlertCircle, CheckCircle, Clock, FolderOpen, BarChart3 } from 'lucide-react';
 import { useProjects } from '@/hooks/useProjects';
 import { useWeeklyUploadStatus } from '@/hooks/useAccomplishmentReports';
 import CSVUploadForm from './CSVUploadForm';
@@ -77,133 +77,180 @@ export default function AssignedProjectsList() {
 
   if (projectsLoading || statusLoading) {
     return (
-      <div className="space-y-4">
-        {[...Array(3)].map((_, i) => (
-          <Card key={i} className="animate-pulse">
-            <CardContent className="p-6">
-              <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
-              <div className="h-3 bg-gray-200 rounded w-1/2 mb-4"></div>
-              <div className="h-8 bg-gray-200 rounded w-24"></div>
-            </CardContent>
-          </Card>
-        ))}
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-glass-subtle rounded-xl flex items-center justify-center">
+            <FolderOpen className="h-6 w-6 text-arsd-red" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-glass-primary text-arsd-red">Your Assigned Projects</h2>
+            <p className="text-glass-secondary text-md">Upload weekly accomplishment reports for your assigned projects</p>
+          </div>
+        </div>
+        <div className="space-y-4">
+          {[...Array(3)].map((_, i) => (
+            <GlassCard key={i} variant="elevated" className="animate-pulse">
+              <GlassCardContent className="p-6">
+                <div className="h-4 bg-arsd-red/20 rounded w-1/4 mb-2"></div>
+                <div className="h-3 bg-arsd-red/20 rounded w-1/2 mb-4"></div>
+                <div className="h-8 bg-arsd-red/20 rounded w-24"></div>
+              </GlassCardContent>
+            </GlassCard>
+          ))}
+        </div>
       </div>
     );
   }
 
   if (projectsError || statusError) {
     return (
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          {projectsError || statusError}
-        </AlertDescription>
-      </Alert>
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-glass-subtle rounded-xl flex items-center justify-center">
+            <FolderOpen className="h-6 w-6 text-arsd-red" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-glass-primary text-arsd-red">Your Assigned Projects</h2>
+            <p className="text-glass-secondary text-md">Upload weekly accomplishment reports for your assigned projects</p>
+          </div>
+        </div>
+        <Alert variant="destructive" className="glass-elevated border-red-200/50 bg-red-50/10">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription className="text-red-800">
+            {projectsError || statusError}
+          </AlertDescription>
+        </Alert>
+      </div>
     );
   }
 
   if (projects.length === 0) {
     return (
-      <Card>
-        <CardContent className="p-6 text-center">
-          <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No Assigned Projects</h3>
-          <p className="text-gray-500">
-            You don't have any projects assigned to you yet. Contact your administrator for project assignments.
-          </p>
-        </CardContent>
-      </Card>
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-glass-subtle rounded-xl flex items-center justify-center">
+            <FolderOpen className="h-6 w-6 text-arsd-red" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-glass-primary text-arsd-red">Your Assigned Projects</h2>
+            <p className="text-glass-secondary text-md">Upload weekly accomplishment reports for your assigned projects</p>
+          </div>
+        </div>
+        <GlassCard variant="elevated" className="text-center">
+          <GlassCardContent className="p-12">
+            <div className="w-16 h-16 bg-gradient-to-br from-arsd-red/20 to-red-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <FileText className="h-8 w-8 text-arsd-red" />
+            </div>
+            <h3 className="text-xl font-bold text-glass-primary mb-3">No Assigned Projects</h3>
+            <p className="text-glass-secondary text-lg max-w-md mx-auto">
+              You don't have any projects assigned to you yet. Contact your administrator for project assignments.
+            </p>
+          </GlassCardContent>
+        </GlassCard>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* Header Section */}
       <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-semibold text-gray-900">Your Assigned Projects</h2>
-          <p className="text-sm text-gray-500">
-            Upload weekly accomplishment reports for your assigned projects
-          </p>
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-glass-subtle rounded-xl flex items-center justify-center">
+            <FolderOpen className="h-6 w-6 text-arsd-red" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-glass-primary text-arsd-red">Your Assigned Projects</h2>
+            <p className="text-glass-secondary text-sm">
+              Upload weekly accomplishment reports for your assigned projects
+            </p>
+          </div>
         </div>
-        <Badge variant="outline" className="text-sm">
+        <Badge variant="glass" className="text-sm bg-arsd-red/20 text-arsd-red border-arsd-red/30">
           {projects.length} project{projects.length !== 1 ? 's' : ''}
         </Badge>
       </div>
 
-      <div className="grid gap-4">
+      <div className="grid gap-6">
         {projects.map((project) => {
           const uploadStatus = getProjectUploadStatus(project.id);
           const hasUpload = uploadStatus?.has_upload || false;
           const reportStatus = uploadStatus?.report?.status;
 
           return (
-            <Card key={project.id} className="hover:shadow-md transition-shadow">
-              <CardHeader className="pb-3">
+            <GlassCard key={project.id} variant="elevated" className="hover:shadow-xl transition-all duration-300 p-0">
+              <GlassCardHeader className="pb-4">
                 <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <CardTitle className="text-lg">{project.project_name}</CardTitle>
-                    <CardDescription className="flex items-center gap-4 text-sm">
-                      <span className="flex items-center gap-1">
-                        <Building className="h-3 w-3" />
-                        {project.client}
+                  <div className="space-y-2">
+                    <GlassCardTitle className="text-xl text-glass-primary text-arsd-red">{project.project_name}</GlassCardTitle>
+                    <div className="flex items-center gap-6 text-sm text-glass-secondary">
+                      <span className="flex items-center gap-2">
+                        <Building className="h-4 w-4 text-arsd-red" />
+                        <span className="font-medium">{project.client}</span>
                       </span>
-                      <span className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        {project.location}
+                      <span className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-arsd-red" />
+                        <span className="font-medium">{project.location}</span>
                       </span>
-                    </CardDescription>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     {getStatusIcon(hasUpload, reportStatus)}
-                    <Badge className={getStatusColor(hasUpload, reportStatus)}>
+                    <Badge variant="glass" className={getStatusColor(hasUpload, reportStatus)}>
                       {getStatusText(hasUpload, reportStatus)}
                     </Badge>
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent className="pt-0">
+              </GlassCardHeader>
+              <GlassCardContent className="pt-0">
                 <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <div className="text-sm text-gray-600">
-                      <span className="font-medium">Project ID:</span> {project.project_id}
+                  <div className="space-y-2">
+                    <div className="text-sm text-glass-secondary">
+                      <span className="font-semibold text-glass-primary">Project ID:</span> 
+                      <span className="ml-2 font-mono bg-arsd-red/10 px-2 py-1 rounded-lg text-arsd-red">
+                        {project.project_id}
+                      </span>
                     </div>
-                    <div className="text-sm text-gray-600">
-                      <span className="font-medium">Status:</span> {project.status}
+                    <div className="text-sm text-glass-secondary">
+                      <span className="font-semibold text-glass-primary">Status:</span> 
+                      <span className="ml-2 capitalize">{project.status}</span>
                     </div>
                     {uploadStatus && (
-                      <div className="text-sm text-gray-600">
-                        <span className="font-medium">Week Ending:</span> {uploadStatus.week_ending_date}
+                      <div className="text-sm text-glass-secondary">
+                        <span className="font-semibold text-glass-primary">Week Ending:</span> 
+                        <span className="ml-2 font-medium">{uploadStatus.week_ending_date}</span>
                       </div>
                     )}
                   </div>
-                  <div className="flex gap-2">
+                  
+                  <div className="flex gap-3">
                     {hasUpload ? (
-                      <Button variant="outline" size="sm" disabled>
-                        <FileText className="h-4 w-4 mr-1" />
+                      <Button variant="outline" size="lg" disabled className="glass-button bg-gray-100/50 text-glass-muted border-gray-300/50 cursor-not-allowed">
+                        <FileText className="h-4 w-4 mr-2" />
                         Report Uploaded
                       </Button>
                     ) : (
                       <Button
                         onClick={() => handleUploadClick(project)}
-                        size="sm"
-                        className="bg-blue-600 hover:bg-blue-700"
+                        size="lg"
+                        className="glass-button bg-gradient-to-r from-arsd-red/100 to-red-500/100 text-white border-arsd-red/50 hover:from-arsd-red/80 hover:to-red-500/80"
                       >
-                        <Upload className="h-4 w-4 mr-1" />
+                        <Upload className="h-4 w-4 mr-2" />
                         Upload Report
                       </Button>
                     )}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </GlassCardContent>
+            </GlassCard>
           );
         })}
       </div>
 
       {/* Upload Form Modal */}
       {uploadingProject && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="glass-elevated rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-white/20">
             <CSVUploadForm
               project={uploadingProject}
               onUploadSuccess={handleUploadSuccess}
