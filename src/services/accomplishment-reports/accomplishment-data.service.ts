@@ -1,6 +1,4 @@
-import { createClient } from '@/lib/supabase';
-
-const supabase = createClient();
+import { createServiceSupabaseClient } from '@/lib/supabase';
 import { BaseService } from '../base-service';
 import {
   ProjectDetails,
@@ -19,62 +17,111 @@ import {
 export class AccomplishmentDataService extends BaseService {
   /**
    * Insert parsed accomplishment data into all relevant tables
+   * @param input - The accomplishment data input containing report ID, project ID, and parsed data
+   * @throws Error if any table insertion fails
    */
   async insertAccomplishmentData(input: AccomplishmentDataInput): Promise<void> {
     const { accomplishment_report_id, project_id, data } = input;
 
+    const supabase = createServiceSupabaseClient();
+
     try {
       // Insert project details
       if (data.project_details && data.project_details.length > 0) {
-        await this.insertProjectDetails(accomplishment_report_id, data.project_details);
+        try {
+          await this.insertProjectDetails(supabase, accomplishment_report_id, data.project_details);
+        } catch (error) {
+          console.error('Project details insert failed:', error);
+          throw new Error(`Project details insert failed: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
+        }
       }
 
       // Insert project costs
       if (data.project_costs && data.project_costs.length > 0) {
-        await this.insertProjectCosts(accomplishment_report_id, data.project_costs);
+        try {
+          await this.insertProjectCosts(supabase, accomplishment_report_id, data.project_costs);
+        } catch (error) {
+          console.error('Project costs insert failed:', error);
+          throw new Error(`Project costs insert failed: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
+        }
       }
 
       // Insert man hours
       if (data.man_hours && data.man_hours.length > 0) {
-        await this.insertManHours(accomplishment_report_id, data.man_hours);
+        try {
+          await this.insertManHours(supabase, accomplishment_report_id, data.man_hours);
+        } catch (error) {
+          console.error('Man hours insert failed:', error);
+          throw new Error(`Man hours insert failed: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
+        }
       }
 
       // Insert cost items
       if (data.cost_items && data.cost_items.length > 0) {
-        await this.insertCostItems(accomplishment_report_id, data.cost_items);
+        try {
+          await this.insertCostItems(supabase, accomplishment_report_id, project_id, data.cost_items);
+        } catch (error) {
+          console.error('Cost items insert failed:', error);
+          throw new Error(`Cost items insert failed: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
+        }
       }
 
       // Insert secondary cost items
       if (data.cost_items_secondary && data.cost_items_secondary.length > 0) {
-        await this.insertCostItemsSecondary(accomplishment_report_id, data.cost_items_secondary);
+        try {
+          await this.insertCostItemsSecondary(supabase, accomplishment_report_id, data.cost_items_secondary);
+        } catch (error) {
+          console.error('Cost items secondary insert failed:', error);
+          throw new Error(`Cost items secondary insert failed: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
+        }
       }
 
       // Insert monthly costs
       if (data.monthly_costs && data.monthly_costs.length > 0) {
-        await this.insertMonthlyCosts(accomplishment_report_id, data.monthly_costs);
+        try {
+          await this.insertMonthlyCosts(supabase, accomplishment_report_id, data.monthly_costs);
+        } catch (error) {
+          console.error('Monthly costs insert failed:', error);
+          throw new Error(`Monthly costs insert failed: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
+        }
       }
 
       // Insert materials
       if (data.materials && data.materials.length > 0) {
-        await this.insertMaterials(accomplishment_report_id, data.materials);
+        try {
+          await this.insertMaterials(supabase, accomplishment_report_id, data.materials);
+        } catch (error) {
+          console.error('Materials insert failed:', error);
+          throw new Error(`Materials insert failed: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
+        }
       }
 
       // Insert purchase orders
       if (data.purchase_orders && data.purchase_orders.length > 0) {
-        await this.insertPurchaseOrders(accomplishment_report_id, data.purchase_orders);
+        try {
+          await this.insertPurchaseOrders(supabase, accomplishment_report_id, data.purchase_orders);
+        } catch (error) {
+          console.error('Purchase orders insert failed:', error);
+          throw new Error(`Purchase orders insert failed: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
+        }
       }
 
     } catch (error) {
       console.error('Error inserting accomplishment data:', error);
-      throw new Error(`Failed to insert accomplishment data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to insert accomplishment data: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
     }
   }
 
   /**
    * Get accomplishment report with all detailed data
+   * @param reportId - The ID of the accomplishment report
+   * @returns The report with all detailed data or null if not found
+   * @throws Error if database query fails
    */
   async getAccomplishmentReportWithData(reportId: string): Promise<AccomplishmentReportWithData | null> {
     try {
+      const supabase = createServiceSupabaseClient();
+      
       // Get basic report info
       const { data: report, error: reportError } = await supabase
         .from('accomplishment_reports')
@@ -97,14 +144,14 @@ export class AccomplishmentDataService extends BaseService {
         materials,
         purchaseOrders,
       ] = await Promise.all([
-        this.getProjectDetails(reportId),
-        this.getProjectCosts(reportId),
-        this.getManHours(reportId),
-        this.getCostItems(reportId),
-        this.getCostItemsSecondary(reportId),
-        this.getMonthlyCosts(reportId),
-        this.getMaterials(reportId),
-        this.getPurchaseOrders(reportId),
+        this.getProjectDetails(supabase, reportId),
+        this.getProjectCosts(supabase, reportId),
+        this.getManHours(supabase, reportId),
+        this.getCostItems(supabase, reportId),
+        this.getCostItemsSecondary(supabase, reportId),
+        this.getMonthlyCosts(supabase, reportId),
+        this.getMaterials(supabase, reportId),
+        this.getPurchaseOrders(supabase, reportId),
       ]);
 
       return {
@@ -126,72 +173,171 @@ export class AccomplishmentDataService extends BaseService {
   }
 
   // Individual table insert methods
-  private async insertProjectDetails(accomplishment_report_id: string, data: ProjectDetails[]): Promise<void> {
+  
+  /**
+   * Insert project details data
+   * @private
+   */
+  private async insertProjectDetails(supabase: any, accomplishment_report_id: string, data: ProjectDetails[]): Promise<void> {
+    const insertData = data.map(item => {
+      const { id, accomplishment_report_id: _, ...rest } = item; // Remove id and any existing accomplishment_report_id
+      return { ...rest, accomplishment_report_id };
+    });
+    
     const { error } = await supabase
       .from('project_details')
-      .insert(data.map(item => ({ ...item, accomplishment_report_id })));
+      .insert(insertData);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Project details insert error:', error);
+      throw error;
+    }
   }
 
-  private async insertProjectCosts(accomplishment_report_id: string, data: ProjectCosts[]): Promise<void> {
+  /**
+   * Insert project costs data
+   * @private
+   */
+  private async insertProjectCosts(supabase: any, accomplishment_report_id: string, data: ProjectCosts[]): Promise<void> {
+    const insertData = data.map(item => {
+      const { id, accomplishment_report_id: _, ...rest } = item; // Remove id and any existing accomplishment_report_id
+      return { ...rest, accomplishment_report_id };
+    });
+    
     const { error } = await supabase
       .from('project_costs')
-      .insert(data.map(item => ({ ...item, accomplishment_report_id })));
+      .insert(insertData);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Project costs insert error:', error);
+      throw error;
+    }
   }
 
-  private async insertManHours(accomplishment_report_id: string, data: ManHours[]): Promise<void> {
+  /**
+   * Insert man hours data
+   * @private
+   */
+  private async insertManHours(supabase: any, accomplishment_report_id: string, data: ManHours[]): Promise<void> {
+    const insertData = data.map(item => ({ ...item, accomplishment_report_id }));
+    
     const { error } = await supabase
       .from('man_hours')
-      .insert(data.map(item => ({ ...item, accomplishment_report_id })));
+      .insert(insertData);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error inserting man hours:', error);
+      throw error;
+    }
   }
 
-  private async insertCostItems(accomplishment_report_id: string, data: CostItem[]): Promise<void> {
+  /**
+   * Insert cost items data
+   * @private
+   */
+  private async insertCostItems(supabase: any, accomplishment_report_id: string, project_id: string, data: CostItem[]): Promise<void> {
+    const insertData = data.map(item => {
+      const { id, accomplishment_report_id, project_id, ...rest } = item; // Remove id, accomplishment_report_id, and project_id
+      return { ...rest, accomplishment_report_id, project_id };
+    });
+    
     const { error } = await supabase
       .from('cost_items')
-      .insert(data.map(item => ({ ...item, accomplishment_report_id })));
+      .insert(insertData);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error inserting cost items:', error);
+      throw error;
+    }
   }
 
-  private async insertCostItemsSecondary(accomplishment_report_id: string, data: CostItemSecondary[]): Promise<void> {
+  /**
+   * Insert secondary cost items data
+   * @private
+   */
+  private async insertCostItemsSecondary(supabase: any, accomplishment_report_id: string, data: CostItemSecondary[]): Promise<void> {
+    const insertData = data.map(item => {
+      const { id, accomplishment_report_id: _, ...rest } = item; // Remove id and any existing accomplishment_report_id
+      return { ...rest, accomplishment_report_id };
+    });
+    
     const { error } = await supabase
       .from('cost_items_secondary')
-      .insert(data.map(item => ({ ...item, accomplishment_report_id })));
+      .insert(insertData);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Cost items secondary insert error:', error);
+      throw error;
+    }
   }
 
-  private async insertMonthlyCosts(accomplishment_report_id: string, data: MonthlyCost[]): Promise<void> {
+  /**
+   * Insert monthly costs data
+   * @private
+   */
+  private async insertMonthlyCosts(supabase: any, accomplishment_report_id: string, data: MonthlyCost[]): Promise<void> {
+    const insertData = data.map(item => {
+      const { id, accomplishment_report_id: _, ...rest } = item; // Remove id and any existing accomplishment_report_id
+      return { ...rest, accomplishment_report_id };
+    });
+    
     const { error } = await supabase
       .from('monthly_costs')
-      .insert(data.map(item => ({ ...item, accomplishment_report_id })));
+      .insert(insertData);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Monthly costs insert error:', error);
+      throw error;
+    }
   }
 
-  private async insertMaterials(accomplishment_report_id: string, data: Material[]): Promise<void> {
+  /**
+   * Insert materials data
+   * @private
+   */
+  private async insertMaterials(supabase: any, accomplishment_report_id: string, data: Material[]): Promise<void> {
+    const insertData = data.map(item => {
+      const { id, accomplishment_report_id: _, ...rest } = item; // Remove id and any existing accomplishment_report_id
+      return { ...rest, accomplishment_report_id };
+    });
+    
     const { error } = await supabase
       .from('materials')
-      .insert(data.map(item => ({ ...item, accomplishment_report_id })));
+      .insert(insertData);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Materials insert error:', error);
+      throw error;
+    }
   }
 
-  private async insertPurchaseOrders(accomplishment_report_id: string, data: PurchaseOrder[]): Promise<void> {
+  /**
+   * Insert purchase orders data
+   * @private
+   */
+  private async insertPurchaseOrders(supabase: any, accomplishment_report_id: string, data: PurchaseOrder[]): Promise<void> {
+    const insertData = data.map(item => {
+      const { id, accomplishment_report_id: _, ...rest } = item; // Remove id and any existing accomplishment_report_id
+      return { ...rest, accomplishment_report_id };
+    });
+    
     const { error } = await supabase
       .from('purchase_orders')
-      .insert(data.map(item => ({ ...item, accomplishment_report_id })));
+      .insert(insertData);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Purchase orders insert error:', error);
+      throw error;
+    }
   }
 
   // Individual table get methods
-  private async getProjectDetails(accomplishment_report_id: string): Promise<ProjectDetails[]> {
+  
+  /**
+   * Get project details data
+   * @private
+   */
+  private async getProjectDetails(supabase: any, accomplishment_report_id: string): Promise<ProjectDetails[]> {
     const { data, error } = await supabase
       .from('project_details')
       .select('*')
@@ -201,7 +347,11 @@ export class AccomplishmentDataService extends BaseService {
     return data || [];
   }
 
-  private async getProjectCosts(accomplishment_report_id: string): Promise<ProjectCosts[]> {
+  /**
+   * Get project costs data
+   * @private
+   */
+  private async getProjectCosts(supabase: any, accomplishment_report_id: string): Promise<ProjectCosts[]> {
     const { data, error } = await supabase
       .from('project_costs')
       .select('*')
@@ -211,7 +361,11 @@ export class AccomplishmentDataService extends BaseService {
     return data || [];
   }
 
-  private async getManHours(accomplishment_report_id: string): Promise<ManHours[]> {
+  /**
+   * Get man hours data
+   * @private
+   */
+  private async getManHours(supabase: any, accomplishment_report_id: string): Promise<ManHours[]> {
     const { data, error } = await supabase
       .from('man_hours')
       .select('*')
@@ -222,7 +376,11 @@ export class AccomplishmentDataService extends BaseService {
     return data || [];
   }
 
-  private async getCostItems(accomplishment_report_id: string): Promise<CostItem[]> {
+  /**
+   * Get cost items data
+   * @private
+   */
+  private async getCostItems(supabase: any, accomplishment_report_id: string): Promise<CostItem[]> {
     const { data, error } = await supabase
       .from('cost_items')
       .select('*')
@@ -233,7 +391,11 @@ export class AccomplishmentDataService extends BaseService {
     return data || [];
   }
 
-  private async getCostItemsSecondary(accomplishment_report_id: string): Promise<CostItemSecondary[]> {
+  /**
+   * Get secondary cost items data
+   * @private
+   */
+  private async getCostItemsSecondary(supabase: any, accomplishment_report_id: string): Promise<CostItemSecondary[]> {
     const { data, error } = await supabase
       .from('cost_items_secondary')
       .select('*')
@@ -244,7 +406,11 @@ export class AccomplishmentDataService extends BaseService {
     return data || [];
   }
 
-  private async getMonthlyCosts(accomplishment_report_id: string): Promise<MonthlyCost[]> {
+  /**
+   * Get monthly costs data
+   * @private
+   */
+  private async getMonthlyCosts(supabase: any, accomplishment_report_id: string): Promise<MonthlyCost[]> {
     const { data, error } = await supabase
       .from('monthly_costs')
       .select('*')
@@ -255,7 +421,11 @@ export class AccomplishmentDataService extends BaseService {
     return data || [];
   }
 
-  private async getMaterials(accomplishment_report_id: string): Promise<Material[]> {
+  /**
+   * Get materials data
+   * @private
+   */
+  private async getMaterials(supabase: any, accomplishment_report_id: string): Promise<Material[]> {
     const { data, error } = await supabase
       .from('materials')
       .select('*')
@@ -265,7 +435,11 @@ export class AccomplishmentDataService extends BaseService {
     return data || [];
   }
 
-  private async getPurchaseOrders(accomplishment_report_id: string): Promise<PurchaseOrder[]> {
+  /**
+   * Get purchase orders data
+   * @private
+   */
+  private async getPurchaseOrders(supabase: any, accomplishment_report_id: string): Promise<PurchaseOrder[]> {
     const { data, error } = await supabase
       .from('purchase_orders')
       .select('*')
@@ -278,9 +452,13 @@ export class AccomplishmentDataService extends BaseService {
 
   /**
    * Delete all data for a specific accomplishment report
+   * @param accomplishment_report_id - The ID of the accomplishment report
+   * @throws Error if deletion fails
    */
   async deleteAccomplishmentData(accomplishment_report_id: string): Promise<void> {
     try {
+      const supabase = createServiceSupabaseClient();
+      
       // Delete from all tables (CASCADE should handle this, but being explicit)
       const tables = [
         'project_details',
