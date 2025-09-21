@@ -30,6 +30,7 @@ import { useRBAC } from '@/hooks/useRBAC';
 import { getStatusText, getStatusColor, formatFileSize } from '@/types/accomplishment-reports';
 import type { AccomplishmentReport, AccomplishmentReportFilters } from '@/types/accomplishment-reports';
 import { AccomplishmentReportParser } from './AccomplishmentReportParser';
+// import { ParseTestComponent } from '../accomplishment-reports/ParseTestComponent';
 
 export default function ReportsManagement() {
   const [filters, setFilters] = useState<AccomplishmentReportFilters>({});
@@ -200,8 +201,9 @@ export default function ReportsManagement() {
 
   return (
       <div className="space-y-8">
-        {/* Accomplishment Report Parser */}
-        <AccomplishmentReportParser />
+        {/* Accomplishment Report Parser
+        <ParseTestComponent />
+      <AccomplishmentReportParser /> */}
 
       {/* Header Section */}
       <div className="flex items-center justify-between">
