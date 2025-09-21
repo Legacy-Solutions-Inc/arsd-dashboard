@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase';
 import { BaseService } from '@/services/base-service';
+import { ProjectService } from '@/services/projects/project.service';
 import type { 
   AccomplishmentReport, 
   CreateAccomplishmentReportData, 
@@ -238,9 +239,13 @@ export class AccomplishmentReportsService extends BaseService {
         throw updateError;
       }
 
-      // If approved, trigger auto-parsing via API call
+      // If approved, update project's latest accomplishment date and trigger auto-parsing
       if (status === 'approved') {
         try {
+          // Update project's latest accomplishment date
+          const projectService = new ProjectService();
+          await projectService.updateLatestAccomplishmentDate(reportData.project_id, new Date().toISOString());
+          
           // Add a small delay to ensure the database transaction is committed
           await new Promise(resolve => setTimeout(resolve, 100));
           
