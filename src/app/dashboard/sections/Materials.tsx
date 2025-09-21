@@ -12,13 +12,29 @@ interface Material {
   received: number;
 }
 
+// Database material interface
+interface DatabaseMaterial {
+  material_name?: string;
+  unit?: string;
+  quantity_requested?: number;
+  quantity_received?: number;
+}
+
 interface MaterialsProps {
-  materials: Material[];
+  materials: Material[] | DatabaseMaterial[];
 }
 
 export function Materials({ materials }: MaterialsProps) {
+  // Normalize materials data to handle both formats
+  const normalizedMaterials = materials.map((material: any) => ({
+    name: material.name || material.material_name || 'Unknown Material',
+    unit: material.unit || 'units',
+    requested: material.requested || material.quantity_requested || 0,
+    received: material.received || material.quantity_received || 0,
+  }));
+
   const [selectedIdx, setSelectedIdx] = useState(0);
-  const selectedMaterial = materials[selectedIdx] || materials[0];
+  const selectedMaterial = normalizedMaterials[selectedIdx] || normalizedMaterials[0];
 
   // Pie chart data for selected material
   const pieData = selectedMaterial
@@ -102,7 +118,7 @@ export function Materials({ materials }: MaterialsProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {materials.map((material: Material, index: number) => (
+              {normalizedMaterials.map((material: Material, index: number) => (
                 <TableRow
                   key={index}
                   className={

@@ -12,8 +12,17 @@ export interface CostMonth {
   direct: number;
 }
 
+// Database cost data interface
+export interface DatabaseCostMonth {
+  month: string;
+  target_cost?: number;
+  swa_cost?: number;
+  billed_cost?: number;
+  direct_cost?: number;
+}
+
 export interface CostAnalysisProps {
-  costData: CostMonth[];
+  costData: CostMonth[] | DatabaseCostMonth[];
   projectData: {
     actualProgress: number;
     targetProgress: number;
@@ -23,6 +32,15 @@ export interface CostAnalysisProps {
 }
 
 export function CostAnalysis({ costData, projectData, sCurveData }: CostAnalysisProps) {
+  // Normalize cost data to handle both formats
+  const normalizedCostData = costData.map((item: any) => ({
+    month: item.month,
+    target: item.target || item.target_cost || 0,
+    swa: item.swa || item.swa_cost || 0,
+    billed: item.billed || item.billed_cost || 0,
+    direct: item.direct || item.direct_cost || 0,
+  }));
+
   // Example S-curve data if not provided
   const defaultSCurveData = [
     { date: '2025-01-01', total: 0 },
@@ -54,7 +72,7 @@ export function CostAnalysis({ costData, projectData, sCurveData }: CostAnalysis
           <div className="bg-white rounded-lg p-4 shadow-sm border">
             <h3 className="font-semibold mb-2">Monthly Cost Comparison</h3>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={costData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+              <BarChart data={normalizedCostData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
                 <XAxis dataKey="month" />
                 <YAxis />
                 <Tooltip />
@@ -92,7 +110,7 @@ export function CostAnalysis({ costData, projectData, sCurveData }: CostAnalysis
           <div>
             <h3 className="font-semibold mb-4">Monthly Cost Breakdown</h3>
             <div className="space-y-4">
-              {costData.map((month) => (
+              {normalizedCostData.map((month) => (
                 <div key={month.month} className="bg-gray-50 rounded-lg p-4 flex items-center justify-between shadow-sm border">
                   <div>
                     <div className="font-semibold text-lg text-blue-700 mb-1">{month.month} 2024</div>
