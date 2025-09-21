@@ -197,9 +197,17 @@ export function ProjectsTable({
                           ? 'bg-gray-100/50 text-glass-muted border-gray-300/50 cursor-not-allowed hover:scale-100' 
                           : 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-glass-primary border-purple-300/50 hover:from-purple-500/30 hover:to-pink-500/30'
                       }`}
+                      title={
+                        hasReports && !hasReports(project) 
+                          ? 'View disabled: No approved reports with parsed data available'
+                          : 'View project details and parsed accomplishment data'
+                      }
                     >
                       <ArrowRight className="h-4 w-4 mr-1" />
                       View
+                      {hasReports && !hasReports(project) && (
+                        <span className="ml-1 text-xs">⚠️</span>
+                      )}
                     </Button>
                   </div>
                 </TableCell>
