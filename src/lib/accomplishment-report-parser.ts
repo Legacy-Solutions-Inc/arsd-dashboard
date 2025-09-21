@@ -125,7 +125,7 @@ export class AccomplishmentReportParser {
         sections.projectCosts = { start: i, end: this.findNextSection(jsonData, i) };
       }
 
-      // Man Hours section - look for headers like "actual_manhours", "projected_manhours"
+      // Man Hours section - look for headers like "actual_manhours", "projected_manhours", "Actual_ManHours", "Projected_ManHours"
       if (rowText.includes('actual_manhours') || rowText.includes('projected_manhours')) {
         sections.manHours = { start: i, end: this.findNextSection(jsonData, i) };
       }
