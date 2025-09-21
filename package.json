@@ -40,7 +40,8 @@
     "recharts": "^3.1.2",
     "stripe": "^17.6.0",
     "tempo-devtools": "^2.0.109",
-    "vaul": "^1.1.2"
+    "vaul": "^1.1.2",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/chart.js": "^2.9.41",
@@ -49,6 +50,7 @@
     "@types/react-chartjs-2": "^2.0.2",
     "@types/react-dom": "^18",
     "@types/recharts": "^1.8.29",
+    "@types/xlsx": "^0.0.35",
     "postcss": "^8",
     "tailwind-merge": "^2",
     "tailwindcss": "^3",

@@ -1,20 +1,25 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { GlassCard, GlassCardContent, GlassCardHeader, GlassCardTitle } from '@/components/ui/glass-card';
-import { Upload, FileText, Calendar, User, MapPin, Building, AlertCircle, CheckCircle, Clock, FolderOpen, BarChart3 } from 'lucide-react';
+import { Upload, FileText, Calendar, User, MapPin, Building, AlertCircle, CheckCircle, Clock, FolderOpen, BarChart3, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useProjects } from '@/hooks/useProjects';
 import { useWeeklyUploadStatus } from '@/hooks/useAccomplishmentReports';
 import CSVUploadForm from './CSVUploadForm';
 import type { Project } from '@/types/projects';
 
-export default function AssignedProjectsList() {
+interface AssignedProjectsListProps {
+  itemsPerPage?: number;
+}
+
+export default function AssignedProjectsList({ itemsPerPage = 6 }: AssignedProjectsListProps) {
   const { projects, loading: projectsLoading, error: projectsError } = useProjects();
   const { status: weeklyStatus, loading: statusLoading, error: statusError } = useWeeklyUploadStatus();
   const [uploadingProject, setUploadingProject] = useState<Project | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const handleUploadClick = (project: Project) => {
     setUploadingProject(project);
@@ -73,6 +78,29 @@ export default function AssignedProjectsList() {
       }
     }
     return 'bg-gray-100 text-gray-800';
+  };
+
+  // Calculate pagination
+  const totalPages = Math.ceil(projects.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedProjects = projects.slice(startIndex, endIndex);
+  
+  // Reset to first page when projects change
+  useMemo(() => {
+    setCurrentPage(1);
+  }, [projects]);
+
+  const goToPage = (page: number) => {
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+  };
+
+  const goToPreviousPage = () => {
+    goToPage(currentPage - 1);
+  };
+
+  const goToNextPage = () => {
+    goToPage(currentPage + 1);
   };
 
   if (projectsLoading || statusLoading) {
@@ -172,7 +200,7 @@ export default function AssignedProjectsList() {
       </div>
 
       <div className="grid gap-6">
-        {projects.map((project) => {
+        {paginatedProjects.map((project) => {
           const uploadStatus = getProjectUploadStatus(project.id);
           const hasUpload = uploadStatus?.has_upload || false;
           const reportStatus = uploadStatus?.report?.status;
@@ -246,6 +274,61 @@ export default function AssignedProjectsList() {
           );
         })}
       </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <GlassCard variant="elevated" className="mt-6">
+          <GlassCardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-glass-secondary">
+                Showing {startIndex + 1} to {Math.min(endIndex, projects.length)} of {projects.length} projects
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={goToPreviousPage}
+                  disabled={currentPage === 1}
+                  className="glass-button bg-gradient-to-r from-arsd-red/20 to-red-500/20 text-arsd-red border-arsd-red/30 hover:from-arsd-red/30 hover:to-red-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  Previous
+                </Button>
+                
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <Button
+                      key={page}
+                      variant={currentPage === page ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => goToPage(page)}
+                      className={
+                        currentPage === page
+                          ? "glass-button bg-gradient-to-r from-arsd-red/100 to-red-500/100 text-white border-arsd-red/50"
+                          : "glass-button bg-gradient-to-r from-arsd-red/20 to-red-500/20 text-arsd-red border-arsd-red/30 hover:from-arsd-red/30 hover:to-red-500/30"
+                      }
+                    >
+                      {page}
+                    </Button>
+                  ))}
+                </div>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={goToNextPage}
+                  disabled={currentPage === totalPages}
+                  className="glass-button bg-gradient-to-r from-arsd-red/20 to-red-500/20 text-arsd-red border-arsd-red/30 hover:from-arsd-red/30 hover:to-red-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
+            </div>
+          </GlassCardContent>
+        </GlassCard>
+      )}
 
       {/* Upload Form Modal */}
       {uploadingProject && (

@@ -80,9 +80,9 @@ export default function DashboardPage() {
     setEditingProject(null);
   };
 
-  // Function to check if a project has reports
+  // Function to check if a project has reports and parsed data
   const hasReports = (project: Project): boolean => {
-    return project.latest_accomplishment_update !== null;
+    return project.latest_accomplishment_update !== null && project.has_parsed_data === true;
   };
 
   const [canCreateProjects, setCanCreateProjects] = useState(false);

@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase';
 import { BaseService } from '@/services/base-service';
+import { ProjectService } from '@/services/projects/project.service';
 import type { 
   AccomplishmentReport, 
   CreateAccomplishmentReportData, 
@@ -12,7 +13,11 @@ export class AccomplishmentReportsService extends BaseService {
     super();
   }
 
-  // Get reports for assigned projects (PM view)
+  /**
+   * Get reports for assigned projects (PM view)
+   * @param filters - Optional filters for querying reports
+   * @returns Array of accomplishment reports with project and uploader details
+   */
   async getAssignedProjectReports(filters?: AccomplishmentReportFilters): Promise<AccomplishmentReport[]> {
     try {
       const supabase = createClient();
@@ -60,7 +65,11 @@ export class AccomplishmentReportsService extends BaseService {
     }
   }
 
-  // Get all reports (Superadmin/HR/PI view)
+  /**
+   * Get all reports (Superadmin/HR/PI view)
+   * @param filters - Optional filters for querying reports
+   * @returns Array of accomplishment reports with full details
+   */
   async getAllReports(filters?: AccomplishmentReportFilters): Promise<AccomplishmentReport[]> {
     try {
       const supabase = createClient();
@@ -92,7 +101,10 @@ export class AccomplishmentReportsService extends BaseService {
     }
   }
 
-  // Get weekly upload status for assigned projects
+  /**
+   * Get weekly upload status for assigned projects
+   * @returns Array of weekly upload status for each assigned project
+   */
   async getWeeklyUploadStatus(): Promise<WeeklyUploadStatus[]> {
     try {
       const supabase = createClient();
@@ -135,7 +147,11 @@ export class AccomplishmentReportsService extends BaseService {
     }
   }
 
-  // Upload a new report
+  /**
+   * Upload a new accomplishment report
+   * @param reportData - The report data to upload
+   * @returns The created accomplishment report with project and uploader details
+   */
   async uploadReport(reportData: CreateAccomplishmentReportData): Promise<AccomplishmentReport> {
     try {
       const supabase = createClient();
@@ -180,7 +196,10 @@ export class AccomplishmentReportsService extends BaseService {
     }
   }
 
-  // Update report status (for superadmins and project inspectors)
+  /**
+   * Update report status (for superadmins and project inspectors)
+   * Automatically triggers parsing when status is set to 'approved'
+   */
   async updateReportStatus(
     reportId: string, 
     status: 'pending' | 'approved' | 'rejected',
@@ -188,8 +207,6 @@ export class AccomplishmentReportsService extends BaseService {
   ): Promise<AccomplishmentReport> {
     try {
       const supabase = createClient();
-      
-      console.log('Updating report status:', { reportId, status, notes });
       
       // First, get the report to access project_id
       const { data: reportData, error: fetchError } = await supabase
@@ -203,9 +220,7 @@ export class AccomplishmentReportsService extends BaseService {
         throw fetchError;
       }
 
-      console.log('Report data fetched:', reportData);
-
-      // Update the report status (simplified - no complex joins)
+      // Update the report status
       const updateData: any = { 
         status
       };
@@ -213,8 +228,6 @@ export class AccomplishmentReportsService extends BaseService {
       if (notes !== undefined) {
         updateData.notes = notes;
       }
-
-      console.log('Update data:', updateData);
 
       const { error: updateError } = await supabase
         .from('accomplishment_reports')
@@ -226,23 +239,51 @@ export class AccomplishmentReportsService extends BaseService {
         throw updateError;
       }
 
-      console.log('Report status updated successfully');
-
-      // If approved, update the project's latest accomplishment date
+      // If approved, update project's latest accomplishment date and trigger auto-parsing
       if (status === 'approved') {
-        console.log('Updating project accomplishment date...');
-        const { error: projectError } = await supabase
-          .from('projects')
-          .update({
-            latest_accomplishment_update: reportData.week_ending_date
-          })
-          .eq('id', reportData.project_id);
-
-        if (projectError) {
-          console.warn('Failed to update project accomplishment date:', projectError);
-          // Don't throw here as the main operation succeeded
-        } else {
-          console.log('Project accomplishment date updated successfully');
+        try {
+          // Update project's latest accomplishment date
+          const projectService = new ProjectService();
+          await projectService.updateLatestAccomplishmentDate(reportData.project_id, new Date().toISOString());
+          
+          // Add a small delay to ensure the database transaction is committed
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
+          // Verify the report exists and is approved before parsing
+          const { data: verifyReport, error: verifyError } = await supabase
+            .from('accomplishment_reports')
+            .select('id, status')
+            .eq('id', reportId)
+            .eq('status', 'approved')
+            .single();
+          
+          if (verifyError || !verifyReport) {
+            console.error('Report verification failed:', verifyError);
+            // Fetch the full report to return
+            const { data: fullReport } = await supabase
+              .from('accomplishment_reports_with_details')
+              .select('*')
+              .eq('id', reportId)
+              .single();
+            return fullReport || reportData;
+          }
+          
+          // Call the server-side API to trigger auto-parsing
+          const response = await fetch('/api/accomplishment-reports/parse-approved', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ reportId })
+          });
+          
+          const result = await response.json();
+          
+          if (!result.success) {
+            console.error('Auto-parsing failed:', result.error);
+          }
+        } catch (parseError) {
+          console.error('Error during auto-parsing:', parseError);
         }
       }
 
@@ -258,7 +299,6 @@ export class AccomplishmentReportsService extends BaseService {
         throw fetchUpdatedError;
       }
 
-      console.log('Updated report fetched successfully:', updatedReport);
       return updatedReport;
     } catch (error) {
       console.error('updateReportStatus error:', error);
@@ -266,7 +306,10 @@ export class AccomplishmentReportsService extends BaseService {
     }
   }
 
-  // Delete a report
+  /**
+   * Delete an accomplishment report
+   * @param reportId - The ID of the report to delete
+   */
   async deleteReport(reportId: string): Promise<void> {
     try {
       const supabase = createClient();
@@ -282,7 +325,12 @@ export class AccomplishmentReportsService extends BaseService {
     }
   }
 
-  // Upload file to Supabase Storage
+  /**
+   * Upload file to Supabase Storage
+   * @param file - The file to upload
+   * @param projectId - The project ID for filename generation
+   * @returns Object containing the public URL and file path
+   */
   async uploadFile(file: File, projectId: string): Promise<{ url: string; path: string }> {
     try {
       const supabase = createClient();
@@ -291,8 +339,6 @@ export class AccomplishmentReportsService extends BaseService {
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const fileName = `${projectId}-${timestamp}-${file.name}`;
       const filePath = `accomplishment-reports/${fileName}`;
-
-      console.log('Uploading file:', { fileName, filePath, fileSize: file.size });
 
       // Upload file
       const { data, error } = await supabase.storage
@@ -307,14 +353,10 @@ export class AccomplishmentReportsService extends BaseService {
         throw error;
       }
 
-      console.log('Upload successful:', data);
-
       // Get public URL
       const { data: urlData } = supabase.storage
         .from('accomplishment-reports')
         .getPublicUrl(filePath);
-
-      console.log('Generated URL:', urlData.publicUrl);
 
       return {
         url: urlData.publicUrl,
@@ -326,7 +368,11 @@ export class AccomplishmentReportsService extends BaseService {
     }
   }
 
-  // Helper function to get week ending date
+  /**
+   * Helper function to get week ending date (Saturday)
+   * @param date - The date to calculate week ending for (defaults to current date)
+   * @returns The week ending date in YYYY-MM-DD format
+   */
   private getWeekEndingDate(date: Date = new Date()): string {
     const d = new Date(date);
     const day = d.getDay();
