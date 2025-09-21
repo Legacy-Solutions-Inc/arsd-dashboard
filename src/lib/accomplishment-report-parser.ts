@@ -47,7 +47,7 @@ export class AccomplishmentReportParser {
   /**
    * Parse the entire accomplishment report
    */
-  async parseAccomplishmentReport(): Promise<ParsedAccomplishmentData> {
+  async parseAccomplishmentReport(accomplishmentReportId?: string): Promise<ParsedAccomplishmentData> {
     if (!this.dataSheet) {
       throw new Error('No data sheet available');
     }
@@ -62,38 +62,38 @@ export class AccomplishmentReportParser {
 
     // Parse each section
     if (sections.projectDetails) {
-      parsedData.project_details = this.parseProjectDetails(jsonData, sections.projectDetails);
+      parsedData.project_details = this.parseProjectDetails(jsonData, sections.projectDetails, accomplishmentReportId);
     }
 
     if (sections.projectCosts) {
-      parsedData.project_costs = this.parseProjectCosts(jsonData, sections.projectCosts);
+      parsedData.project_costs = this.parseProjectCosts(jsonData, sections.projectCosts, accomplishmentReportId);
     }
 
     if (sections.manHours) {
-      parsedData.man_hours = this.parseManHours(jsonData, sections.manHours);
+      parsedData.man_hours = this.parseManHours(jsonData, sections.manHours, accomplishmentReportId);
     }
 
     if (sections.costItems) {
-      parsedData.cost_items = this.parseCostItems(jsonData, sections.costItems);
+      parsedData.cost_items = this.parseCostItems(jsonData, sections.costItems, accomplishmentReportId);
     }
 
     if (sections.costItemsSecondary) {
-      parsedData.cost_items_secondary = this.parseCostItemsSecondary(jsonData, sections.costItemsSecondary);
+      parsedData.cost_items_secondary = this.parseCostItemsSecondary(jsonData, sections.costItemsSecondary, accomplishmentReportId);
     } else {
       // Fallback: Try to parse Cost Items Secondary data from columns BM-BR (63-68) without section detection
-      parsedData.cost_items_secondary = this.parseCostItemsSecondaryFallback(jsonData);
+      parsedData.cost_items_secondary = this.parseCostItemsSecondaryFallback(jsonData, accomplishmentReportId);
     }
 
     if (sections.monthlyCosts) {
-      parsedData.monthly_costs = this.parseMonthlyCosts(jsonData, sections.monthlyCosts);
+      parsedData.monthly_costs = this.parseMonthlyCosts(jsonData, sections.monthlyCosts, accomplishmentReportId);
     }
 
     if (sections.materials) {
-      parsedData.materials = this.parseMaterials(jsonData, sections.materials);
+      parsedData.materials = this.parseMaterials(jsonData, sections.materials, accomplishmentReportId);
     }
 
     if (sections.purchaseOrders) {
-      parsedData.purchase_orders = this.parsePurchaseOrders(jsonData, sections.purchaseOrders);
+      parsedData.purchase_orders = this.parsePurchaseOrders(jsonData, sections.purchaseOrders, accomplishmentReportId);
     }
 
     console.log('Parsed data:', parsedData);
@@ -193,7 +193,7 @@ export class AccomplishmentReportParser {
    * COLUMN MAPPING TEMPLATE - Replace the numbers with your actual column indices:
    * A=0, B=1, C=2, D=3, E=4, F=5, G=6, H=7, I=8, J=9, K=10, L=11, M=12, N=13, O=14, P=15, Q=16, R=17, S=18, T=19, U=20, V=21, W=22, X=23, Y=24, Z=25
    */
-  private parseProjectDetails(jsonData: any[][], section: { start: number; end: number }): ProjectDetails[] {
+  private parseProjectDetails(jsonData: any[][], section: { start: number; end: number }, accomplishmentReportId?: string): ProjectDetails[] {
     const details: ProjectDetails[] = [];
     
     // COLUMN MAPPING - Project Details is from V to AL (columns 21-37):
@@ -226,7 +226,7 @@ export class AccomplishmentReportParser {
 
       details.push({
         id: '', // Will be set by database
-        accomplishment_report_id: '', // Will be set by caller
+        accomplishment_report_id: accomplishmentReportId || '', // Will be set by caller
         project_id: projectId,
         project_name: this.getCellValueByIndex(row, COLUMNS.project_name),
         client: this.getCellValueByIndex(row, COLUMNS.client),
@@ -257,7 +257,7 @@ export class AccomplishmentReportParser {
    * COLUMN MAPPING TEMPLATE - Replace the numbers with your actual column indices:
    * A=0, B=1, C=2, D=3, E=4, F=5, G=6, H=7, I=8, J=9, K=10, L=11, M=12, N=13, O=14, P=15, Q=16, R=17, S=18, T=19, U=20, V=21, W=22, X=23, Y=24, Z=25
    */
-  private parseProjectCosts(jsonData: any[][], section: { start: number; end: number }): ProjectCosts[] {
+  private parseProjectCosts(jsonData: any[][], section: { start: number; end: number }, accomplishmentReportId?: string): ProjectCosts[] {
     const costs: ProjectCosts[] = [];
     
     // COLUMN MAPPING - Project Costs is from AN to AX (columns 39-49):
@@ -284,7 +284,7 @@ export class AccomplishmentReportParser {
 
       costs.push({
         id: '',
-        accomplishment_report_id: '',
+        accomplishment_report_id: accomplishmentReportId || '',
         project_id: projectId,
         target_cost_total: this.parseNumber(this.getCellValueByIndex(row, COLUMNS.target_cost_total)),
         swa_cost_total: this.parseNumber(this.getCellValueByIndex(row, COLUMNS.swa_cost_total)),
@@ -309,7 +309,7 @@ export class AccomplishmentReportParser {
    * COLUMN MAPPING TEMPLATE - Replace the numbers with your actual column indices:
    * A=0, B=1, C=2, D=3, E=4, F=5, G=6, H=7, I=8, J=9, K=10, L=11, M=12, N=13, O=14, P=15, Q=16, R=17, S=18, T=19, U=20, V=21, W=22, X=23, Y=24, Z=25
    */
-  private parseManHours(jsonData: any[][], section: { start: number; end: number }): ManHours[] {
+  private parseManHours(jsonData: any[][], section: { start: number; end: number }, accomplishmentReportId?: string): ManHours[] {
     const manHours: ManHours[] = [];
     
     // COLUMN MAPPING - Man Hours is from BA to BC (columns 52-54):
@@ -330,7 +330,7 @@ export class AccomplishmentReportParser {
 
       manHours.push({
         id: '',
-        accomplishment_report_id: '',
+        accomplishment_report_id: accomplishmentReportId || '',
         project_id: 'A', // Default project ID since there's no project_id column
         date: date,
         actual_man_hours: this.parseNumber(this.getCellValueByIndex(row, COLUMNS.actual_man_hours)),
@@ -348,7 +348,7 @@ export class AccomplishmentReportParser {
    * COLUMN MAPPING TEMPLATE - Replace the numbers with your actual column indices:
    * A=0, B=1, C=2, D=3, E=4, F=5, G=6, H=7, I=8, J=9, K=10, L=11, M=12, N=13, O=14, P=15, Q=16, R=17, S=18, T=19, U=20, V=21, W=22, X=23, Y=24, Z=25
    */
-  private parseCostItems(jsonData: any[][], section: { start: number; end: number }): CostItem[] {
+  private parseCostItems(jsonData: any[][], section: { start: number; end: number }, accomplishmentReportId?: string): CostItem[] {
     const costItems: CostItem[] = [];
     
     // COLUMN MAPPING - Cost Items is from BE to BK (columns 55-61):
@@ -371,7 +371,7 @@ export class AccomplishmentReportParser {
 
       costItems.push({
         id: '',
-        accomplishment_report_id: '',
+        accomplishment_report_id: accomplishmentReportId || '',
         project_id: projectId,
         item_no: this.getCellValueByIndex(row, COLUMNS.item_no),
         description: this.getCellValueByIndex(row, COLUMNS.description),
@@ -392,7 +392,7 @@ export class AccomplishmentReportParser {
    * COLUMN MAPPING TEMPLATE - Replace the numbers with your actual column indices:
    * A=0, B=1, C=2, D=3, E=4, F=5, G=6, H=7, I=8, J=9, K=10, L=11, M=12, N=13, O=14, P=15, Q=16, R=17, S=18, T=19, U=20, V=21, W=22, X=23, Y=24, Z=25
    */
-  private parseCostItemsSecondary(jsonData: any[][], section: { start: number; end: number }): CostItemSecondary[] {
+  private parseCostItemsSecondary(jsonData: any[][], section: { start: number; end: number }, accomplishmentReportId?: string): CostItemSecondary[] {
     const costItemsSecondary: CostItemSecondary[] = [];
     
     // COLUMN MAPPING - Cost Items Secondary is from BM to BR (columns 63-68):
@@ -414,7 +414,7 @@ export class AccomplishmentReportParser {
 
       costItemsSecondary.push({
         id: '',
-        accomplishment_report_id: '',
+        accomplishment_report_id: accomplishmentReportId || '',
         project_id: projectId,
         item_no: this.getCellValueByIndex(row, COLUMNS.item_no),
         description: this.getCellValueByIndex(row, COLUMNS.description),
@@ -431,7 +431,7 @@ export class AccomplishmentReportParser {
   /**
    * Fallback method to parse Cost Items Secondary data without section detection
    */
-  private parseCostItemsSecondaryFallback(jsonData: any[][]): CostItemSecondary[] {
+  private parseCostItemsSecondaryFallback(jsonData: any[][], accomplishmentReportId?: string): CostItemSecondary[] {
     const costItemsSecondary: CostItemSecondary[] = [];
     
     // COLUMN MAPPING - Cost Items Secondary is from BM to BR (columns 63-68):
@@ -458,7 +458,7 @@ export class AccomplishmentReportParser {
       if (projectId && (itemNo || description || cost)) {
         costItemsSecondary.push({
           id: '',
-          accomplishment_report_id: '',
+          accomplishment_report_id: accomplishmentReportId || '',
           project_id: projectId,
           item_no: itemNo,
           description: description,
@@ -479,7 +479,7 @@ export class AccomplishmentReportParser {
    * COLUMN MAPPING TEMPLATE - Replace the numbers with your actual column indices:
    * A=0, B=1, C=2, D=3, E=4, F=5, G=6, H=7, I=8, J=9, K=10, L=11, M=12, N=13, O=14, P=15, Q=16, R=17, S=18, T=19, U=20, V=21, W=22, X=23, Y=24, Z=25
    */
-  private parseMonthlyCosts(jsonData: any[][], section: { start: number; end: number }): MonthlyCost[] {
+  private parseMonthlyCosts(jsonData: any[][], section: { start: number; end: number }, accomplishmentReportId?: string): MonthlyCost[] {
     const monthlyCosts: MonthlyCost[] = [];
     
     // COLUMN MAPPING - Monthly Costs is from BT to BY (columns 71-76):
@@ -501,7 +501,7 @@ export class AccomplishmentReportParser {
 
       monthlyCosts.push({
         id: '',
-        accomplishment_report_id: '',
+        accomplishment_report_id: accomplishmentReportId || '',
         project_id: projectId,
         month: this.parseDate(this.getCellValueByIndex(row, COLUMNS.month)),
         target_cost: this.parseNumber(this.getCellValueByIndex(row, COLUMNS.target_cost)),
@@ -521,7 +521,7 @@ export class AccomplishmentReportParser {
    * COLUMN MAPPING TEMPLATE - Replace the numbers with your actual column indices:
    * A=0, B=1, C=2, D=3, E=4, F=5, G=6, H=7, I=8, J=9, K=10, L=11, M=12, N=13, O=14, P=15, Q=16, R=17, S=18, T=19, U=20, V=21, W=22, X=23, Y=24, Z=25
    */
-  private parseMaterials(jsonData: any[][], section: { start: number; end: number }): Material[] {
+  private parseMaterials(jsonData: any[][], section: { start: number; end: number }, accomplishmentReportId?: string): Material[] {
     const materials: Material[] = [];
     
     // COLUMN MAPPING - Materials is from CA to CE (columns 78-82):
@@ -542,7 +542,7 @@ export class AccomplishmentReportParser {
 
       materials.push({
         id: '',
-        accomplishment_report_id: '',
+        accomplishment_report_id: accomplishmentReportId || '',
         project_id: projectId,
         material: this.getCellValueByIndex(row, COLUMNS.material),
         type: this.getCellValueByIndex(row, COLUMNS.type),
@@ -561,7 +561,7 @@ export class AccomplishmentReportParser {
    * COLUMN MAPPING TEMPLATE - Replace the numbers with your actual column indices:
    * A=0, B=1, C=2, D=3, E=4, F=5, G=6, H=7, I=8, J=9, K=10, L=11, M=12, N=13, O=14, P=15, Q=16, R=17, S=18, T=19, U=20, V=21, W=22, X=23, Y=24, Z=25
    */
-  private parsePurchaseOrders(jsonData: any[][], section: { start: number; end: number }): PurchaseOrder[] {
+  private parsePurchaseOrders(jsonData: any[][], section: { start: number; end: number }, accomplishmentReportId?: string): PurchaseOrder[] {
     const purchaseOrders: PurchaseOrder[] = [];
     
     // COLUMN MAPPING - Purchase Orders is from CG to CO (columns 84-92):
@@ -586,7 +586,7 @@ export class AccomplishmentReportParser {
 
       purchaseOrders.push({
         id: '',
-        accomplishment_report_id: '',
+        accomplishment_report_id: accomplishmentReportId || '',
         project_id: projectId,
         po_number: this.getCellValueByIndex(row, COLUMNS.po_number),
         date_requested: this.parseDate(this.getCellValueByIndex(row, COLUMNS.date_requested)),
@@ -648,6 +648,15 @@ export class AccomplishmentReportParser {
       // Handle Excel date serial numbers
       if (typeof value === 'number') {
         const date = new Date((value - 25569) * 86400 * 1000);
+        if (isNaN(date.getTime())) return undefined;
+        
+        // Check if date is within reasonable range (1900-2100)
+        const year = date.getFullYear();
+        if (year < 1900 || year > 2100) {
+          console.warn(`Invalid Excel date year: ${year} for value: ${value}`);
+          return undefined;
+        }
+        
         return date.toISOString().split('T')[0];
       }
       
@@ -655,8 +664,16 @@ export class AccomplishmentReportParser {
       const date = new Date(value);
       if (isNaN(date.getTime())) return undefined;
       
+      // Check if date is within reasonable range (1900-2100)
+      const year = date.getFullYear();
+      if (year < 1900 || year > 2100) {
+        console.warn(`Invalid string date year: ${year} for value: ${value}`);
+        return undefined;
+      }
+      
       return date.toISOString().split('T')[0];
-    } catch {
+    } catch (error) {
+      console.warn(`Date parsing error for value: ${value}`, error);
       return undefined;
     }
   }
