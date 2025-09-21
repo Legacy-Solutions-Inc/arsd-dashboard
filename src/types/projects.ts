@@ -10,6 +10,7 @@ export interface Project {
   project_manager_id: string | null;
   project_manager: ProjectManager | null;
   latest_accomplishment_update: string | null; // ISO date string
+  has_parsed_data: boolean;     // Whether project has successfully parsed accomplishment data
   created_by: string;
   updated_by: string | null;
   created_at: string;
