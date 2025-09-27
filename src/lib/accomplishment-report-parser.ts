@@ -60,6 +60,15 @@ export class AccomplishmentReportParser {
 
     const parsedData: ParsedAccomplishmentData = {};
 
+    console.log('Detected sections:', sections);
+    if (sections.manHours) {
+      console.log('Man Hours section details:', {
+        start: sections.manHours.start,
+        end: sections.manHours.end,
+        totalRows: sections.manHours.end - sections.manHours.start - 1
+      });
+    }
+
     // Parse each section
     if (sections.projectDetails) {
       parsedData.project_details = this.parseProjectDetails(jsonData, sections.projectDetails, accomplishmentReportId);
@@ -70,7 +79,9 @@ export class AccomplishmentReportParser {
     }
 
     if (sections.manHours) {
+      console.log('Calling parseManHours with section:', sections.manHours);
       parsedData.man_hours = this.parseManHours(jsonData, sections.manHours, accomplishmentReportId);
+      console.log('parseManHours returned:', parsedData.man_hours.length, 'records');
     }
 
     if (sections.costItems) {
@@ -112,6 +123,11 @@ export class AccomplishmentReportParser {
 
       // Check all cells in the row, not just the first one
       const rowText = row.map(cell => cell?.toString().toLowerCase() || '').join(' ');
+      
+      // Debug: Log rows that might contain man hours headers
+      if (rowText.includes('date') || rowText.includes('actual_manhours') || rowText.includes('projected_manhours')) {
+        console.log(`Row ${i} contains man hours keywords:`, rowText);
+      }
 
       // Look for section headers that contain the expected column names
       
@@ -126,8 +142,20 @@ export class AccomplishmentReportParser {
       }
 
       // Man Hours section - look for headers like "actual_manhours", "projected_manhours", "Actual_ManHours", "Projected_ManHours"
-      if (rowText.includes('actual_manhours') || rowText.includes('projected_manhours')) {
+      // Also check for variations like "actual_man", "projected_man", "actual man", "projected man"
+      if (rowText.includes('date') && (
+        rowText.includes('actual_manhours') || 
+        rowText.includes('projected_manhours') ||
+        rowText.includes('actual_man') || 
+        rowText.includes('projected_man') ||
+        rowText.includes('actual man') || 
+        rowText.includes('projected man') ||
+        rowText.includes('actualman') || 
+        rowText.includes('projectedman')
+      )) {
         sections.manHours = { start: i, end: this.findNextSection(jsonData, i) };
+        console.log('Man Hours section found at row:', i, 'text:', rowText);
+        console.log('Man Hours section boundaries:', { start: i, end: sections.manHours.end });
       }
 
       // Cost Items section - look for headers like "item_no", "description", "cost", "wbs"
@@ -174,7 +202,8 @@ export class AccomplishmentReportParser {
       // Look for the start of a new section header by checking for column names
       if ((rowText.includes('projectid') && (rowText.includes('project name') || rowText.includes('client'))) ||
           (rowText.includes('target cost total') || rowText.includes('swa cost total')) ||
-          (rowText.includes('actual_manhours') || rowText.includes('projected_manhours')) ||
+          (rowText.includes('date') || rowText.includes('projected_manhours') ||
+           rowText.includes('date') || rowText.includes('projected_manhours')) ||
           (rowText.includes('item_no') && rowText.includes('description') && rowText.includes('wbs')) ||
           (rowText.includes('item_no') && rowText.includes('description') && rowText.includes('cost')) ||
           (rowText.includes('month') && (rowText.includes('targetcost') || rowText.includes('swa_cost'))) ||
@@ -234,10 +263,10 @@ export class AccomplishmentReportParser {
         project_location: this.getCellValueByIndex(row, COLUMNS.project_location),
         contract_amount: this.parseNumber(this.getCellValueByIndex(row, COLUMNS.contract_amount)),
         direct_contract_amount: this.parseNumber(this.getCellValueByIndex(row, COLUMNS.direct_contract_amount)),
-        planned_start_date: this.parseDate(this.getCellValueByIndex(row, COLUMNS.planned_start_date)),
-        planned_end_date: this.parseDate(this.getCellValueByIndex(row, COLUMNS.planned_end_date)),
-        actual_start_date: this.parseDate(this.getCellValueByIndex(row, COLUMNS.actual_start_date)),
-        actual_end_date: this.parseDate(this.getCellValueByIndex(row, COLUMNS.actual_end_date)),
+        planned_start_date: this.getDateValueByIndex(row, COLUMNS.planned_start_date),
+        planned_end_date: this.getDateValueByIndex(row, COLUMNS.planned_end_date),
+        actual_start_date: this.getDateValueByIndex(row, COLUMNS.actual_start_date),
+        actual_end_date: this.getDateValueByIndex(row, COLUMNS.actual_end_date),
         calendar_days: this.parseNumber(this.getCellValueByIndex(row, COLUMNS.calendar_days)),
         working_days: this.parseNumber(this.getCellValueByIndex(row, COLUMNS.working_days)),
         pm_name: this.getCellValueByIndex(row, COLUMNS.pm_name),
@@ -262,30 +291,34 @@ export class AccomplishmentReportParser {
     
     // COLUMN MAPPING - Project Costs is from AN to AX (columns 39-49):
     const COLUMNS = {
-      project_id: 39,                  // Column AN = 39
-      target_cost_total: 40,           // Column AO = 40
-      swa_cost_total: 41,              // Column AP = 41
-      billed_cost_total: 42,           // Column AQ = 42
-      direct_cost_total: 43,           // Column AR = 43
-      balance: 44,                     // Column AS = 44
-      collectibles: 45,                // Column AT = 45
-      direct_cost_savings: 46,         // Column AU = 46
-      received_percentage: 47,         // Column AV = 47
-      utilization_percentage: 48,      // Column AW = 48
-      total_pos: 49                    // Column AX = 49
+      target_cost_total: 39,           // Column AN = 39
+      swa_cost_total: 40,              // Column AO = 40
+      billed_cost_total: 41,           // Column AP = 41
+      direct_cost_total: 42,           // Column AQ = 42
+      balance: 43,                     // Column AR = 43
+      collectibles: 44,                // Column AS = 44
+      direct_cost_savings: 45,         // Column AT = 45
+      received_percentage: 47,         // Column AU = 46
+      utilization_percentage: 48,      // Column AV = 47
+      total_pos: 49                    // Column AW = 48
     };
 
     for (let i = section.start + 1; i < section.end; i++) {
       const row = jsonData[i];
       if (!row || row.length === 0) continue;
 
-      const projectId = this.getCellValueByIndex(row, COLUMNS.project_id);
-      if (!projectId) continue;
+      // Check if there's any data in the row (at least one non-empty cell)
+      const hasData = Object.values(COLUMNS).some(colIndex => {
+        const value = this.getCellValueByIndex(row, colIndex);
+        return value && value.toString().trim() !== '';
+      });
+
+      if (!hasData) continue;
 
       costs.push({
         id: '',
         accomplishment_report_id: accomplishmentReportId || '',
-        project_id: projectId,
+        project_id: accomplishmentReportId || '', // Use accomplishment_report_id as project_id
         target_cost_total: this.parseNumber(this.getCellValueByIndex(row, COLUMNS.target_cost_total)),
         swa_cost_total: this.parseNumber(this.getCellValueByIndex(row, COLUMNS.swa_cost_total)),
         billed_cost_total: this.parseNumber(this.getCellValueByIndex(row, COLUMNS.billed_cost_total)),
@@ -312,31 +345,62 @@ export class AccomplishmentReportParser {
   private parseManHours(jsonData: any[][], section: { start: number; end: number }, accomplishmentReportId?: string): ManHours[] {
     const manHours: ManHours[] = [];
     
-    // COLUMN MAPPING - Man Hours is from BA to BC (columns 52-54):
-    const COLUMNS = {
-      project_id: null,           // No project_id column in this section
-      date: 52,                   // Column BA = 52 (Date)
-      actual_man_hours: 53,       // Column BB = 53 (Actual_Man)
-      projected_man_hours: 54     // Column BC = 54 (Projected_Man)
-    };
+    console.log('parseManHours called with section:', section, 'accomplishmentReportId:', accomplishmentReportId);
+    console.log('Processing rows from', section.start + 1, 'to', section.end - 1);
+    
+    // Get the header row (first row of the section)
+    const headerRow = jsonData[section.start];
+    console.log('Man Hours header row:', headerRow);
+
 
     for (let i = section.start + 1; i < section.end; i++) {
       const row = jsonData[i];
       if (!row || row.length === 0) continue;
 
-      const date = this.parseDate(this.getCellValueByIndex(row, COLUMNS.date));
+      // Try header-based parsing first, fallback to column indices
+      let dateValue = this.getDateValue(row, headerRow, 'date');
+      let actualHoursValue = this.getCellValue(row, headerRow, 'actual_manhours');
+      let projectedHoursValue = this.getCellValue(row, headerRow, 'projected_manhours');
       
-      if (!date) continue;
-
-      manHours.push({
-        id: '',
-        accomplishment_report_id: accomplishmentReportId || '',
-        project_id: 'A', // Default project ID since there's no project_id column
-        date: date,
-        actual_man_hours: this.parseNumber(this.getCellValueByIndex(row, COLUMNS.actual_man_hours)),
-        projected_man_hours: this.parseNumber(this.getCellValueByIndex(row, COLUMNS.projected_man_hours)),
-        created_at: new Date().toISOString()
+      // Fallback to column indices if header-based parsing returns empty
+      if (!dateValue && row.length > 52) {
+        dateValue = this.getDateValueByIndex(row, 52); // Column BA = 52
+      }
+      if (!actualHoursValue && row.length > 53) {
+        actualHoursValue = this.getCellValueByIndex(row, 53); // Column BB = 53
+      }
+      if (!projectedHoursValue && row.length > 54) {
+        projectedHoursValue = this.getCellValueByIndex(row, 54); // Column BC = 54
+      }
+      
+      console.log(`Man Hours Row ${i}:`, {
+        dateValue,
+        actualHoursValue,
+        projectedHoursValue,
+        rowLength: row.length
       });
+      
+      // Check if we have at least one man hours value (actual or projected)
+      const actualHours = this.parseNumber(actualHoursValue);
+      const projectedHours = this.parseNumber(projectedHoursValue);
+      
+      if (!actualHours && !projectedHours) {
+        console.log(`Skipping row ${i}: no man hours data (actual: ${actualHoursValue}, projected: ${projectedHoursValue})`);
+        continue; // Skip if no man hours data
+      }
+
+       const manHourRecord = {
+         id: '',
+         accomplishment_report_id: accomplishmentReportId || '',
+         project_id: accomplishmentReportId || '',
+         date: dateValue,
+         actual_man_hours: actualHours,
+         projected_man_hours: projectedHours,
+         created_at: new Date().toISOString()
+       };
+       
+       console.log(`Adding man hour record:`, manHourRecord);
+       manHours.push(manHourRecord);
     }
 
     return manHours;
@@ -375,7 +439,7 @@ export class AccomplishmentReportParser {
         project_id: projectId,
         item_no: this.getCellValueByIndex(row, COLUMNS.item_no),
         description: this.getCellValueByIndex(row, COLUMNS.description),
-        date: this.parseDate(this.getCellValueByIndex(row, COLUMNS.date)),
+        date: this.getDateValueByIndex(row, COLUMNS.date),
         type: this.getCellValueByIndex(row, COLUMNS.type),
         cost: this.parseNumber(this.getCellValueByIndex(row, COLUMNS.cost)),
         wbs: this.getCellValueByIndex(row, COLUMNS.wbs),
@@ -418,7 +482,7 @@ export class AccomplishmentReportParser {
         project_id: projectId,
         item_no: this.getCellValueByIndex(row, COLUMNS.item_no),
         description: this.getCellValueByIndex(row, COLUMNS.description),
-        date: this.parseDate(this.getCellValueByIndex(row, COLUMNS.date)),
+        date: this.getDateValueByIndex(row, COLUMNS.date),
         type: this.getCellValueByIndex(row, COLUMNS.type),
         cost: this.parseNumber(this.getCellValueByIndex(row, COLUMNS.cost)),
         created_at: new Date().toISOString()
@@ -427,7 +491,6 @@ export class AccomplishmentReportParser {
 
     return costItemsSecondary;
   }
-
   /**
    * Fallback method to parse Cost Items Secondary data without section detection
    */
@@ -462,7 +525,7 @@ export class AccomplishmentReportParser {
           project_id: projectId,
           item_no: itemNo,
           description: description,
-          date: this.parseDate(this.getCellValueByIndex(row, COLUMNS.date)),
+          date: this.getDateValueByIndex(row, COLUMNS.date),
           type: this.getCellValueByIndex(row, COLUMNS.type),
           cost: this.parseNumber(cost),
           created_at: new Date().toISOString()
@@ -503,7 +566,7 @@ export class AccomplishmentReportParser {
         id: '',
         accomplishment_report_id: accomplishmentReportId || '',
         project_id: projectId,
-        month: this.parseDate(this.getCellValueByIndex(row, COLUMNS.month)),
+        month: this.getDateValueByIndex(row, COLUMNS.month),
         target_cost: this.parseNumber(this.getCellValueByIndex(row, COLUMNS.target_cost)),
         swa_cost: this.parseNumber(this.getCellValueByIndex(row, COLUMNS.swa_cost)),
         billed_cost: this.parseNumber(this.getCellValueByIndex(row, COLUMNS.billed_cost)),
@@ -589,8 +652,8 @@ export class AccomplishmentReportParser {
         accomplishment_report_id: accomplishmentReportId || '',
         project_id: projectId,
         po_number: this.getCellValueByIndex(row, COLUMNS.po_number),
-        date_requested: this.parseDate(this.getCellValueByIndex(row, COLUMNS.date_requested)),
-        expected_delivery_date: this.parseDate(this.getCellValueByIndex(row, COLUMNS.expected_delivery_date)),
+        date_requested: this.getDateValueByIndex(row, COLUMNS.date_requested),
+        expected_delivery_date: this.getDateValueByIndex(row, COLUMNS.expected_delivery_date),
         materials_requested: this.getCellValueByIndex(row, COLUMNS.materials_requested),
         qty: this.parseNumber(this.getCellValueByIndex(row, COLUMNS.qty)),
         unit: this.getCellValueByIndex(row, COLUMNS.unit),
@@ -605,17 +668,47 @@ export class AccomplishmentReportParser {
 
   
   /**
-   * Helper method to get cell value by column index
+   * Helper method to get cell value by column index (for general data)
    */
   private getCellValueByIndex(row: any[], columnIndex: number): string {
     if (columnIndex < 0 || columnIndex >= row.length) return '';
     
     const value = row[columnIndex];
-    return value ? value.toString().trim() : '';
+    if (!value) return '';
+    
+    return value.toString().trim();
   }
 
   /**
-   * Helper method to get cell value by header name (fallback)
+   * Helper method to get cell value by column index (for date data)
+   */
+  private getDateValueByIndex(row: any[], columnIndex: number): string {
+    if (columnIndex < 0 || columnIndex >= row.length) return '';
+    
+    const value = row[columnIndex];
+    if (!value) return '';
+    
+    // Handle Excel date serial numbers
+    if (typeof value === 'number' && value > 25000) {
+      // This looks like an Excel serial date number
+      console.log(`getDateValueByIndex - Converting Excel serial number: ${value}`);
+      const date = new Date((value - 25569) * 86400 * 1000);
+      console.log(`getDateValueByIndex - Converted date: ${date.toISOString()}`);
+      if (!isNaN(date.getTime())) {
+        const year = date.getFullYear();
+        if (year >= 1900 && year <= 2100) {
+          const result = date.toISOString().split('T')[0];
+          console.log(`getDateValueByIndex - Final date result: ${result}`);
+          return result; // Return as YYYY-MM-DD
+        }
+      }
+    }
+    
+    return value.toString().trim();
+  }
+
+  /**
+   * Helper method to get cell value by header name (for general data)
    */
   private getCellValue(row: any[], headers: any[], headerName: string): string {
     const headerIndex = headers.findIndex(h => 
@@ -625,7 +718,38 @@ export class AccomplishmentReportParser {
     if (headerIndex === -1) return '';
     
     const value = row[headerIndex];
-    return value ? value.toString().trim() : '';
+    if (!value) return '';
+    
+    return value.toString().trim();
+  }
+
+  /**
+   * Helper method to get cell value by header name (for date data)
+   */
+  private getDateValue(row: any[], headers: any[], headerName: string): string {
+    const headerIndex = headers.findIndex(h => 
+      h && h.toString().toLowerCase().includes(headerName.toLowerCase())
+    );
+    
+    if (headerIndex === -1) return '';
+    
+    const value = row[headerIndex];
+    if (!value) return '';
+    
+    // Handle Excel date serial numbers
+    if (typeof value === 'number' && value > 25000) {
+      // This looks like an Excel serial date number
+      const date = new Date((value - 25569) * 86400 * 1000);
+      if (!isNaN(date.getTime())) {
+        const year = date.getFullYear();
+        if (year >= 1900 && year <= 2100) {
+          const result = date.toISOString().split('T')[0];
+          return result; // Return as YYYY-MM-DD
+        }
+      }
+    }
+    
+    return value.toString().trim();
   }
 
   /**
@@ -638,43 +762,5 @@ export class AccomplishmentReportParser {
     return isNaN(parsed) ? undefined : parsed;
   }
 
-  /**
-   * Helper method to parse dates
-   */
-  private parseDate(value: string): string | undefined {
-    if (!value || value === '') return undefined;
-    
-    try {
-      // Handle Excel date serial numbers
-      if (typeof value === 'number') {
-        const date = new Date((value - 25569) * 86400 * 1000);
-        if (isNaN(date.getTime())) return undefined;
-        
-        // Check if date is within reasonable range (1900-2100)
-        const year = date.getFullYear();
-        if (year < 1900 || year > 2100) {
-          console.warn(`Invalid Excel date year: ${year} for value: ${value}`);
-          return undefined;
-        }
-        
-        return date.toISOString().split('T')[0];
-      }
-      
-      // Handle string dates
-      const date = new Date(value);
-      if (isNaN(date.getTime())) return undefined;
-      
-      // Check if date is within reasonable range (1900-2100)
-      const year = date.getFullYear();
-      if (year < 1900 || year > 2100) {
-        console.warn(`Invalid string date year: ${year} for value: ${value}`);
-        return undefined;
-      }
-      
-      return date.toISOString().split('T')[0];
-    } catch (error) {
-      console.warn(`Date parsing error for value: ${value}`, error);
-      return undefined;
-    }
-  }
+
 }
