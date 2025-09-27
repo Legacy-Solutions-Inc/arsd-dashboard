@@ -3,17 +3,27 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 interface ProjectOverviewProps {
   projectData: {
     projectId: string;
+    projectName?: string;
     client: string;
     contractor: string;
     location: string;
     pmName: string;
     siteEngineer: string;
+    contractAmount: number;
+    directContractAmount?: number;
+    plannedStartDate?: string;
+    plannedEndDate?: string;
+    actualStartDate?: string;
+    actualEndDate?: string;
+    calendarDays?: number;
+    workingDays?: number;
+    priorityLevel?: string;
+    remarks?: string;
     actualProgress: number;
     targetProgress: number;
     slippage: number;
     balance: number;
     collectible: number;
-    contractAmount: number;
     savings: number;
   };
   costData: any[];
@@ -38,16 +48,52 @@ export function ProjectOverview({ projectData, costData }: ProjectOverviewProps)
               <div className="font-semibold text-arsd-red text-base">{projectData.projectId}</div>
             </div>
             <div>
+              <div className="text-xs text-gray-500">Project Name</div>
+              <div className="font-semibold text-gray-900">{projectData.projectName}</div>
+            </div>
+            <div>
               <div className="text-xs text-gray-500">Client</div>
               <div className="font-semibold text-gray-900">{projectData.client}</div>
             </div>
             <div>
-              <div className="text-xs text-gray-500">Contractor</div>
+              <div className="text-xs text-gray-500">Contractor License</div>
               <div className="font-semibold text-gray-900">{projectData.contractor}</div>
             </div>
             <div>
-              <div className="text-xs text-gray-500">Location</div>
+              <div className="text-xs text-gray-500">Project Location</div>
               <div className="font-semibold text-gray-900">{projectData.location}</div>
+            </div>
+            <div>
+              <div className="text-xs text-gray-500">Contract Amount</div>
+              <div className="font-semibold text-gray-900">₱{projectData.contractAmount?.toLocaleString() || 'N/A'}</div>
+            </div>
+            <div>
+              <div className="text-xs text-gray-500">Direct Contract Amount</div>
+              <div className="font-semibold text-gray-900">₱{projectData.directContractAmount?.toLocaleString() || 'N/A'}</div>
+            </div>
+            <div>
+              <div className="text-xs text-gray-500">Planned Start Date</div>
+              <div className="font-semibold text-gray-900">{projectData.plannedStartDate || 'N/A'}</div>
+            </div>
+            <div>
+              <div className="text-xs text-gray-500">Planned End Date</div>
+              <div className="font-semibold text-gray-900">{projectData.plannedEndDate || 'N/A'}</div>
+            </div>
+            <div>
+              <div className="text-xs text-gray-500">Actual Start Date</div>
+              <div className="font-semibold text-gray-900">{projectData.actualStartDate || 'N/A'}</div>
+            </div>
+            <div>
+              <div className="text-xs text-gray-500">Actual End Date</div>
+              <div className="font-semibold text-gray-900">{projectData.actualEndDate || 'N/A'}</div>
+            </div>
+            <div>
+              <div className="text-xs text-gray-500">Calendar Days</div>
+              <div className="font-semibold text-gray-900">{projectData.calendarDays || 'N/A'}</div>
+            </div>
+            <div>
+              <div className="text-xs text-gray-500">Working Days</div>
+              <div className="font-semibold text-gray-900">{projectData.workingDays || 'N/A'}</div>
             </div>
             <div>
               <div className="text-xs text-gray-500">PM Name</div>
@@ -56,6 +102,14 @@ export function ProjectOverview({ projectData, costData }: ProjectOverviewProps)
             <div>
               <div className="text-xs text-gray-500">Site Engineer</div>
               <div className="font-semibold text-gray-900">{projectData.siteEngineer}</div>
+            </div>
+            <div>
+              <div className="text-xs text-gray-500">Priority Level</div>
+              <div className="font-semibold text-gray-900">{projectData.priorityLevel || 'N/A'}</div>
+            </div>
+            <div>
+              <div className="text-xs text-gray-500">Remarks</div>
+              <div className="font-semibold text-gray-900">{projectData.remarks || 'N/A'}</div>
             </div>
           </div>
         </CardContent>
