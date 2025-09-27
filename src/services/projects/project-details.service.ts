@@ -17,6 +17,28 @@ export class ProjectDetailsService {
   private supabase = createClient();
 
   /**
+   * Get the latest accomplishment report ID for a project
+   * @param projectId - The project ID
+   * @returns Latest accomplishment report ID or null
+   */
+  private async getLatestAccomplishmentReportId(projectId: string): Promise<string | null> {
+    const { data: latestReport, error } = await this.supabase
+      .from('accomplishment_reports')
+      .select('id')
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (error) {
+      console.error('Error fetching latest accomplishment report:', error);
+      return null;
+    }
+
+    return latestReport?.id || null;
+  }
+
+  /**
    * Get project details with all accomplishment data
    * @param projectId - The project ID
    * @returns Project details with accomplishment data
@@ -81,10 +103,14 @@ export class ProjectDetailsService {
   }
 
   private async getProjectDetailsData(projectId: string) {
+    const latestReportId = await this.getLatestAccomplishmentReportId(projectId);
+    if (!latestReportId) return [];
+
+    // Get project details ONLY from the latest accomplishment report
     const { data, error } = await this.supabase
       .from('project_details')
       .select('*')
-      .eq('project_id', projectId)
+      .eq('accomplishment_report_id', latestReportId)
       .order('created_at', { ascending: false });
     
     if (error) console.error('Error fetching project details:', error);
@@ -92,10 +118,14 @@ export class ProjectDetailsService {
   }
 
   private async getProjectCostsData(projectId: string) {
+    const latestReportId = await this.getLatestAccomplishmentReportId(projectId);
+    if (!latestReportId) return [];
+
+    // Get project costs ONLY from the latest accomplishment report
     const { data, error } = await this.supabase
       .from('project_costs')
       .select('*')
-      .eq('project_id', projectId)
+      .eq('accomplishment_report_id', latestReportId)
       .order('created_at', { ascending: false });
     
     if (error) console.error('Error fetching project costs:', error);
@@ -103,32 +133,43 @@ export class ProjectDetailsService {
   }
 
   private async getManHoursData(projectId: string) {
+    const latestReportId = await this.getLatestAccomplishmentReportId(projectId);
+    if (!latestReportId) return [];
+
+    // Get man hours ONLY from the latest accomplishment report
     const { data, error } = await this.supabase
       .from('man_hours')
       .select('*')
-      .eq('project_id', projectId)
-      .order('week_ending_date', { ascending: false });
+      .eq('accomplishment_report_id', latestReportId)
+      .order('date', { ascending: false });
     
     if (error) console.error('Error fetching man hours:', error);
     return data || [];
   }
 
   private async getCostItemsData(projectId: string) {
+    const latestReportId = await this.getLatestAccomplishmentReportId(projectId);
+    if (!latestReportId) return [];
+
+    // Get cost items ONLY from the latest accomplishment report
     const { data, error } = await this.supabase
       .from('cost_items')
       .select('*')
-      .eq('project_id', projectId)
-      .order('created_at', { ascending: false });
+      .eq('accomplishment_report_id', latestReportId)
     
     if (error) console.error('Error fetching cost items:', error);
     return data || [];
   }
 
   private async getCostItemsSecondaryData(projectId: string) {
+    const latestReportId = await this.getLatestAccomplishmentReportId(projectId);
+    if (!latestReportId) return [];
+
+    // Get cost items secondary ONLY from the latest accomplishment report
     const { data, error } = await this.supabase
       .from('cost_items_secondary')
       .select('*')
-      .eq('project_id', projectId)
+      .eq('accomplishment_report_id', latestReportId)
       .order('created_at', { ascending: false });
     
     if (error) console.error('Error fetching cost items secondary:', error);
@@ -136,10 +177,14 @@ export class ProjectDetailsService {
   }
 
   private async getMonthlyCostsData(projectId: string) {
+    const latestReportId = await this.getLatestAccomplishmentReportId(projectId);
+    if (!latestReportId) return [];
+
+    // Get monthly costs ONLY from the latest accomplishment report
     const { data, error } = await this.supabase
       .from('monthly_costs')
       .select('*')
-      .eq('project_id', projectId)
+      .eq('accomplishment_report_id', latestReportId)
       .order('month', { ascending: true });
     
     if (error) console.error('Error fetching monthly costs:', error);
@@ -147,10 +192,14 @@ export class ProjectDetailsService {
   }
 
   private async getMaterialsData(projectId: string) {
+    const latestReportId = await this.getLatestAccomplishmentReportId(projectId);
+    if (!latestReportId) return [];
+
+    // Get materials ONLY from the latest accomplishment report
     const { data, error } = await this.supabase
       .from('materials')
       .select('*')
-      .eq('project_id', projectId)
+      .eq('accomplishment_report_id', latestReportId)
       .order('created_at', { ascending: false });
     
     if (error) console.error('Error fetching materials:', error);
@@ -158,10 +207,14 @@ export class ProjectDetailsService {
   }
 
   private async getPurchaseOrdersData(projectId: string) {
+    const latestReportId = await this.getLatestAccomplishmentReportId(projectId);
+    if (!latestReportId) return [];
+
+    // Get purchase orders ONLY from the latest accomplishment report
     const { data, error } = await this.supabase
       .from('purchase_orders')
       .select('*')
-      .eq('project_id', projectId)
+      .eq('accomplishment_report_id', latestReportId)
       .order('created_at', { ascending: false });
     
     if (error) console.error('Error fetching purchase orders:', error);
