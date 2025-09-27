@@ -47,13 +47,22 @@ export class AccomplishmentDataService extends BaseService {
       }
 
       // Insert man hours
+      console.log('Man hours data to insert:', {
+        hasData: !!(data.man_hours && data.man_hours.length > 0),
+        count: data.man_hours?.length || 0,
+        sample: data.man_hours?.[0] || null
+      });
+      
       if (data.man_hours && data.man_hours.length > 0) {
         try {
           await this.insertManHours(supabase, accomplishment_report_id, data.man_hours);
+          console.log('Man hours inserted successfully:', data.man_hours.length, 'records');
         } catch (error) {
           console.error('Man hours insert failed:', error);
           throw new Error(`Man hours insert failed: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
         }
+      } else {
+        console.log('No man hours data to insert');
       }
 
       // Insert cost items
@@ -219,7 +228,16 @@ export class AccomplishmentDataService extends BaseService {
    * @private
    */
   private async insertManHours(supabase: any, accomplishment_report_id: string, data: ManHours[]): Promise<void> {
-    const insertData = data.map(item => ({ ...item, accomplishment_report_id }));
+    const insertData = data.map(item => {
+      const { id, accomplishment_report_id, project_id, ...rest } = item; // Remove id, accomplishment_report_id, and project_id
+      return { ...rest, accomplishment_report_id, project_id };
+    });
+    
+    console.log('Inserting man hours data:', {
+      count: insertData.length,
+      sample: insertData[0],
+      accomplishment_report_id
+    });
     
     const { error } = await supabase
       .from('man_hours')
@@ -229,6 +247,8 @@ export class AccomplishmentDataService extends BaseService {
       console.error('Error inserting man hours:', error);
       throw error;
     }
+    
+    console.log('Man hours inserted successfully into database');
   }
 
   /**
