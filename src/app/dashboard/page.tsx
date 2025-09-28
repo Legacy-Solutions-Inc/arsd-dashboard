@@ -11,6 +11,7 @@ import { useRBAC } from '@/hooks/useRBAC';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassCardContent, GlassCardHeader, GlassCardTitle } from '@/components/ui/glass-card';
 import { TrendingUp, Users, Calendar, BarChart3, Sparkles } from 'lucide-react';
+import { DashboardLoading, InlineLoading } from '@/components/ui/universal-loading';
 
 export default function DashboardPage() {
   const { projects, loading, error, refetch } = useProjects();
@@ -48,7 +49,7 @@ export default function DashboardPage() {
     };
 
     window.addEventListener('projectReportApproved', handleProjectReportApproved);
-    
+
     return () => {
       window.removeEventListener('projectReportApproved', handleProjectReportApproved);
     };
@@ -104,97 +105,153 @@ export default function DashboardPage() {
   const completedProjects = projects.filter(p => p.status === 'completed').length;
   const projectsWithReports = projects.filter(p => hasReports(p)).length;
 
+  if (loading) {
+    return <DashboardLoading 
+      message="Loading Dashboard"
+      subtitle="Preparing your project overview and statistics"
+      size="lg"
+      fullScreen={true}
+    />;
+  }
+
   return (
-    <div className="space-y-8">
-      {/* Header Section */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-4xl font-bold text-glass-primary mb-2 flex items-center gap-3 text-arsd-red">
-            ARSD's Project Dashboard
-          </h1>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
+      <div className="space-y-4 sm:space-y-6 lg:space-y-8 p-4 sm:p-6 lg:p-8">
+        {/* Header Section */}
+        <div className="relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-arsd-red/5 via-blue-500/5 to-purple-500/5 rounded-2xl blur-3xl"></div>
+          <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-white/20 shadow-xl">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-arsd-red to-red-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <BarChart3 className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-arsd-red to-red-600 bg-clip-text text-transparent">
+                      <span className="hidden sm:inline">ARSD Project Dashboard</span>
+                      <span className="sm:hidden">Dashboard</span>
+                    </h1>
+                    <p className="text-gray-600 text-sm sm:text-base font-medium">
+                      Construction Project Management Hub
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-      
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <GlassCard variant="elevated" className="text-center">
-          <GlassCardContent className="p-6">
-            <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-400/20 to-blue-600/20 rounded-xl mb-4 mx-auto">
-              <BarChart3 className="h-6 w-6 text-blue-600" />
-            </div>
-            <div className="text-3xl font-bold text-glass-primary mb-1">{totalProjects}</div>
-            <div className="text-glass-secondary text-sm">Total Projects</div>
-          </GlassCardContent>
-        </GlassCard>
 
-        <GlassCard variant="elevated" className="text-center">
-          <GlassCardContent className="p-6">
-            <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-green-400/20 to-green-600/20 rounded-xl mb-4 mx-auto">
-              <TrendingUp className="h-6 w-6 text-green-600" />
-            </div>
-            <div className="text-3xl font-bold text-glass-primary mb-1">{activeProjects}</div>
-            <div className="text-glass-secondary text-sm">Active Projects</div>
-          </GlassCardContent>
-        </GlassCard>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="group">
+            <GlassCard variant="elevated" className="text-center hover:scale-[1.02] transition-all duration-200 hover:shadow-lg border-l-4 border-l-blue-500">
+              <GlassCardContent className="p-3 sm:p-4">
+                <div className="flex items-center justify-center w-6 h-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg mb-2 mx-auto shadow-md group-hover:shadow-blue-500/25">
+                  <BarChart3 className="h-3 w-3 text-white" />
+                </div>
+                <div className="text-lg sm:text-xl font-bold text-gray-900 mb-1">{totalProjects}</div>
+                <div className="text-gray-600 text-xs font-medium">Total Projects</div>
+                <div className="w-full bg-blue-100 rounded-full h-0.5 mt-1">
+                  <div className="bg-gradient-to-r from-blue-500 to-blue-600 h-0.5 rounded-full" style={{width: '100%'}}></div>
+                </div>
+              </GlassCardContent>
+            </GlassCard>
+          </div>
 
-        <GlassCard variant="elevated" className="text-center">
-          <GlassCardContent className="p-6">
-            <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-purple-400/20 to-purple-600/20 rounded-xl mb-4 mx-auto">
-              <Calendar className="h-6 w-6 text-purple-600" />
-            </div>
-            <div className="text-3xl font-bold text-glass-primary mb-1">{completedProjects}</div>
-            <div className="text-glass-secondary text-sm">Completed</div>
-          </GlassCardContent>
-        </GlassCard>
+          <div className="group">
+            <GlassCard variant="elevated" className="text-center hover:scale-[1.02] transition-all duration-200 hover:shadow-lg border-l-4 border-l-green-500">
+              <GlassCardContent className="p-3 sm:p-4">
+                <div className="flex items-center justify-center w-6 h-6 bg-gradient-to-br from-green-500 to-green-600 rounded-lg mb-2 mx-auto shadow-md group-hover:shadow-green-500/25">
+                  <TrendingUp className="h-3 w-3 text-white" />
+                </div>
+                <div className="text-lg sm:text-xl font-bold text-gray-900 mb-1">{activeProjects}</div>
+                <div className="text-gray-600 text-xs font-medium">Active Projects</div>
+                <div className="w-full bg-green-100 rounded-full h-0.5 mt-1">
+                  <div className="bg-gradient-to-r from-green-500 to-green-600 h-0.5 rounded-full" style={{width: `${totalProjects > 0 ? (activeProjects / totalProjects) * 100 : 0}%`}}></div>
+                </div>
+              </GlassCardContent>
+            </GlassCard>
+          </div>
 
-        <GlassCard variant="elevated" className="text-center">
-          <GlassCardContent className="p-6">
-            <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-pink-400/20 to-pink-600/20 rounded-xl mb-4 mx-auto">
-              <Users className="h-6 w-6 text-pink-600" />
-            </div>
-            <div className="text-3xl font-bold text-glass-primary mb-1">{projectsWithReports}</div>
-            <div className="text-glass-secondary text-sm">With Reports</div>
-          </GlassCardContent>
-        </GlassCard>
-      </div>
-      
-      {/* Project List Section */}
-      {error ? (
-        <GlassCard variant="elevated">
-          <GlassCardContent className="p-6 text-center">
-            <div className="text-glass-error text-lg font-medium">Error: {error}</div>
-          </GlassCardContent>
-        </GlassCard>
-      ) : (
-        <ProjectsTable 
-          projects={projects}
-          loading={loading}
-          onViewProject={handleViewProject}
-          onEditProject={handleEditProject}
-          onCreateProject={handleCreateProject}
-          canCreate={canCreateProjects}
-          canEdit={canEditProjects}
-          hasReports={hasReports}
-          itemsPerPage={8}
+          <div className="group">
+            <GlassCard variant="elevated" className="text-center hover:scale-[1.02] transition-all duration-200 hover:shadow-lg border-l-4 border-l-purple-500">
+              <GlassCardContent className="p-3 sm:p-4">
+                <div className="flex items-center justify-center w-6 h-6 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg mb-2 mx-auto shadow-md group-hover:shadow-purple-500/25">
+                  <Calendar className="h-3 w-3 text-white" />
+                </div>
+                <div className="text-lg sm:text-xl font-bold text-gray-900 mb-1">{completedProjects}</div>
+                <div className="text-gray-600 text-xs font-medium">Completed</div>
+                <div className="w-full bg-purple-100 rounded-full h-0.5 mt-1">
+                  <div className="bg-gradient-to-r from-purple-500 to-purple-600 h-0.5 rounded-full" style={{width: `${totalProjects > 0 ? (completedProjects / totalProjects) * 100 : 0}%`}}></div>
+                </div>
+              </GlassCardContent>
+            </GlassCard>
+          </div>
+
+          <div className="group">
+            <GlassCard variant="elevated" className="text-center hover:scale-[1.02] transition-all duration-200 hover:shadow-lg border-l-4 border-l-pink-500">
+              <GlassCardContent className="p-3 sm:p-4">
+                <div className="flex items-center justify-center w-6 h-6 bg-gradient-to-br from-pink-500 to-pink-600 rounded-lg mb-2 mx-auto shadow-md group-hover:shadow-pink-500/25">
+                  <Users className="h-3 w-3 text-white" />
+                </div>
+                <div className="text-lg sm:text-xl font-bold text-gray-900 mb-1">{projectsWithReports}</div>
+                <div className="text-gray-600 text-xs font-medium">With Reports</div>
+                <div className="w-full bg-pink-100 rounded-full h-0.5 mt-1">
+                  <div className="bg-gradient-to-r from-pink-500 to-pink-600 h-0.5 rounded-full" style={{width: `${totalProjects > 0 ? (projectsWithReports / totalProjects) * 100 : 0}%`}}></div>
+                </div>
+              </GlassCardContent>
+            </GlassCard>
+          </div>
+        </div>
+
+        {/* Project List Section */}
+        <div className="relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-arsd-red/5 via-blue-500/5 to-purple-500/5 rounded-2xl blur-3xl"></div>
+          <div className="relative bg-white/90 backdrop-blur-sm rounded-2xl border border-white/20 shadow-xl overflow-hidden">
+            {error ? (
+              <div className="p-8 text-center">
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-lg font-bold">!</span>
+                  </div>
+                </div>
+                <div className="text-red-600 text-lg font-semibold mb-2">Error Loading Projects</div>
+                <div className="text-gray-600 text-sm">{error}</div>
+              </div>
+            ) : (
+              <ProjectsTable
+                projects={projects}
+                loading={loading}
+                onViewProject={handleViewProject}
+                onEditProject={handleEditProject}
+                onCreateProject={handleCreateProject}
+                canCreate={canCreateProjects}
+                canEdit={canEditProjects}
+                hasReports={hasReports}
+                itemsPerPage={5}
+              />
+            )}
+          </div>
+        </div>
+
+        {/* Project Creation Form */}
+        <ProjectCreateForm
+          isOpen={isCreateFormOpen}
+          onClose={() => setIsCreateFormOpen(false)}
+          onSuccess={handleCreateSuccess}
+          projectManagers={projectManagers}
         />
-      )}
 
-      {/* Project Creation Form */}
-      <ProjectCreateForm
-        isOpen={isCreateFormOpen}
-        onClose={() => setIsCreateFormOpen(false)}
-        onSuccess={handleCreateSuccess}
-        projectManagers={projectManagers}
-      />
-
-      {/* Project Edit Form */}
-      <ProjectEditForm
-        project={editingProject}
-        isOpen={isEditFormOpen}
-        onClose={handleCloseEditForm}
-        onSuccess={handleEditSuccess}
-        projectManagers={projectManagers}
-      />
+        {/* Project Edit Form */}
+        <ProjectEditForm
+          project={editingProject}
+          isOpen={isEditFormOpen}
+          onClose={handleCloseEditForm}
+          onSuccess={handleEditSuccess}
+          projectManagers={projectManagers}
+        />
+      </div>
     </div>
   );
 }

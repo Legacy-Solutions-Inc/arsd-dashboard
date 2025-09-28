@@ -6,6 +6,7 @@ import { Permission } from '@/types/rbac';
 import { useRBAC } from '@/hooks/useRBAC';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, ShieldX } from 'lucide-react';
+import { InlineLoading } from '@/components/ui/universal-loading';
 
 interface PermissionGateProps {
   permission: Permission;
@@ -65,8 +66,10 @@ export function PermissionGate({
   if (loading || checking) {
     return (
       <div className="flex items-center justify-center p-4">
-        <Loader2 className="h-4 w-4 animate-spin" />
-        <span className="ml-2 text-sm text-muted-foreground">Checking permissions...</span>
+        <InlineLoading 
+          message="Checking permissions..." 
+          size="sm" 
+        />
       </div>
     );
   }

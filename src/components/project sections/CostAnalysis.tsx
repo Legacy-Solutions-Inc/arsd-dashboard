@@ -42,9 +42,9 @@ export interface CostAnalysisProps {
 
 // Constants
 const ITEMS_PER_PAGE = 3;
-const CHART_HEIGHT = 300;
-const CHART_MARGIN = { top: 20, right: 30, left: 0, bottom: 5 };
-const COST_ITEMS_MARGIN = { top: 20, right: 30, left: 60, bottom: 5 };
+const CHART_HEIGHT = 250;
+const CHART_MARGIN = { top: 15, right: 20, left: 0, bottom: 5 };
+const COST_ITEMS_MARGIN = { top: 15, right: 20, left: 40, bottom: 5 };
 
 // Chart colors
 const CHART_COLORS = {
@@ -87,10 +87,30 @@ const processCostItems = (items: any[]) => {
     return acc;
   }, {});
 
-  return Object.entries(typeBreakdown).map(([type, cost]) => ({
-    type,
-    cost: cost as number
-  }));
+  // Define preferred order with Target first
+  const preferredOrder = ['Target', 'Equipment', 'Labor', 'Materials'];
+  
+  return Object.entries(typeBreakdown)
+    .map(([type, cost]) => ({
+      type,
+      cost: cost as number
+    }))
+    .sort((a, b) => {
+      const aIndex = preferredOrder.indexOf(a.type);
+      const bIndex = preferredOrder.indexOf(b.type);
+      
+      // If both are in preferred order, sort by their position
+      if (aIndex !== -1 && bIndex !== -1) {
+        return aIndex - bIndex;
+      }
+      
+      // If only one is in preferred order, prioritize it
+      if (aIndex !== -1) return -1;
+      if (bIndex !== -1) return 1;
+      
+      // If neither is in preferred order, sort alphabetically
+      return a.type.localeCompare(b.type);
+    });
 };
 
 export function CostAnalysis({ costData, costItemsData = [], manHoursData = [], projectData }: CostAnalysisProps) {
@@ -144,20 +164,65 @@ export function CostAnalysis({ costData, costItemsData = [], manHoursData = [], 
 }, [processedData, currentPage]);
 
 // Subcomponents
+const CostItemsChart = ({ data }: { data: any[] }) => (
+  <div className="bg-white rounded-lg p-3 lg:p-4 shadow-sm border">
+    <h3 className="font-semibold text-sm lg:text-base mb-2 text-arsd-red">Cost Items Breakdown</h3>
+    <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
+      <BarChart data={data} margin={COST_ITEMS_MARGIN}>
+        <XAxis dataKey="type" tick={{ fontSize: 10 }} />
+        <YAxis
+          tick={{ fontSize: 10 }}
+          tickFormatter={formatCurrencyM}
+        />
+        <Tooltip formatter={(value) => formatCurrency(value as number)} />
+        <Bar dataKey="cost" name="Cost" fill={CHART_COLORS.cost} />
+      </BarChart>
+    </ResponsiveContainer>
+  </div>
+);
+
+const ManHoursChart = ({ data }: { data: any[] }) => (
+  <div className="bg-white rounded-lg p-3 lg:p-4 shadow-sm border">
+    <h3 className="font-semibold text-sm lg:text-base mb-2 text-arsd-red">Man Hours Tracking</h3>
+    <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
+      <BarChart data={data} margin={CHART_MARGIN}>
+        <XAxis
+          dataKey="date"
+          tick={{ fontSize: 10 }}
+          angle={-45}
+          textAnchor="end"
+          height={60}
+        />
+        <YAxis
+          tick={{ fontSize: 10 }}
+          tickFormatter={formatHours}
+        />
+        <Tooltip
+          formatter={(value, name) => [`${value} hours`, name]}
+          labelFormatter={(label) => `Date: ${label}`}
+        />
+        <Legend />
+        <Bar dataKey="actual" name="Actual Hours" fill={CHART_COLORS.actual} />
+        <Bar dataKey="projected" name="Projected Hours" fill={CHART_COLORS.projected} />
+      </BarChart>
+    </ResponsiveContainer>
+  </div>
+);
+
 const MonthlyCostChart = ({ data }: { data: any[] }) => (
-  <div className="bg-white rounded-lg p-4 shadow-sm border">
-    <h3 className="font-semibold mb-2">Monthly Cost Comparison</h3>
+  <div className="bg-white rounded-lg p-3 lg:p-4 shadow-sm border">
+    <h3 className="font-semibold text-sm lg:text-base mb-2 text-arsd-red">Monthly Cost Comparison</h3>
     <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
       <BarChart data={data} margin={CHART_MARGIN}>
         <XAxis
           dataKey="month"
-          tick={{ fontSize: 12 }}
+          tick={{ fontSize: 10 }}
           angle={-45}
           textAnchor="end"
-          height={80}
+          height={60}
         />
         <YAxis
-          tick={{ fontSize: 12 }}
+          tick={{ fontSize: 10 }}
           tickFormatter={formatCurrencyM}
         />
         <Tooltip
@@ -174,50 +239,6 @@ const MonthlyCostChart = ({ data }: { data: any[] }) => (
   </div>
 );
 
-const ManHoursChart = ({ data }: { data: any[] }) => (
-  <div className="bg-white rounded-lg p-4 shadow-sm border">
-    <h3 className="font-semibold mb-2">Man Hours Tracking</h3>
-    <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
-      <BarChart data={data} margin={CHART_MARGIN}>
-        <XAxis
-          dataKey="date"
-          tick={{ fontSize: 12 }}
-          angle={-45}
-          textAnchor="end"
-          height={80}
-        />
-        <YAxis
-          tick={{ fontSize: 12 }}
-          tickFormatter={formatHours}
-        />
-        <Tooltip
-          formatter={(value, name) => [`${value} hours`, name]}
-          labelFormatter={(label) => `Date: ${label}`}
-        />
-        <Legend />
-        <Bar dataKey="actual" name="Actual Hours" fill={CHART_COLORS.actual} />
-        <Bar dataKey="projected" name="Projected Hours" fill={CHART_COLORS.projected} />
-      </BarChart>
-    </ResponsiveContainer>
-  </div>
-);
-
-const CostItemsChart = ({ data }: { data: any[] }) => (
-  <div className="bg-white rounded-lg p-4 shadow-sm border">
-    <h3 className="font-semibold mb-2">Cost Items Breakdown</h3>
-    <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
-      <BarChart data={data} margin={COST_ITEMS_MARGIN}>
-        <XAxis dataKey="type" />
-        <YAxis
-          tick={{ fontSize: 12 }}
-          tickFormatter={formatCurrencyM}
-        />
-        <Tooltip formatter={(value) => formatCurrency(value as number)} />
-        <Bar dataKey="cost" name="Cost" fill={CHART_COLORS.cost} />
-      </BarChart>
-    </ResponsiveContainer>
-  </div>
-);
 
 const MonthlyCostBreakdown = ({ 
   data, 
@@ -232,36 +253,36 @@ const MonthlyCostBreakdown = ({
   
   return (
   <div>
-    <h3 className="font-semibold mb-4">Monthly Cost Breakdown</h3>
-    <div className="space-y-4">
+    <h3 className="font-semibold text-sm lg:text-base mb-3 text-arsd-red">Monthly Cost Breakdown</h3>
+    <div className="space-y-3">
       {data.map((month, index) => {
         const total = month.target + month.swa + month.billed + month.direct;
         return (
-          <div key={month.id} className="bg-gray-50 rounded-lg p-4 flex items-center justify-between shadow-sm border">
-            <div>
-              <div className="font-semibold text-lg text-blue-700 mb-1">
+          <div key={month.id} className="bg-gray-50 rounded-lg p-3 lg:p-4 flex flex-col sm:flex-row sm:items-center justify-between shadow-sm border gap-2">
+            <div className="flex-1">
+              <div className="font-semibold text-sm lg:text-base text-blue-700 mb-1">
                 {month.month || `Month ${paginationData.startIndex + index + 1}`}
               </div>
-              <div className="flex flex-wrap gap-4 text-sm">
+              <div className="flex flex-wrap gap-2 lg:gap-4 text-xs lg:text-sm">
                 <span className="flex items-center gap-1 text-red-600">
-                  <span className="w-2 h-2 rounded-full bg-red-600 inline-block" />
+                  <span className="w-1.5 h-1.5 lg:w-2 lg:h-2 rounded-full bg-red-600 inline-block" />
                   Target: {formatCurrency(month.target)}
                 </span>
                 <span className="flex items-center gap-1 text-pink-500">
-                  <span className="w-2 h-2 rounded-full bg-pink-500 inline-block" />
+                  <span className="w-1.5 h-1.5 lg:w-2 lg:h-2 rounded-full bg-pink-500 inline-block" />
                   SWA: {formatCurrency(month.swa)}
                 </span>
                 <span className="flex items-center gap-1 text-gray-600">
-                  <span className="w-2 h-2 rounded-full bg-gray-600 inline-block" />
+                  <span className="w-1.5 h-1.5 lg:w-2 lg:h-2 rounded-full bg-gray-600 inline-block" />
                   Billed: {formatCurrency(month.billed)}
                 </span>
                 <span className="flex items-center gap-1 text-green-600">
-                  <span className="w-2 h-2 rounded-full bg-green-600 inline-block" />
+                  <span className="w-1.5 h-1.5 lg:w-2 lg:h-2 rounded-full bg-green-600 inline-block" />
                   Direct: {formatCurrency(month.direct)}
                 </span>
               </div>
             </div>
-            <div className="font-bold text-xl">{formatCurrency(total)}</div>
+            <div className="font-bold text-sm lg:text-base">{formatCurrency(total)}</div>
           </div>
         );
       })}
@@ -269,8 +290,8 @@ const MonthlyCostBreakdown = ({
 
     {/* Pagination Controls */}
     {paginationData.totalPages > 1 && (
-      <div className="flex items-center justify-between mt-4 pt-4 border-t">
-        <div className="text-sm text-gray-600">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-3 pt-3 border-t gap-2">
+        <div className="text-xs text-gray-600">
           Showing {paginationData.startIndex + 1} to {Math.min(paginationData.endIndex, data.length)} of {data.length} months
         </div>
         <div className="flex items-center gap-2">
@@ -279,10 +300,11 @@ const MonthlyCostBreakdown = ({
             size="sm"
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 1}
+            className="text-xs h-7 px-2"
           >
             Previous
           </Button>
-          <span className="text-sm text-gray-600">
+          <span className="text-xs text-gray-600">
             Page {currentPage} of {paginationData.totalPages}
           </span>
           <Button
@@ -290,6 +312,7 @@ const MonthlyCostBreakdown = ({
             size="sm"
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage === paginationData.totalPages}
+            className="text-xs h-7 px-2"
           >
             Next
           </Button>
@@ -302,14 +325,14 @@ const MonthlyCostBreakdown = ({
 
 const CostItemsSummary = ({ data }: { data: any[] }) => (
   <div>
-    <h3 className="font-semibold mb-4">Cost Items Summary</h3>
-    <div className="space-y-4">
+    <h3 className="font-semibold text-sm lg:text-base mb-3 text-arsd-red">Cost Items Summary</h3>
+    <div className="space-y-3">
       {data.length > 0 && (
-        <div className="bg-purple-50 border-l-4 border-purple-400 rounded-lg p-4">
-          <div className="font-bold text-purple-600 mb-2">Cost Items Breakdown</div>
+        <div className="bg-purple-50 border-l-4 border-purple-400 rounded-lg p-3 lg:p-4">
+          <div className="font-bold text-purple-600 mb-2 text-sm lg:text-base">Cost Items Breakdown</div>
           <div className="space-y-2">
             {data.slice(0, 8).map((item, index) => (
-              <div key={`cost-item-${item.type}-${index}`} className="flex justify-between items-center text-sm">
+              <div key={`cost-item-${item.type}-${index}`} className="flex justify-between items-center text-xs lg:text-sm">
                 <span className="text-purple-700">{item.type}</span>
                 <span className="font-semibold text-purple-800">{formatCurrency(item.cost)}</span>
               </div>
@@ -334,28 +357,28 @@ const ProgressAnalysis = ({
 
   return (
     <div>
-      <h3 className="font-semibold mb-4">Progress Analysis</h3>
-      <div className="space-y-4">
-        <div className="bg-red-50 border-l-4 border-red-400 rounded-lg p-4">
-          <div className="font-bold text-red-600 mb-2">Project Progress</div>
-          <ul className="list-disc ml-5 text-sm text-red-700">
+      <h3 className="font-semibold text-sm lg:text-base mb-3 text-arsd-red">Progress Analysis</h3>
+      <div className="space-y-3">
+        <div className="bg-red-50 border-l-4 border-red-400 rounded-lg p-3 lg:p-4">
+          <div className="font-bold text-red-600 mb-2 text-sm lg:text-base">Project Progress</div>
+          <ul className="list-disc ml-4 lg:ml-5 text-xs lg:text-sm text-red-700 space-y-1">
             <li>Current progress: {projectData.actualProgress.toFixed(1)}%</li>
             <li>Target progress: {projectData.targetProgress.toFixed(1)}%</li>
             <li>Variance: {(projectData.actualProgress - projectData.targetProgress).toFixed(1)}%</li>
           </ul>
         </div>
-        <div className="bg-blue-50 border-l-4 border-blue-400 rounded-lg p-4">
-          <div className="font-bold text-blue-600 mb-2">Cost Performance</div>
-          <ul className="list-disc ml-5 text-sm text-blue-700">
+        <div className="bg-blue-50 border-l-4 border-blue-400 rounded-lg p-3 lg:p-4">
+          <div className="font-bold text-blue-600 mb-2 text-sm lg:text-base">Cost Performance</div>
+          <ul className="list-disc ml-4 lg:ml-5 text-xs lg:text-sm text-blue-700 space-y-1">
             <li>Projected savings: {formatCurrency(projectData.savings)}</li>
             <li>Cost efficiency: {projectData.savings > 0 ? 'Above target' : 'Below target'}</li>
             <li>Budget utilization: {((projectData.actualProgress / 100) * 100).toFixed(1)}%</li>
           </ul>
         </div>
         {manHoursData.length > 0 && (
-          <div className="bg-green-50 border-l-4 border-green-400 rounded-lg p-4">
-            <div className="font-bold text-green-600 mb-2">Man Hours Summary</div>
-            <ul className="list-disc ml-5 text-sm text-green-700">
+          <div className="bg-green-50 border-l-4 border-green-400 rounded-lg p-3 lg:p-4">
+            <div className="font-bold text-green-600 mb-2 text-sm lg:text-base">Man Hours Summary</div>
+            <ul className="list-disc ml-4 lg:ml-5 text-xs lg:text-sm text-green-700 space-y-1">
               <li>Total actual hours: {totalActualHours.toFixed(1)}h</li>
               <li>Total projected hours: {totalProjectedHours.toFixed(1)}h</li>
               <li>Efficiency: {efficiency.toFixed(1)}%</li>
@@ -370,27 +393,31 @@ const ProgressAnalysis = ({
   const { sortedCostData, costItemsBreakdown, processedManHoursData } = processedData;
 
   return (
-    <Card className="border-l-4 border-l-arsd-red mt-6">
+    <Card className="border-l-4 border-l-arsd-red mt-4 lg:mt-6">
       <CardHeader>
-        <CardTitle className="text-arsd-red">Cost Analysis Dashboard</CardTitle>
+        <CardTitle className="text-arsd-red text-sm lg:text-lg font-bold">Cost Analysis Dashboard</CardTitle>
       </CardHeader>
 
       <CardContent>
-        {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        {/* Monthly Cost Comparison - Full Width */}
+        <div className="mb-6 lg:mb-8">
           <MonthlyCostChart data={sortedCostData} />
+        </div>
+
+        {/* Charts Section - Side by Side */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 mb-6 lg:mb-8">
+          {/* Cost Items Breakdown */}
+          {costItemsBreakdown.length > 0 && (
+            <CostItemsChart data={costItemsBreakdown} />
+          )}
+          {/* Man Hours Tracking */}
           {processedManHoursData.length > 0 && (
             <ManHoursChart data={processedManHoursData} />
           )}
         </div>
 
-        {/* Cost Items Breakdown */}
-        {costItemsBreakdown.length > 0 && (
-          <CostItemsChart data={costItemsBreakdown} />
-        )}
-
         {/* Detailed Analytics Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
           <MonthlyCostBreakdown 
             data={paginationData.paginatedCostData} 
             paginationData={paginationData}

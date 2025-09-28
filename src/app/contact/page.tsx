@@ -163,14 +163,14 @@ export default function Contact() {
                   </div>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="email">Email Address *</Label>
                     <Input
                       id="email"
                       type="email"
                       placeholder="Enter your email"
-                      className="mt-1"
+                      className="mt-1 mobile-form-input"
                     />
                   </div>
                   <div>
@@ -178,7 +178,7 @@ export default function Contact() {
                     <Input
                       id="phone"
                       placeholder="Enter your phone number"
-                      className="mt-1"
+                      className="mt-1 mobile-form-input"
                     />
                   </div>
                 </div>
@@ -196,7 +196,7 @@ export default function Contact() {
                   <Label htmlFor="projectType">Project Type *</Label>
                   <select
                     id="projectType"
-                    className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-arsd-red focus:border-transparent"
+                    className="w-full mt-1 px-3 py-3 sm:py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-arsd-red focus:border-transparent text-base sm:text-sm"
                   >
                     <option value="">Select project type</option>
                     {projectTypes.map((type, index) => (

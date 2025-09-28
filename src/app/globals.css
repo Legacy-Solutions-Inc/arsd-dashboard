@@ -73,6 +73,23 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Responsive text scaling */
+  html {
+    font-size: 12px;
+  }
+  
+  @media (min-width: 640px) {
+    html {
+      font-size: 12px;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    html {
+      font-size: 14px;
+    }
+  }
 }
 
 /* Glassmorphism Styles with ARSD Red Theme */
@@ -114,11 +131,11 @@
   }
   
   .glass-table-cell {
-    @apply px-6 py-4 text-gray-800;
+    @apply px-3 py-2 text-gray-800;
   }
   
   .glass-table-header-cell {
-    @apply px-6 py-4 font-semibold text-red-800 text-sm uppercase tracking-wider;
+    @apply px-3 py-2 font-semibold text-red-800 text-xs uppercase tracking-wider;
   }
   
   /* ARSD Text color utilities */
@@ -235,5 +252,76 @@
   
   .scrollbar-arsd::-webkit-scrollbar-thumb {
     @apply bg-red-300/30 rounded-full hover:bg-red-400/50;
+  }
+  
+  /* Responsive utility classes */
+  .responsive-container {
+    @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  .responsive-text {
+    @apply text-sm sm:text-sm lg:text-base;
+  }
+  
+  .responsive-heading {
+    @apply text-lg sm:text-xl lg:text-2xl xl:text-3xl;
+  }
+  
+  .responsive-padding {
+    @apply p-4 sm:p-6 lg:p-8;
+  }
+  
+  .responsive-margin {
+    @apply m-4 sm:m-6 lg:m-8;
+  }
+  
+  .responsive-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8;
+  }
+  
+  .responsive-flex {
+    @apply flex flex-col sm:flex-row gap-4 sm:gap-6;
+  }
+  
+  /* Mobile-first responsive spacing */
+  .mobile-padding {
+    @apply px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8;
+  }
+  
+  .mobile-margin {
+    @apply mx-4 my-4 sm:mx-6 sm:my-6 lg:mx-8 lg:my-8;
+  }
+  
+  /* Mobile-specific utilities */
+  .mobile-text-truncate {
+    @apply truncate text-ellipsis overflow-hidden;
+  }
+  
+  .mobile-scroll-horizontal {
+    @apply overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100;
+  }
+  
+  .mobile-touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+  
+  /* Prevent horizontal scroll on mobile */
+  .mobile-container {
+    @apply w-full max-w-full overflow-x-hidden;
+  }
+  
+  /* Responsive image scaling */
+  .responsive-image {
+    @apply w-full h-auto max-w-full;
+  }
+  
+  /* Mobile-friendly forms */
+  .mobile-form-input {
+    @apply w-full px-4 py-3 text-base border rounded-lg focus:ring-2 focus:ring-arsd-red focus:border-transparent;
+  }
+  
+  /* Mobile-friendly buttons */
+  .mobile-button {
+    @apply w-full sm:w-auto px-6 py-3 text-base font-medium rounded-lg transition-colors;
   }
 }

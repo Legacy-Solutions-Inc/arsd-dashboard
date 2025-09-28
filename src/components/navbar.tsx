@@ -12,6 +12,8 @@ import {
   PenTool,
   MapPin,
   Phone,
+  Menu,
+  X,
 } from "lucide-react";
 import UserProfile from "./user-profile";
 import { useRBAC } from "@/hooks/useRBAC";
@@ -20,6 +22,7 @@ import { getDefaultDashboardRoute } from "@/utils/dashboard-routing";
 export default function Navbar() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
   const { user: userWithRole } = useRBAC();
 
@@ -54,16 +57,18 @@ export default function Navbar() {
     <nav className="w-full bg-white shadow-lg sticky top-0 z-50">
       {/* Top Bar with Contact Info */}
       <div className="bg-arsd-red text-white py-2">
-        <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center text-sm">
-            <div className="flex items-center space-x-6">
+        <div className="responsive-container">
+          <div className="flex flex-col sm:flex-row justify-between items-center text-sm gap-2 sm:gap-0">
+            <div className="flex flex-col sm:flex-row items-center space-y-1 sm:space-y-0 sm:space-x-6">
               <div className="flex items-center space-x-2">
                 <Phone className="w-4 h-4" />
-                <span>Contact: hr_arsd_iloilo@yahoo.com.ph</span>
+                <span className="hidden xs:inline">Contact: hr_arsd_iloilo@yahoo.com.ph</span>
+                <span className="xs:hidden">hr_arsd_iloilo@yahoo.com.ph</span>
               </div>
               <div className="flex items-center space-x-2">
                 <MapPin className="w-4 h-4" />
-                <span>Figueroa St. Bonifacio, Arevalo, Iloilo City</span>
+                <span className="hidden sm:inline">Figueroa St. Bonifacio, Arevalo, Iloilo City</span>
+                <span className="sm:hidden">Iloilo City</span>
               </div>
             </div>
             <div className="flex items-center space-x-4">
@@ -75,7 +80,7 @@ export default function Navbar() {
                 <>
                   <Link
                     href="/sign-in"
-                    className="text-white hover:text-gray-200 transition-colors"
+                    className="text-white hover:text-gray-200 transition-colors text-sm"
                   >
                     Sign In
                   </Link>
@@ -94,24 +99,28 @@ export default function Navbar() {
 
       {/* Main Navigation */}
       <div className="border-b border-gray-100">
-        <div className="container mx-auto px-4">
+        <div className="responsive-container">
           <div className="flex justify-between items-center py-4">
             {/* Logo and Company Name */}
-            <Link href="/" className="flex items-center space-x-3">
+            <Link href="/" className="flex items-center space-x-2 sm:space-x-3">
               <Image
                 src="/images/arsd-logo.png"
                 alt="ARSD Construction Corporation"
-                width={50}
-                height={50}
-                className="rounded-full"
+                width={40}
+                height={40}
+                className="rounded-full sm:w-12 sm:h-12"
               />
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">
+              <div className="hidden sm:block">
+                <h1 className="text-base sm:text-lg font-bold text-gray-900">
                   ARSD Construction Corporation
                 </h1>
-                <p className="text-sm text-gray-600">
+                <p className="text-xs text-gray-600">
                   In God We Trust
                 </p>
+              </div>
+              <div className="sm:hidden">
+                <h1 className="text-sm font-bold text-gray-900">ARSD</h1>
+                <p className="text-xs text-gray-600">Construction</p>
               </div>
             </Link>
 
@@ -207,24 +216,102 @@ export default function Navbar() {
 
             {/* Mobile Menu Button */}
             <div className="lg:hidden">
-              <button className="text-gray-700 hover:text-arsd-red">
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
+              <button 
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="text-gray-700 hover:text-arsd-red transition-colors"
+              >
+                {mobileMenuOpen ? (
+                  <X className="w-6 h-6" />
+                ) : (
+                  <Menu className="w-6 h-6" />
+                )}
               </button>
             </div>
           </div>
         </div>
+        
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden border-t border-gray-100 bg-white">
+            <div className="responsive-container py-4">
+              <div className="flex flex-col space-y-4">
+                <Link
+                  href="/"
+                  className="text-gray-700 hover:text-arsd-red font-medium transition-colors py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Home
+                </Link>
+                
+                <div className="space-y-2">
+                  <div className="text-gray-700 font-medium py-2">Services</div>
+                  <div className="pl-4 space-y-2">
+                    <Link
+                      href="/services#building-construction"
+                      className="flex items-center space-x-3 text-gray-600 hover:text-arsd-red transition-colors py-1"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <Building className="w-4 h-4 text-arsd-red" />
+                      <span className="text-sm">Building Construction</span>
+                    </Link>
+                    <Link
+                      href="/services#design-plan-preparation"
+                      className="flex items-center space-x-3 text-gray-600 hover:text-arsd-red transition-colors py-1"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <PenTool className="w-4 h-4 text-arsd-red" />
+                      <span className="text-sm">Design & Plan Preparation</span>
+                    </Link>
+                    <Link
+                      href="/services#land-development"
+                      className="flex items-center space-x-3 text-gray-600 hover:text-arsd-red transition-colors py-1"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <MapPin className="w-4 h-4 text-arsd-red" />
+                      <span className="text-sm">Land Development</span>
+                    </Link>
+                  </div>
+                </div>
+
+                <Link
+                  href="/projects"
+                  className="text-gray-700 hover:text-arsd-red font-medium transition-colors py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Projects
+                </Link>
+
+                <Link
+                  href="/about"
+                  className="text-gray-700 hover:text-arsd-red font-medium transition-colors py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  About Us
+                </Link>
+
+                <Link
+                  href="/contact"
+                  className="text-gray-700 hover:text-arsd-red font-medium transition-colors py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Contact
+                </Link>
+
+                {user && (
+                  <Button 
+                    onClick={() => {
+                      handleDashboardClick();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="bg-arsd-red hover:bg-arsd-red-dark text-white w-full justify-start"
+                  >
+                    Dashboard
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );
