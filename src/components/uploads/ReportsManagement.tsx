@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -22,7 +22,9 @@ import {
   Clock,
   Eye,
   BarChart3,
-  FileUp
+  FileUp,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { useAllAccomplishmentReports, useUpdateReportStatus } from '@/hooks/useAccomplishmentReports';
 import { useFileDownload } from '@/hooks/useFileDownload';
@@ -36,6 +38,8 @@ export default function ReportsManagement() {
   const [filters, setFilters] = useState<AccomplishmentReportFilters>({});
   const [searchTerm, setSearchTerm] = useState('');
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
   
   const { reports, loading, error, refetch } = useAllAccomplishmentReports(filters);
   const { downloadFile, isDownloading, error: downloadError } = useFileDownload();
@@ -63,6 +67,29 @@ export default function ReportsManagement() {
       report.file_name.toLowerCase().includes(searchLower)
     );
   });
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredReports.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedReports = filteredReports.slice(startIndex, endIndex);
+
+  // Reset to first page when filters change
+  useMemo(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filters]);
+
+  const goToPage = (page: number) => {
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+  };
+
+  const goToPreviousPage = () => {
+    setCurrentPage(prev => Math.max(1, prev - 1));
+  };
+
+  const goToNextPage = () => {
+    setCurrentPage(prev => Math.min(totalPages, prev + 1));
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -218,39 +245,46 @@ export default function ReportsManagement() {
             </p>
           </div>
         </div>
-        <Badge variant="glass" className="text-sm bg-arsd-red/20 text-arsd-red border-arsd-red/30">
-          {filteredReports.length} report{filteredReports.length !== 1 ? 's' : ''}
-        </Badge>
+        <div className="flex items-center gap-3">
+          <Badge variant="glass" className="text-sm bg-arsd-red/20 text-arsd-red border-arsd-red/30">
+            {filteredReports.length} report{filteredReports.length !== 1 ? 's' : ''}
+          </Badge>
+          {totalPages > 1 && (
+            <Badge variant="glass" className="text-sm bg-blue-500/20 text-blue-700 border-blue-300/30">
+              Page {currentPage} of {totalPages}
+            </Badge>
+          )}
+        </div>
       </div>
 
       {/* Filters */}
       <GlassCard variant="elevated">
-        <GlassCardHeader className="bg-gradient-to-r from-arsd-red/5 to-red-500/5 border-b border-arsd-red/10">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-arsd-red/20 rounded-lg flex items-center justify-center">
-              <Filter className="h-4 w-4 text-arsd-red" />
+        <GlassCardHeader className="bg-gradient-to-r from-arsd-red/5 to-red-500/5 border-b border-arsd-red/10 py-3">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 bg-arsd-red/20 rounded-md flex items-center justify-center">
+              <Filter className="h-3 w-3 text-arsd-red" />
             </div>
-            <GlassCardTitle className="text-lg text-arsd-red">Filters</GlassCardTitle>
+            <GlassCardTitle className="text-base text-arsd-red">Filters</GlassCardTitle>
           </div>
         </GlassCardHeader>
-        <GlassCardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="space-y-3">
-              <label className="text-sm font-medium text-glass-primary">Search</label>
+        <GlassCardContent className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-glass-primary">Search</label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-arsd-red/60" />
+                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-arsd-red/60" />
                 <Input
                   placeholder="Search reports..."
                   value={searchTerm}
                   onChange={(e) => handleSearch(e.target.value)}
-                  className="glass-input pl-10"
+                  className="glass-input pl-8 h-8 text-sm"
                 />
               </div>
             </div>
-            <div className="space-y-3">
-              <label className="text-sm font-medium text-glass-primary">Status</label>
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-glass-primary">Status</label>
               <Select onValueChange={handleStatusFilter}>
-                <SelectTrigger className="glass-input">
+                <SelectTrigger className="glass-input h-8 text-sm">
                   <SelectValue placeholder="All Statuses" />
                 </SelectTrigger>
                 <SelectContent>
@@ -261,8 +295,8 @@ export default function ReportsManagement() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-3">
-              <label className="text-sm font-medium text-glass-primary">Week Ending</label>
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-glass-primary">Week Ending</label>
               <Input
                 type="date"
                 value={filters.week_ending_date || ''}
@@ -270,7 +304,7 @@ export default function ReportsManagement() {
                   ...prev,
                   week_ending_date: e.target.value || undefined
                 }))}
-                className="glass-input"
+                className="glass-input h-8 text-sm"
               />
             </div>
           </div>
@@ -308,7 +342,7 @@ export default function ReportsManagement() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredReports.map((report, index) => (
+                  {paginatedReports.map((report, index) => (
                     <TableRow key={report.id} className={`glass-table-row ${index % 2 === 0 ? 'bg-white/5' : 'bg-white/2'}`}>
                       <TableCell className="glass-table-cell">
                         <div className="space-y-2">
@@ -445,6 +479,74 @@ export default function ReportsManagement() {
           )}
         </GlassCardContent>
       </GlassCard>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <GlassCard variant="elevated">
+          <GlassCardContent className="p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="text-sm text-glass-secondary text-center sm:text-left">
+                Showing {startIndex + 1} to {Math.min(endIndex, filteredReports.length)} of {filteredReports.length} reports
+              </div>
+              
+              <div className="flex items-center justify-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={goToPreviousPage}
+                  disabled={currentPage === 1}
+                  className="glass-button disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  <span className="hidden sm:inline">Previous</span>
+                </Button>
+
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNumber;
+                    if (totalPages <= 5) {
+                      pageNumber = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNumber = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNumber = totalPages - 4 + i;
+                    } else {
+                      pageNumber = currentPage - 2 + i;
+                    }
+
+                    return (
+                      <Button
+                        key={pageNumber}
+                        variant={currentPage === pageNumber ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => goToPage(pageNumber)}
+                        className={`w-8 h-8 p-0 ${
+                          currentPage === pageNumber
+                            ? 'bg-arsd-red text-white hover:bg-arsd-red/90'
+                            : 'glass-button'
+                        }`}
+                      >
+                        {pageNumber}
+                      </Button>
+                    );
+                  })}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={goToNextPage}
+                  disabled={currentPage === totalPages}
+                  className="glass-button disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span className="hidden sm:inline">Next</span>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </GlassCardContent>
+        </GlassCard>
+      )}
     </div>
   );
 }
