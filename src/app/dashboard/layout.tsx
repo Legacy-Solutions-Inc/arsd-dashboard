@@ -58,8 +58,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       
       <div className="relative flex min-h-screen">
         <Sidebar />
-        <main className="flex-1 p-6 relative z-10">
-          {children}
+        <main className="flex-1 mobile-padding relative z-10 overflow-x-hidden">
+          <div className="max-w-full">
+            {children}
+          </div>
         </main>
       </div>
     </div>
