@@ -36,9 +36,8 @@ export default function Uploads() {
           </div>
           <div>
             <h1 className="text-4xl font-bold text-glass-primary flex items-center gap-3 text-arsd-red">
-              Uploads
+              Report Management
             </h1>
-            <p className="text-glass-secondary text-md">View and manage all accomplishment reports</p>
           </div>
         </div>
         <GlassCard variant="elevated" className="text-center">
@@ -61,14 +60,8 @@ export default function Uploads() {
           </div>
           <div>
             <h1 className="text-4xl font-bold text-glass-primary flex items-center gap-3 text-arsd-red">
-              Uploads
+              Report Management
             </h1>
-            <p className="text-glass-secondary text-md">
-              {user.role === 'project_manager' 
-                ? 'Upload and manage your weekly accomplishment reports'
-                : 'View and manage all accomplishment reports'
-              }
-            </p>
           </div>
         </div>
       </div>
