@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/table';
 import { Calendar, User, MapPin, Building2, ArrowRight, Plus, Edit, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState, useMemo } from 'react';
+import { InlineLoading, SkeletonTable } from '@/components/ui/universal-loading';
 
 interface ProjectsTableProps {
   projects: Project[];
@@ -35,7 +36,7 @@ export function ProjectsTable({
   canEdit = false,
   canCreate = false,
   hasReports,
-  itemsPerPage = 10
+  itemsPerPage = 5
 }: ProjectsTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   
@@ -63,38 +64,165 @@ export function ProjectsTable({
   };
 
   if (loading) {
-    return <ProjectsTableSkeleton />;
+    return (
+      <div className="glass-table">
+        <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50/50 border-b border-gray-200/50">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-arsd-red to-red-600 rounded-xl flex items-center justify-center shadow-lg">
+                <Building2 className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
+                  Project Portfolio
+                </h2>
+                <p className="text-gray-600 text-sm font-medium">Manage and monitor your construction projects</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="p-6">
+          <SkeletonTable rows={5} columns={6} />
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="glass-table">
-      <div className="glass-table-header p-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-400/20 to-blue-600/20 rounded-xl flex items-center justify-center">
-              <Calendar className="h-6 w-6 text-arsd-red" />
+      <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50/50 border-b border-gray-200/50">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-arsd-red to-red-600 rounded-xl flex items-center justify-center shadow-lg">
+              <Building2 className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-glass-primary flex items-center gap-2 text-arsd-red">
-                Projects
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
+                Project Portfolio
               </h2>
-              <p className="text-glass-secondary text-sm">Manage project portfolio</p>
+              <p className="text-gray-600 text-sm font-medium">Manage and monitor your construction projects</p>
             </div>
           </div>
           {canCreate && onCreateProject && (
             <Button 
               onClick={onCreateProject}
-              variant="glass-gradient"
-              size="glass-md"
+              className="bg-gradient-to-r from-arsd-red to-red-600 hover:from-red-600 hover:to-red-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 px-6 py-3 rounded-xl font-semibold"
             >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Project
+              <Plus className="h-5 w-5 mr-2" />
+              <span className="hidden sm:inline">Create New Project</span>
+              <span className="sm:hidden">Create</span>
             </Button>
           )}
         </div>
       </div>
       
-      <div className="overflow-x-auto scrollbar-glass">
+      {/* Mobile Card Layout */}
+      <div className="block lg:hidden">
+        <div className="p-3 sm:p-4 space-y-3">
+          {paginatedProjects.map((project) => (
+            <div key={project.id} className="glass-subtle rounded-xl p-3 sm:p-4 border border-white/20">
+              <div className="flex flex-col gap-3">
+                {/* Project Header */}
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="font-mono text-glass-accent font-medium bg-arsd-red/10 px-2 py-1 rounded-lg inline-block text-xs mb-1">
+                      {project.project_id}
+                    </div>
+                    <h3 className="font-semibold text-glass-primary text-sm mb-1">
+                      {project.project_name}
+                    </h3>
+                    <div className="flex items-center gap-2 text-glass-secondary text-xs">
+                      <MapPin className="h-3 w-3" />
+                      <span>{project.location}</span>
+                    </div>
+                  </div>
+                  <Badge variant="glass" className="text-glass-primary text-xs">
+                    {getProjectStatusText(project.status)}
+                  </Badge>
+                </div>
+
+                {/* Project Manager */}
+                {project.project_manager ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 bg-arsd-red/10 rounded-full flex items-center justify-center">
+                      <User className="h-3 w-3 text-arsd-red" />
+                    </div>
+                    <div>
+                      <div className="font-medium text-glass-primary text-xs">
+                        {project.project_manager.display_name}
+                      </div>
+                      <div className="text-xs text-glass-muted">
+                        {project.project_manager.email}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-glass-muted italic bg-gray-100/50 px-2 py-1 rounded-lg text-xs">
+                    No project manager assigned
+                  </div>
+                )}
+
+                {/* Client */}
+                <div className="text-glass-secondary text-xs">
+                  <span className="font-medium">Client:</span> {project.client}
+                </div>
+
+                {/* Latest Update */}
+                <div className="text-glass-secondary text-xs">
+                  <span className="font-medium">Latest Update:</span> 
+                  {project.latest_accomplishment_update ? (
+                    <span className="ml-2 bg-green-100/50 text-green-700 px-2 py-1 rounded-lg inline-block text-xs">
+                      {new Date(project.latest_accomplishment_update).toLocaleDateString()}
+                    </span>
+                  ) : (
+                    <span className="ml-2 text-glass-muted italic">No reports</span>
+                  )}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex flex-col sm:flex-row gap-2 pt-1">
+                  {canEdit && onEditProject && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => onEditProject(project)}
+                      className="glass-button bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-glass-primary border-blue-300/50 hover:from-blue-500/30 hover:to-cyan-500/30 w-full sm:w-auto"
+                    >
+                      <Edit className="h-4 w-4 mr-1" />
+                      Edit
+                    </Button>
+                  )}
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => onViewProject?.(project)}
+                    disabled={hasReports ? !hasReports(project) : false}
+                    className={`glass-button w-full sm:w-auto ${
+                      hasReports && !hasReports(project) 
+                        ? 'bg-gray-100/50 text-glass-muted border-gray-300/50 cursor-not-allowed hover:scale-100' 
+                        : 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-glass-primary border-purple-300/50 hover:from-purple-500/30 hover:to-pink-500/30'
+                    }`}
+                    title={
+                      hasReports && !hasReports(project) 
+                        ? 'View disabled: No approved reports with parsed data available'
+                        : 'View project details and parsed accomplishment data'
+                    }
+                  >
+                    <ArrowRight className="h-4 w-4 mr-1" />
+                    View
+                    {hasReports && !hasReports(project) && (
+                      <span className="ml-1 text-xs">⚠️</span>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Desktop Table Layout */}
+      <div className="hidden lg:block overflow-x-auto scrollbar-glass">
         <Table>
           <TableHeader>
             <TableRow className="glass-table-header">
@@ -118,19 +246,19 @@ export function ProjectsTable({
                 </TableCell>
                 
                 <TableCell className="glass-table-cell">
-                  <div className="font-md text-glass-primary text-md">
+                  <div className="font-md text-glass-primary text-sm">
                     {project.project_name}
                   </div>
                 </TableCell>
                 
                 <TableCell className="glass-table-cell">
                   {project.project_manager ? (
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-arsd-red/10 rounded-full flex items-center justify-center">
-                        <User className="h-4 w-4 text-arsd-red" />
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 bg-arsd-red/10 rounded-full flex items-center justify-center">
+                        <User className="h-3 w-3 text-arsd-red" />
                       </div>
                       <div>
-                        <div className="font-medium text-glass-primary text-md">
+                        <div className="font-medium text-glass-primary text-xs">
                           {project.project_manager.display_name}
                         </div>
                         <div className="text-xs text-glass-muted">
@@ -139,7 +267,7 @@ export function ProjectsTable({
                       </div>
                     </div>
                   ) : (
-                    <span className="text-glass-muted italic bg-gray-100/50 px-3 py-1 rounded-lg">Unassigned</span>
+                    <span className="text-glass-muted italic bg-gray-100/50 px-2 py-1 rounded-lg text-xs">Unassigned</span>
                   )}
                 </TableCell>
                 
@@ -150,14 +278,14 @@ export function ProjectsTable({
                 </TableCell>
                 
                 <TableCell className="glass-table-cell">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-glass-muted" />
-                    <span className="text-glass-primary">{project.location}</span>
+                  <div className="flex items-center gap-1">
+                    <MapPin className="h-3 w-3 text-glass-muted" />
+                    <span className="text-glass-primary text-xs">{project.location}</span>
                   </div>
                 </TableCell>
                 
                 <TableCell className="glass-table-cell">
-                  <Badge variant="glass" className="text-glass-primary">
+                  <Badge variant="glass" className="text-glass-primary text-xs">
                     {getProjectStatusText(project.status)}
                   </Badge>
                 </TableCell>
@@ -165,25 +293,25 @@ export function ProjectsTable({
                 <TableCell className="glass-table-cell">
                   <div className="text-glass-secondary">
                     {project.latest_accomplishment_update ? (
-                      <div className="bg-green-100/50 text-green-700 px-3 py-1 rounded-lg inline-block">
+                      <div className="bg-green-100/50 text-green-700 px-2 py-1 rounded-lg inline-block text-xs">
                         {new Date(project.latest_accomplishment_update).toLocaleDateString()}
                       </div>
                     ) : (
-                      <span className="text-glass-muted italic bg-gray-100/50 px-3 py-1 rounded-lg">No reports</span>
+                      <span className="text-glass-muted italic bg-gray-100/50 px-2 py-1 rounded-lg text-xs">No reports</span>
                     )}
                   </div>
                 </TableCell>
                 
                 <TableCell className="glass-table-cell">
-                  <div className="flex gap-2">
+                  <div className="flex gap-1">
                     {canEdit && onEditProject && (
                       <Button 
                         variant="outline" 
                         size="sm"
                         onClick={() => onEditProject(project)}
-                        className="glass-button bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-glass-primary border-blue-300/50 hover:from-blue-500/30 hover:to-cyan-500/30"
+                        className="glass-button bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-glass-primary border-blue-300/50 hover:from-blue-500/30 hover:to-cyan-500/30 text-xs px-2 py-1"
                       >
-                        <Edit className="h-4 w-4 mr-1" />
+                        <Edit className="h-3 w-3 mr-1" />
                         Edit
                       </Button>
                     )}
@@ -192,7 +320,7 @@ export function ProjectsTable({
                       size="sm"
                       onClick={() => onViewProject?.(project)}
                       disabled={hasReports ? !hasReports(project) : false}
-                      className={`glass-button ${
+                      className={`glass-button text-xs px-2 py-1 ${
                         hasReports && !hasReports(project) 
                           ? 'bg-gray-100/50 text-glass-muted border-gray-300/50 cursor-not-allowed hover:scale-100' 
                           : 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-glass-primary border-purple-300/50 hover:from-purple-500/30 hover:to-pink-500/30'
@@ -203,7 +331,7 @@ export function ProjectsTable({
                           : 'View project details and parsed accomplishment data'
                       }
                     >
-                      <ArrowRight className="h-4 w-4 mr-1" />
+                      <ArrowRight className="h-3 w-3 mr-1" />
                       View
                       {hasReports && !hasReports(project) && (
                         <span className="ml-1 text-xs">⚠️</span>
@@ -219,13 +347,13 @@ export function ProjectsTable({
       
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="glass-table-header p-4 border-t border-white/10">
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-glass-secondary">
+        <div className="glass-table-header p-3 border-t border-white/10">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="text-sm text-glass-secondary text-center sm:text-left">
               Showing {startIndex + 1} to {Math.min(endIndex, projects.length)} of {projects.length} projects
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
@@ -234,7 +362,7 @@ export function ProjectsTable({
                 className="glass-button disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ChevronLeft className="h-4 w-4" />
-                Previous
+                <span className="hidden sm:inline">Previous</span>
               </Button>
               
               <div className="flex items-center gap-1">
@@ -281,41 +409,13 @@ export function ProjectsTable({
                 disabled={currentPage === totalPages}
                 className="glass-button disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Next
+                <span className="hidden sm:inline">Next</span>
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-// Loading skeleton component
-function ProjectsTableSkeleton() {
-  return (
-    <div className="glass-table">
-      <div className="glass-table-header p-6">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-white/10 rounded-xl animate-pulse"></div>
-          <div className="space-y-2">
-            <div className="h-6 w-32 bg-white/10 rounded animate-pulse"></div>
-            <div className="h-4 w-48 bg-white/5 rounded animate-pulse"></div>
-          </div>
-        </div>
-      </div>
-      <div className="p-6">
-        <div className="space-y-4">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="flex gap-4">
-              {[...Array(8)].map((_, j) => (
-                <div key={j} className="h-4 bg-white/10 rounded animate-pulse flex-1"></div>
-              ))}
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
