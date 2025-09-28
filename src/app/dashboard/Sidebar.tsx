@@ -67,23 +67,24 @@ export default function Sidebar() {
     <>
       {/* Mobile Menu Button */}
       <button
-        className="lg:hidden fixed top-4 left-4 z-50 glass-button p-3 text-glass-primary"
+        className="lg:hidden fixed top-4 left-4 z-50 glass-button p-3 text-glass-primary mobile-touch-target"
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
       >
         {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
       </button>
 
       {/* Sidebar */}
-      <aside className={`w-64 glass-elevated flex flex-col min-h-screen shadow-2xl backdrop-blur-xl border-r border-white/20 transition-all duration-300 ${
+      <aside className={`w-64 sm:w-72 glass-elevated flex flex-col min-h-screen shadow-2xl backdrop-blur-xl border-r border-white/20 transition-all duration-300 ${
         isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       } fixed lg:relative z-40`}>
         {/* Header Section */}
-        <div className="flex items-center gap-4 px-6 py-6 border-b border-white/20">
-          <div className="w-12 h-12 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-            <img src="/images/arsd-logo.png" alt="Company Logo" className="w-8 h-8 object-contain" />
+        <div className="flex items-center gap-3 sm:gap-4 px-4 sm:px-6 py-4 sm:py-6 border-b border-white/20">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+            <img src="/images/arsd-logo.png" alt="Company Logo" className="w-6 h-6 sm:w-8 sm:h-8 object-contain" />
           </div>
           <div className="flex flex-col">
-            <span className="font-bold text-2xl text-glass-primary tracking-wide flex items-center gap-2 text-arsd-red">
+            <span className="font-bold text-lg sm:text-xl text-glass-primary tracking-wide flex items-center gap-2 text-arsd-red">
               ARSD
             </span>
             <span className="text-xs text-glass-secondary">Admin Portal</span>
@@ -92,12 +93,12 @@ export default function Sidebar() {
         
         {/* User Info */}
         {user && (
-          <div className="px-6 py-4 border-b border-white/20">
-            <div className="glass-subtle rounded-xl p-4 shadow-md">
+          <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-white/20">
+            <div className="glass-subtle rounded-xl p-3 sm:p-4 shadow-md">
               <div className="text-glass-primary text-sm">
-                <div className="font-medium text-md text-arsd-red flex items-center gap-2">
-                  <User className="h-5 w-5" />
-                  {user.full_name || user.name || 'User'}
+                <div className="font-medium text-sm text-arsd-red flex items-center gap-2">
+                  <User className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <span className="truncate">{user.full_name || user.name || 'User'}</span>
                 </div>
                 <div className="text-xs text-glass-secondary capitalize bg-gray-100/50 py-1 rounded-lg inline-block mt-1">
                   {user.role}
@@ -108,8 +109,8 @@ export default function Sidebar() {
         )}
 
         {/* Navigation */}
-        <nav className="flex-1 py-6">
-          <ul className="space-y-2 px-4">
+        <nav className="flex-1 py-4 sm:py-6">
+          <ul className="space-y-2 px-3 sm:px-4">
             {navigationItems.map((item) => (
               <li key={item.href}>
                 {item.permission ? (
@@ -117,7 +118,7 @@ export default function Sidebar() {
                     <Link
                       href={item.href}
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-300 text-base group ${
+                      className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3 rounded-xl font-medium transition-all duration-300 text-sm sm:text-base group ${
                         pathname === item.href
                           ? "glass-elevated text-glass-primary bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-white/30 shadow-lg"
                           : "text-glass-secondary hover:glass-subtle hover:text-glass-primary hover:scale-105"
@@ -135,7 +136,7 @@ export default function Sidebar() {
                   <Link
                     href={item.href}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-300 text-base group ${
+                    className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3 rounded-xl font-medium transition-all duration-300 text-sm sm:text-base group ${
                       pathname === item.href
                         ? "glass-elevated text-glass-primary bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-white/30 shadow-lg"
                         : "text-glass-secondary hover:glass-subtle hover:text-glass-primary hover:scale-105"
@@ -155,12 +156,12 @@ export default function Sidebar() {
         </nav>
         
         {/* Log Out Button */}
-        <div className="px-4 pb-6 mt-auto">
+        <div className="px-3 sm:px-4 pb-4 sm:pb-6 mt-auto">
           <button
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium glass-button bg-gradient-to-r from-red-500/20 to-pink-500/20 text-glass-primary border-red-300/50 hover:from-red-500/30 hover:to-pink-500/30 hover:scale-105 transition-all duration-300"
+            className="w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3 rounded-xl font-medium glass-button bg-gradient-to-r from-red-500/20 to-pink-500/20 text-glass-primary border-red-300/50 hover:from-red-500/30 hover:to-pink-500/30 hover:scale-105 transition-all duration-300 mobile-touch-target"
             onClick={handleLogout}
           >
-            <LogOut className="h-5 w-5" />
+            <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
             Log Out
           </button>
         </div>
