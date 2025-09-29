@@ -187,7 +187,7 @@ export default function ProjectEditForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="project_manager_id">Project Manager</Label>
+            <Label htmlFor="project_manager_id">Site Engineer</Label>
             <Select
               value={formData.project_manager_id || 'none'}
               onValueChange={(value) => handleSelectChange('project_manager_id', value)}
