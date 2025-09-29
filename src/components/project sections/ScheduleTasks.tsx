@@ -379,7 +379,7 @@ export function ScheduleTasks({ tasks, costItemsSecondaryData = [], targetCostTo
                   </div>
 
                   {/* Right Column: Timeline (2/5 width) - Single scrollbar at bottom */}
-                  <div className="w-2/5 lg:w-2/5 overflow-x-auto [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar]:bg-transparent [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300/50 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-400/50 [&::-webkit-scrollbar-thumb]:border-0">
+                  <div className="w-2/5 lg:w-2/5 overflow-x-auto [&::-webkit-scrollbar]:h-0.5 [&::-webkit-scrollbar]:bg-transparent [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300/50 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-400/50 [&::-webkit-scrollbar-thumb]:border-0">
                     <div className="min-w-max">
                       {/* Timeline Header */}
                       <div className="flex border-b-2 border-gray-300 bg-gray-50">
@@ -423,9 +423,9 @@ export function ScheduleTasks({ tasks, costItemsSecondaryData = [], targetCostTo
                       ))}
 
                       {/* Weekly Accomplishments Header (Right part) */}
-                      <div className="flex border-b-2 border-gray-300 border-t-2 mt-4 lg:mt-6">
+                      <div className="flex border-b-2 border-gray-300 border-t-2 mt-4 lg:mt-7">
                         {weeklyTimeline.map((week, index) => (
-                          <div key={index} className="w-16 lg:w-20 flex-shrink-0 text-center p-2 lg:p-3 border-r border-gray-200 text-xs font-semibold text-gray-700 bg-gray-100">
+                          <div key={index} className="w-16 lg:w-20 flex-shrink-0 text-center p-2 lg:p-4 border-r border-gray-200 text-xs font-semibold text-gray-700 bg-gray-100">
                             {week.label}
                           </div>
                         ))}
@@ -435,7 +435,7 @@ export function ScheduleTasks({ tasks, costItemsSecondaryData = [], targetCostTo
                       <div className="space-y-0">
                         <div className="flex hover:bg-blue-50 transition-colors">
                           {weeklyAccomplishments.map((acc, index) => (
-                            <div key={index} className="w-16 lg:w-20 flex-shrink-0 text-center p-2 lg:p-3 text-xs border-r border-gray-200 font-medium bg-blue-50 text-blue-800">
+                            <div key={index} className="w-16 lg:w-20 flex-shrink-0 text-center p-2 lg:p-4 text-xs border-r border-gray-200 font-medium bg-blue-50 text-blue-800">
                               {acc.periodicPhysical.toFixed(2)}
                             </div>
                           ))}
