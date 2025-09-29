@@ -393,6 +393,7 @@ const ProjectTabs = ({
           <TabsContent value="overview" className="space-y-4">
             <ProjectOverview
               projectData={{
+                id: project.id,
                 projectId: project.project_id,
                 projectName: stats.latestProjectDetails.project_name || 'N/A',
                 client: stats.latestProjectDetails.client || 'N/A',
