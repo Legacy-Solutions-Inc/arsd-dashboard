@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { GlassCard, GlassCardContent, GlassCardHeader, GlassCardTitle } from '@/components/ui/glass-card';
-import { Upload, FileText, Calendar, User, MapPin, Building, AlertCircle, CheckCircle, Clock, FolderOpen, BarChart3, ChevronLeft, ChevronRight, Camera, Timer, CalendarDays } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Upload, FileText, Calendar, User, MapPin, Building, AlertCircle, CheckCircle, Clock, FolderOpen, BarChart3, ChevronLeft, ChevronRight, Camera, Timer, CalendarDays, XCircle, MessageSquare, RefreshCw, RotateCcw } from 'lucide-react';
 import { useProjects } from '@/hooks/useProjects';
 import { useWeeklyUploadStatus } from '@/hooks/useAccomplishmentReports';
 import CSVUploadForm from './CSVUploadForm';
@@ -24,6 +25,8 @@ export default function AssignedProjectsList({ itemsPerPage = 6 }: AssignedProje
   const [currentPage, setCurrentPage] = useState(1);
   const [currentWeek, setCurrentWeek] = useState('');
   const [daysRemaining, setDaysRemaining] = useState(0);
+  const [selectedRejectedReport, setSelectedRejectedReport] = useState<any>(null);
+  const [isRejectionModalOpen, setIsRejectionModalOpen] = useState(false);
 
   const handleUploadClick = (project: Project) => {
     setUploadingProject(project);
@@ -81,7 +84,7 @@ export default function AssignedProjectsList({ itemsPerPage = 6 }: AssignedProje
     return () => clearInterval(interval);
   }, []);
 
-  // Listen for upload events to refresh data
+  // Listen for upload and approval events to refresh data
   useEffect(() => {
     const handleReportUploaded = () => {
       // Refresh both status and projects data
@@ -89,10 +92,35 @@ export default function AssignedProjectsList({ itemsPerPage = 6 }: AssignedProje
       refetchProjects();
     };
 
+    const handleReportApproved = () => {
+      // Refresh both status and projects data when a report is approved
+      console.log('🔄 Report approved event received, refreshing data...');
+      refetchStatus();
+      refetchProjects();
+    };
+
+    const handleReportRejected = () => {
+      // Refresh both status and projects data when a report is rejected
+      refetchStatus();
+      refetchProjects();
+    };
+
+    const handleReportResubmitted = () => {
+      // Refresh both status and projects data when a report is resubmitted
+      refetchStatus();
+      refetchProjects();
+    };
+
     window.addEventListener('accomplishmentReportUploaded', handleReportUploaded);
+    window.addEventListener('projectReportApproved', handleReportApproved);
+    window.addEventListener('projectReportRejected', handleReportRejected);
+    window.addEventListener('projectReportResubmitted', handleReportResubmitted);
     
     return () => {
       window.removeEventListener('accomplishmentReportUploaded', handleReportUploaded);
+      window.removeEventListener('projectReportApproved', handleReportApproved);
+      window.removeEventListener('projectReportRejected', handleReportRejected);
+      window.removeEventListener('projectReportResubmitted', handleReportResubmitted);
     };
   }, [refetchStatus, refetchProjects]);
 
@@ -102,6 +130,24 @@ export default function AssignedProjectsList({ itemsPerPage = 6 }: AssignedProje
 
   const handlePhotosUploadCancel = () => {
     setUploadingPhotosProject(null);
+  };
+
+  const handleViewRejectionDetails = (uploadStatus: any) => {
+    setSelectedRejectedReport(uploadStatus.report);
+    setIsRejectionModalOpen(true);
+  };
+
+  const handleResubmitReport = async (report: any) => {
+    try {
+      // This would need to be implemented with the appropriate service
+      // For now, we'll just close the modal and show a message
+      setIsRejectionModalOpen(false);
+      setSelectedRejectedReport(null);
+      alert('Resubmit functionality will be implemented. Please contact your administrator.');
+    } catch (error) {
+      console.error('Resubmit failed:', error);
+      alert(`Resubmit failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   };
 
   const getProjectUploadStatus = (projectId: string) => {
@@ -264,9 +310,27 @@ export default function AssignedProjectsList({ itemsPerPage = 6 }: AssignedProje
             </p>
           </div>
         </div>
-        <Badge variant="glass" className="text-sm bg-arsd-red/20 text-arsd-red border-arsd-red/30">
-          {projects.length} project{projects.length !== 1 ? 's' : ''}
-        </Badge>
+        <div className="flex items-center gap-3">
+          <Badge variant="glass" className="text-sm bg-arsd-red/20 text-arsd-red border-arsd-red/30">
+            {projects.length} project{projects.length !== 1 ? 's' : ''}
+          </Badge>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              console.log('🔄 Manual refresh triggered');
+              // Force refresh with a small delay to ensure data consistency
+              setTimeout(() => {
+                refetchStatus();
+                refetchProjects();
+              }, 100);
+            }}
+            className="glass-button bg-gradient-to-r from-arsd-red/20 to-red-500/20 text-arsd-red border-arsd-red/30 hover:from-arsd-red/30 hover:to-red-500/30"
+          >
+            <RotateCcw className="h-4 w-4 mr-1" />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* Weekly Reminder Note */}
@@ -315,6 +379,40 @@ export default function AssignedProjectsList({ itemsPerPage = 6 }: AssignedProje
         </GlassCardContent>
       </GlassCard>
 
+      {/* Rejected Reports Alert */}
+      {weeklyStatus.some(status => status.report?.status === 'rejected') && (
+        <GlassCard variant="elevated" className="bg-gradient-to-r from-red-500/5 to-rose-500/5 border-red-200/50">
+          <GlassCardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-red-100/50 rounded-xl flex items-center justify-center">
+                <XCircle className="h-5 w-5 text-red-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-red-800">
+                  Rejected Reports Require Attention
+                </h3>
+                <p className="text-sm text-red-700">
+                  You have {weeklyStatus.filter(status => status.report?.status === 'rejected').length} rejected report(s) that need to be corrected and resubmitted.
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  // Scroll to first rejected report
+                  const firstRejected = document.querySelector('[data-status="rejected"]');
+                  firstRejected?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="glass-button bg-gradient-to-r from-red-500/20 to-rose-500/20 text-red-700 border-red-300/50 hover:from-red-500/30 hover:to-rose-500/30"
+              >
+                <MessageSquare className="h-4 w-4 mr-2" />
+                View Details
+              </Button>
+            </div>
+          </GlassCardContent>
+        </GlassCard>
+      )}
+
       <div className="grid gap-6">
         {paginatedProjects.map((project) => {
           const uploadStatus = getProjectUploadStatus(project.id);
@@ -322,7 +420,7 @@ export default function AssignedProjectsList({ itemsPerPage = 6 }: AssignedProje
           const reportStatus = uploadStatus?.report?.status;
 
           return (
-            <GlassCard key={project.id} variant="elevated" className="hover:shadow-xl transition-all duration-300 p-0">
+            <GlassCard key={project.id} variant="elevated" className="hover:shadow-xl transition-all duration-300 p-0" data-status={reportStatus}>
               <GlassCardHeader className="pb-4">
                 <div className="flex items-start justify-between">
                   <div className="space-y-2">
@@ -343,6 +441,17 @@ export default function AssignedProjectsList({ itemsPerPage = 6 }: AssignedProje
                     <Badge variant="glass" className={getStatusColor(hasUpload, reportStatus)}>
                       {getStatusText(hasUpload, reportStatus)}
                     </Badge>
+                    {hasUpload && reportStatus === 'rejected' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleViewRejectionDetails(uploadStatus)}
+                        className="glass-button bg-gradient-to-r from-red-500/20 to-rose-500/20 text-red-700 border-red-300/50 hover:from-red-500/30 hover:to-rose-500/30"
+                      >
+                        <MessageSquare className="h-3 w-3 mr-1" />
+                        Details
+                      </Button>
+                    )}
                   </div>
                 </div>
               </GlassCardHeader>
@@ -370,10 +479,32 @@ export default function AssignedProjectsList({ itemsPerPage = 6 }: AssignedProje
                   <div className="flex flex-col gap-3">
                     <div className="flex gap-3">
                       {hasUpload ? (
-                        <Button variant="outline" size="lg" disabled className="glass-button bg-gray-100/50 text-glass-muted border-gray-300/50 cursor-not-allowed">
-                          <FileText className="h-4 w-4 mr-2" />
-                          Report Uploaded
-                        </Button>
+                        reportStatus === 'rejected' ? (
+                          <div className="flex flex-col gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="lg" 
+                              disabled 
+                              className="glass-button bg-red-100/50 text-red-700 border-red-300/50 cursor-not-allowed"
+                            >
+                              <XCircle className="h-4 w-4 mr-2" />
+                              Report Rejected
+                            </Button>
+                            <Button
+                              onClick={() => handleUploadClick(project)}
+                              size="sm"
+                              className="glass-button bg-gradient-to-r from-arsd-red/100 to-red-500/100 text-white border-arsd-red/50 hover:from-arsd-red/80 hover:to-red-500/80"
+                            >
+                              <RefreshCw className="h-4 w-4 mr-2" />
+                              Resubmit Report
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button variant="outline" size="lg" disabled className="glass-button bg-gray-100/50 text-glass-muted border-gray-300/50 cursor-not-allowed">
+                            <FileText className="h-4 w-4 mr-2" />
+                            Report Uploaded
+                          </Button>
+                        )
                       ) : (
                         <Button
                           onClick={() => handleUploadClick(project)}
@@ -484,6 +615,87 @@ export default function AssignedProjectsList({ itemsPerPage = 6 }: AssignedProje
           </div>
         </div>
       )}
+
+      {/* Rejection Details Modal */}
+      <Dialog open={isRejectionModalOpen} onOpenChange={setIsRejectionModalOpen}>
+        <DialogContent className="glass-elevated max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-arsd-red flex items-center gap-2 text-xl">
+              <XCircle className="h-5 w-5" />
+              Report Rejection Details
+            </DialogTitle>
+            <DialogDescription className="text-glass-secondary">
+              Review the rejection reason and take appropriate action.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedRejectedReport && (
+            <div className="space-y-6 py-4">
+              {/* Report Info */}
+              <div className="bg-red-50/50 border border-red-200/50 rounded-lg p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <AlertCircle className="h-5 w-5 text-red-600" />
+                  <h3 className="font-semibold text-red-800">Rejected Report</h3>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div><span className="font-medium">File:</span> {selectedRejectedReport.file_name}</div>
+                  <div><span className="font-medium">Week Ending:</span> {selectedRejectedReport.week_ending_date}</div>
+                  <div><span className="font-medium">Uploaded:</span> {new Date(selectedRejectedReport.upload_date).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                  })}</div>
+                </div>
+              </div>
+
+              {/* Rejection Notes */}
+              <div className="space-y-3">
+                <label className="text-sm font-medium text-glass-primary">Rejection Reason</label>
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 min-h-[100px]">
+                  {selectedRejectedReport.notes ? (
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{selectedRejectedReport.notes}</p>
+                  ) : (
+                    <p className="text-sm text-gray-500 italic">No specific reason provided for rejection.</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+                <div className="text-sm text-gray-600">
+                  <p className="font-medium mb-1">What would you like to do?</p>
+                  <ul className="text-xs space-y-1">
+                    <li>• Review the rejection reason above</li>
+                    <li>• Fix any issues in your report</li>
+                    <li>• Upload a corrected report</li>
+                  </ul>
+                </div>
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsRejectionModalOpen(false)}
+                    className="glass-button bg-gradient-to-r from-gray-500/20 to-gray-600/20 text-glass-primary border-gray-400/50 hover:from-gray-500/30 hover:to-gray-600/30"
+                  >
+                    Close
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setIsRejectionModalOpen(false);
+                      setSelectedRejectedReport(null);
+                      // This would trigger the upload form
+                      alert('Please use the "Resubmit Report" button to upload a corrected report.');
+                    }}
+                    className="glass-button bg-gradient-to-r from-arsd-red/100 to-red-500/100 text-white border-arsd-red/50 hover:from-arsd-red/80 hover:to-red-500/80"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Upload Corrected Report
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
