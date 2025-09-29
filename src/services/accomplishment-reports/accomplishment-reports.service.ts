@@ -120,28 +120,42 @@ export class AccomplishmentReportsService extends BaseService {
       // Get current week ending date
       const currentWeekEnding = this.getWeekEndingDate();
       
-      // Get reports for current week
+      // Get reports for assigned projects (we'll consider current week for upload availability)
+      const projectIds = projects.map(p => p.id);
       const { data: reports, error: reportsError } = await supabase
         .from('accomplishment_reports')
-        .select('id, project_id, week_ending_date, status')
-        .eq('week_ending_date', currentWeekEnding);
+        .select('id, project_id, week_ending_date, status, upload_date, file_name, file_size, file_url, notes')
+        .in('project_id', projectIds)
+        .order('week_ending_date', { ascending: false });
 
       if (reportsError) throw reportsError;
 
-      // Combine data
-      return projects.map(project => {
-        const report = reports.find(r => r.project_id === project.id);
+      // Combine data - determine current week's status per project
+      const result = projects.map(project => {
+        // Current week's report for this project (controls Upload button)
+        const reportForCurrentWeek = reports.find(r => r.project_id === project.id && r.week_ending_date === currentWeekEnding);
+
         return {
           project_id: project.id,
           project_name: project.project_name,
+          // Always show the current week's Saturday in the PM list
           week_ending_date: currentWeekEnding,
-          has_upload: !!report,
-          report: report ? {
-            id: report.id,
-            status: report.status as 'pending' | 'approved' | 'rejected'
+          has_upload: !!reportForCurrentWeek,
+          report: reportForCurrentWeek ? {
+            id: reportForCurrentWeek.id,
+            project_id: reportForCurrentWeek.project_id,
+            week_ending_date: reportForCurrentWeek.week_ending_date,
+            status: reportForCurrentWeek.status as 'pending' | 'approved' | 'rejected',
+            upload_date: reportForCurrentWeek.upload_date,
+            file_name: reportForCurrentWeek.file_name,
+            file_size: reportForCurrentWeek.file_size,
+            file_url: reportForCurrentWeek.file_url,
+            notes: reportForCurrentWeek.notes
           } as AccomplishmentReport : undefined
         };
       });
+
+      return result;
     } catch (error) {
       throw error;
     }

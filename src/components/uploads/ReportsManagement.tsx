@@ -8,6 +8,15 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { GlassCard, GlassCardContent, GlassCardHeader, GlassCardTitle } from '@/components/ui/glass-card';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 import { 
   FileText, 
   Download, 
@@ -24,7 +33,12 @@ import {
   BarChart3,
   FileUp,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ChevronDown,
+  RefreshCw,
+  MessageSquare,
+  XCircle,
+  AlertTriangle
 } from 'lucide-react';
 import { useAllAccomplishmentReports, useUpdateReportStatus } from '@/hooks/useAccomplishmentReports';
 import { useFileDownload } from '@/hooks/useFileDownload';
@@ -38,6 +52,12 @@ export default function ReportsManagement() {
   const [searchTerm, setSearchTerm] = useState('');
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedRejectedReport, setSelectedRejectedReport] = useState<AccomplishmentReport | null>(null);
+  const [isRejectionModalOpen, setIsRejectionModalOpen] = useState(false);
+  const [rejectionNotes, setRejectionNotes] = useState('');
+  const [isRejectConfirmOpen, setIsRejectConfirmOpen] = useState(false);
+  const [rejectNotes, setRejectNotes] = useState('');
+  const [rejectingReport, setRejectingReport] = useState<AccomplishmentReport | null>(null);
   const itemsPerPage = 5;
   
   const { reports, loading, error, refetch } = useAllAccomplishmentReports(filters);
@@ -116,13 +136,43 @@ export default function ReportsManagement() {
       await updateStatus(reportId, status, notes);
       await refetch(); // Refresh the reports list
       
-      // If approved, dispatch event to refresh projects dashboard
+      // Dispatch event to refresh projects dashboard
       if (status === 'approved') {
+        console.log('✅ Dispatching projectReportApproved event');
         window.dispatchEvent(new CustomEvent('projectReportApproved'));
+      } else if (status === 'rejected') {
+        console.log('❌ Dispatching projectReportRejected event');
+        window.dispatchEvent(new CustomEvent('projectReportRejected'));
       }
     } catch (error) {
       console.error('Status update failed:', error);
       alert(`Status update failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setUpdatingStatus(null);
+    }
+  };
+
+  const handleViewRejectionDetails = (report: AccomplishmentReport) => {
+    setSelectedRejectedReport(report);
+    setRejectionNotes(report.notes || '');
+    setIsRejectionModalOpen(true);
+  };
+
+  const handleResubmitReport = async (report: AccomplishmentReport) => {
+    try {
+      setUpdatingStatus(report.id);
+      // Reset status to pending for resubmission
+      await updateStatus(report.id, 'pending', 'Resubmitted by user');
+      await refetch();
+      
+      // Dispatch event to refresh projects dashboard
+      window.dispatchEvent(new CustomEvent('projectReportResubmitted'));
+      
+      setIsRejectionModalOpen(false);
+      setSelectedRejectedReport(null);
+    } catch (error) {
+      console.error('Resubmit failed:', error);
+      alert(`Resubmit failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setUpdatingStatus(null);
     }
@@ -250,6 +300,18 @@ export default function ReportsManagement() {
               Page {currentPage} of {totalPages}
             </Badge>
           )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              // Force refresh of reports list
+              refetch();
+            }}
+            className="glass-button bg-gradient-to-r from-arsd-red/20 to-red-500/20 text-arsd-red border-arsd-red/30 hover:from-arsd-red/30 hover:to-red-500/30"
+          >
+            <RefreshCw className="h-4 w-4 mr-1" />
+            Refresh
+          </Button>
         </div>
       </div>
 
@@ -386,6 +448,17 @@ export default function ReportsManagement() {
                           <Badge variant="glass" className={getStatusColor(report.status)}>
                             {getStatusText(report.status)}
                           </Badge>
+                          {report.status === 'rejected' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleViewRejectionDetails(report)}
+                              className="glass-button bg-gradient-to-r from-red-500/20 to-rose-500/20 text-red-700 border-red-300/50 hover:from-red-500/30 hover:to-rose-500/30"
+                            >
+                              <MessageSquare className="h-3 w-3 mr-1" />
+                              Details
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell className="glass-table-cell">
@@ -394,78 +467,67 @@ export default function ReportsManagement() {
                         </div>
                       </TableCell>
                       <TableCell className="glass-table-cell">
-                        <div className="flex gap-2 flex-wrap">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDownload(report)}
-                            disabled={isDownloading}
-                            className="glass-button bg-gradient-to-r from-arsd-red/20 to-red-500/20 text-arsd-red border-arsd-red/30 hover:from-arsd-red/30 hover:to-red-500/30"
-                          >
-                            {isDownloading ? (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="glass-button bg-gradient-to-r from-arsd-red/20 to-red-500/20 text-arsd-red border-arsd-red/30 hover:from-arsd-red/30 hover:to-red-500/30 flex items-center gap-1"
+                            >
+                              Actions
+                              <ChevronDown className="h-3.5 w-3.5" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="min-w-[12rem]">
+                            <DropdownMenuItem onClick={() => handleDownload(report)} disabled={isDownloading} className="flex items-center gap-2">
+                              {isDownloading ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-arsd-red" />
+                              ) : (
+                                <Download className="h-4 w-4" />
+                              )}
+                              <span>Download</span>
+                            </DropdownMenuItem>
+                            {report.status === 'rejected' && (
+                              <DropdownMenuItem onClick={() => handleViewRejectionDetails(report)} className="flex items-center gap-2">
+                                <MessageSquare className="h-4 w-4" />
+                                <span>View rejection details</span>
+                              </DropdownMenuItem>
+                            )}
+                            {canUpdateStatus(report) && report.status === 'pending' && (
                               <>
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-arsd-red mr-1" />
-                                Downloading...
-                              </>
-                            ) : (
-                              <>
-                                <Download className="h-4 w-4 mr-1" />
-                                Download
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  onClick={() => handleStatusUpdate(report.id, 'approved')}
+                                  disabled={updatingStatus === report.id || statusLoading}
+                                  className="flex items-center gap-2 text-green-700"
+                                >
+                                  {updatingStatus === report.id ? (
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600" />
+                                  ) : (
+                                    <CheckCircle className="h-4 w-4" />
+                                  )}
+                                  <span>Approve</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setRejectingReport(report);
+                                    setRejectNotes('');
+                                    setIsRejectConfirmOpen(true);
+                                  }}
+                                  disabled={updatingStatus === report.id || statusLoading}
+                                  className="flex items-center gap-2 text-red-700"
+                                >
+                                  {updatingStatus === report.id ? (
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600" />
+                                  ) : (
+                                    <AlertCircle className="h-4 w-4" />
+                                  )}
+                                  <span>Reject</span>
+                                </DropdownMenuItem>
                               </>
                             )}
-                          </Button>
-                          {/* <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => window.open(report.file_url, '_blank')}
-                            className="glass-button bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-glass-primary border-blue-300/50 hover:from-blue-500/30 hover:to-cyan-500/30"
-                          >
-                            <Eye className="h-4 w-4 mr-1" />
-                            View
-                          </Button> */}
-                          {canUpdateStatus(report) && report.status === 'pending' && (
-                            <>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleStatusUpdate(report.id, 'approved')}
-                                disabled={updatingStatus === report.id || statusLoading}
-                                className="glass-button bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-700 border-green-300/50 hover:from-green-500/30 hover:to-emerald-500/30"
-                              >
-                                {updatingStatus === report.id ? (
-                                  <>
-                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 mr-1" />
-                                    Updating...
-                                  </>
-                                ) : (
-                                  <>
-                                    <CheckCircle className="h-4 w-4 mr-1" />
-                                    Approve
-                                  </>
-                                )}
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleStatusUpdate(report.id, 'rejected')}
-                                disabled={updatingStatus === report.id || statusLoading}
-                                className="glass-button bg-gradient-to-r from-red-500/20 to-rose-500/20 text-red-700 border-red-300/50 hover:from-red-500/30 hover:to-rose-500/30"
-                              >
-                                {updatingStatus === report.id ? (
-                                  <>
-                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600 mr-1" />
-                                    Updating...
-                                  </>
-                                ) : (
-                                  <>
-                                    <AlertCircle className="h-4 w-4 mr-1" />
-                                    Reject
-                                  </>
-                                )}
-                              </Button>
-                            </>
-                          )}
-                        </div>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -543,6 +605,146 @@ export default function ReportsManagement() {
           </GlassCardContent>
         </GlassCard>
       )}
+
+      {/* Rejection Details Modal */}
+      <Dialog open={isRejectionModalOpen} onOpenChange={setIsRejectionModalOpen}>
+        <DialogContent className="glass-elevated max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-arsd-red flex items-center gap-2 text-xl">
+              <XCircle className="h-5 w-5" />
+              Report Rejection Details
+            </DialogTitle>
+            <DialogDescription className="text-glass-secondary">
+              Review the rejection reason and take appropriate action.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedRejectedReport && (
+            <div className="space-y-6 py-4">
+              {/* Report Info */}
+              <div className="bg-red-50/50 border border-red-200/50 rounded-lg p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <AlertTriangle className="h-5 w-5 text-red-600" />
+                  <h3 className="font-semibold text-red-800">Rejected Report</h3>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div><span className="font-medium">Project:</span> {selectedRejectedReport.project_name}</div>
+                  <div><span className="font-medium">File:</span> {selectedRejectedReport.file_name}</div>
+                  <div><span className="font-medium">Week Ending:</span> {formatDate(selectedRejectedReport.week_ending_date)}</div>
+                  <div><span className="font-medium">Uploaded:</span> {formatDate(selectedRejectedReport.upload_date)}</div>
+                </div>
+              </div>
+
+              {/* Rejection Notes */}
+              <div className="space-y-3">
+                <label className="text-sm font-medium text-glass-primary">Rejection Reason</label>
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 min-h-[100px]">
+                  {selectedRejectedReport.notes ? (
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{selectedRejectedReport.notes}</p>
+                  ) : (
+                    <p className="text-sm text-gray-500 italic">No specific reason provided for rejection.</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+                <div className="text-sm text-gray-600">
+                  <p className="font-medium mb-1">What would you like to do?</p>
+                  <ul className="text-xs space-y-1">
+                    <li>• Review the rejection reason above</li>
+                    <li>• Fix any issues in your report</li>
+                    <li>• Resubmit the corrected report</li>
+                  </ul>
+                </div>
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsRejectionModalOpen(false)}
+                    className="glass-button bg-gradient-to-r from-gray-500/20 to-gray-600/20 text-glass-primary border-gray-400/50 hover:from-gray-500/30 hover:to-gray-600/30"
+                  >
+                    Close
+                  </Button>
+                  <Button
+                    onClick={() => handleResubmitReport(selectedRejectedReport)}
+                    disabled={updatingStatus === selectedRejectedReport.id}
+                    className="glass-button bg-gradient-to-r from-arsd-red/100 to-red-500/100 text-white border-arsd-red/50 hover:from-arsd-red/80 hover:to-red-500/80"
+                  >
+                    {updatingStatus === selectedRejectedReport.id ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                        Resubmitting...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Resubmit Report
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Reject Confirmation Modal */}
+      <Dialog open={isRejectConfirmOpen} onOpenChange={setIsRejectConfirmOpen}>
+        <DialogContent className="glass-elevated max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-arsd-red flex items-center gap-2 text-xl">
+              <AlertTriangle className="h-5 w-5" />
+              Reject Report
+            </DialogTitle>
+            <DialogDescription className="text-glass-secondary">
+              Please provide a brief reason. This will be visible to the uploader.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-glass-primary">Reason for rejection</label>
+            <Textarea
+              value={rejectNotes}
+              onChange={(e) => setRejectNotes(e.target.value)}
+              placeholder="e.g. Wrong week ending, missing section, incorrect totals..."
+              className="min-h-[120px]"
+            />
+          </div>
+          <div className="flex justify-end gap-3 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => setIsRejectConfirmOpen(false)}
+              className="glass-button"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="outline"
+              onClick={async () => {
+                if (!rejectingReport) return;
+                await handleStatusUpdate(rejectingReport.id, 'rejected', rejectNotes.trim());
+                setIsRejectConfirmOpen(false);
+                setRejectNotes('');
+                setRejectingReport(null);
+              }}
+              disabled={!!updatingStatus || statusLoading}
+              className="glass-button bg-gradient-to-r from-red-500/20 to-rose-500/20 text-red-700 border-red-300/50 hover:from-red-500/30 hover:to-rose-500/30"
+            >
+              {updatingStatus ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600 mr-2" />
+                  Rejecting...
+                </>
+              ) : (
+                <>
+                  <AlertCircle className="h-4 w-4 mr-2" />
+                  Reject
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
