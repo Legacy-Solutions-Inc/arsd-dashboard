@@ -1,7 +1,9 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { ProgressPhotosSlider } from "../uploads/ProgressPhotosSlider";
 
 interface ProjectOverviewProps {
   projectData: {
+    id: string; // Added for progress photos
     projectId: string;
     projectName?: string;
     client: string;
@@ -32,16 +34,16 @@ interface ProjectOverviewProps {
 export function ProjectOverview({ projectData, costData }: ProjectOverviewProps) {
   const arsdRed = '#B91C1C';
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 lg:gap-6">
       {/* Project Information on the left */}
-      <Card className="lg:col-span-1 mt-4 lg:mt-6 border-l-4 h-fit" style={{ borderLeftColor: arsdRed, boxShadow: '0 2px 8px rgba(185,28,28,0.08)' }}>
+      <Card className="lg:col-span-2 mt-4 lg:mt-6 border-l-4 h-fit" style={{ borderLeftColor: arsdRed, boxShadow: '0 2px 8px rgba(185,28,28,0.08)' }}>
         <CardHeader className="flex items-center gap-2 lg:gap-3" style={{ background: arsdRed, borderTopLeftRadius: '0.5rem', borderTopRightRadius: '0.5rem' }}>
           <span className="inline-flex items-center justify-center bg-white rounded-full p-1.5 lg:p-2">
             <svg width="16" height="16" className="lg:w-5 lg:h-5" fill="none" stroke={arsdRed} strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
           </span>
-          <CardTitle className="text-white text-sm lg:text-base font-bold tracking-wide">Project Information</CardTitle>
+          <CardTitle className="text-white text-sm lg:text-lg font-bold tracking-wide">Project Information</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4 lg:space-y-6 py-4 lg:py-6">
+        <CardContent className="space-y-2 lg:space-y-3 py-2 lg:py-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4">
             <div>
               <div className="text-xs text-gray-500">Project ID</div>
@@ -115,28 +117,9 @@ export function ProjectOverview({ projectData, costData }: ProjectOverviewProps)
         </CardContent>
       </Card>
 
-      {/* Photos on the right */}
-      <div className="lg:col-span-2 flex flex-col gap-4 lg:gap-6 mt-4 lg:mt-6">
-        {/* Target Project Photo */}
-        <Card className="overflow-hidden shadow-sm border border-gray-100">
-          <CardHeader>
-            <CardTitle className="text-arsd-red text-sm lg:text-base font-bold tracking-wide">Target Project Photo</CardTitle>
-          </CardHeader>
-          <CardContent className="flex justify-center items-center bg-gray-50 py-4 lg:py-6">
-            <img src="/images/dashboard-reference.png" alt="Project Target" className="rounded-lg shadow-md max-h-48 lg:max-h-64 w-full object-cover" />
-          </CardContent>
-        </Card>
-        {/* Progress Photos Gallery */}
-        <Card className="overflow-hidden shadow-sm border border-gray-100">
-          <CardHeader>
-            <CardTitle className="text-arsd-red text-sm lg:text-base font-bold tracking-wide">Progress Photos</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4 py-4 lg:py-6">
-            <img src="/images/reference1.png" alt="Progress 1" className="rounded-lg shadow max-h-32 lg:max-h-40 w-full object-cover" />
-            <img src="/images/reference2.png" alt="Progress 2" className="rounded-lg shadow max-h-32 lg:max-h-40 w-full object-cover" />
-            <img src="/images/reference3.png" alt="Progress 3" className="rounded-lg shadow max-h-32 lg:max-h-40 w-full object-cover" />
-          </CardContent>
-        </Card>
+      {/* Progress Photos on the right */}
+      <div className="lg:col-span-3 mt-4 lg:mt-6">
+        <ProgressPhotosSlider projectId={projectData.id} />
       </div>
     </div>
   );
