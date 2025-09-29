@@ -101,7 +101,9 @@ export default function Sidebar() {
                   <span className="truncate">{user.full_name || user.name || 'User'}</span>
                 </div>
                 <div className="text-xs text-glass-secondary capitalize bg-gray-100/50 py-1 rounded-lg inline-block mt-1">
-                  {user.role}
+                  {user.role === 'project_inspector' ? 'Project Manager' : 
+                   user.role === 'project_manager' ? 'Site Engineer' : 
+                   user.role}
                 </div>
               </div>
             </div>
