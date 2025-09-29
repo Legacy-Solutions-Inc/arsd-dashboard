@@ -2,9 +2,19 @@
 
 const nextConfig = {
     images: {
-        domains: [
-            'images.unsplash.com',
-            'uoffxmrnpukibgcmmgus.supabase.co'
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'images.unsplash.com',
+                port: '',
+                pathname: '/**',
+            },
+            {
+                protocol: 'https',
+                hostname: 'uoffxmrnpukibgcmmgus.supabase.co',
+                port: '',
+                pathname: '/**',
+            },
         ],
     },
     webpack: (config, { isServer }) => {
