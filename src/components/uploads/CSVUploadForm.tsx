@@ -140,6 +140,11 @@ export default function CSVUploadForm({ project, onUploadSuccess, onCancel }: CS
         throw new Error(`Report creation failed: ${reportError.message}`);
       }
 
+      // Trigger a custom event to refresh the projects list
+      window.dispatchEvent(new CustomEvent('accomplishmentReportUploaded', {
+        detail: { projectId: project.id }
+      }));
+      
       onUploadSuccess();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Upload failed');

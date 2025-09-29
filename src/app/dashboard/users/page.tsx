@@ -100,10 +100,18 @@ export default function UserManagementPage() {
     switch (role) {
       case 'superadmin': return 'bg-red-100/50 text-red-800 border-red-200/50';
       case 'hr': return 'bg-blue-100/50 text-blue-800 border-blue-200/50';
-      case 'project_manager': return 'bg-green-100/50 text-green-800 border-green-200/50';
-      case 'project_inspector': return 'bg-yellow-100/50 text-yellow-800 border-yellow-200/50';
+      case 'project_manager': return 'bg-yellow-100/50 text-yellow-800 border-yellow-200/50'; // Site Manager color
+      case 'project_inspector': return 'bg-green-100/50 text-green-800 border-green-200/50'; // Project Manager color
       case 'pending': return 'bg-gray-100/50 text-gray-800 border-gray-200/50';
       default: return 'bg-gray-100/50 text-gray-800 border-gray-200/50';
+    }
+  };
+
+  const getDisplayRoleName = (role: UserRole) => {
+    switch (role) {
+      case 'project_inspector': return 'PROJECT MANAGER';
+      case 'project_manager': return 'SITE ENGINEER';
+      default: return role.replace('_', ' ').toUpperCase();
     }
   };
 
@@ -239,7 +247,7 @@ export default function UserManagementPage() {
                           variant="glass" 
                           className={`${getRoleBadgeColor(user.role)} font-semibold px-3 py-1 rounded-full`}
                         >
-                          {user.role.replace('_', ' ').toUpperCase()}
+                          {getDisplayRoleName(user.role)}
                         </Badge>
                       </TableCell>
                       <TableCell className="px-6 py-4">
@@ -379,8 +387,8 @@ export default function UserManagementPage() {
                       <SelectContent>
                         <SelectItem value="superadmin">Super Admin</SelectItem>
                         <SelectItem value="hr">HR</SelectItem>
-                        <SelectItem value="project_manager">Project Manager</SelectItem>
-                        <SelectItem value="project_inspector">Project Inspector</SelectItem>
+                        <SelectItem value="project_manager">Site Engineer</SelectItem>
+                        <SelectItem value="project_inspector">Project Manager</SelectItem>
                         <SelectItem value="pending">Pending</SelectItem>
                       </SelectContent>
                     </Select>

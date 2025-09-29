@@ -260,7 +260,7 @@ const MonthlyCostBreakdown = ({
         return (
           <div key={month.id} className="bg-gray-50 rounded-lg p-3 lg:p-4 flex flex-col sm:flex-row sm:items-center justify-between shadow-sm border gap-2">
             <div className="flex-1">
-              <div className="font-semibold text-sm lg:text-base text-blue-700 mb-1">
+              <div className="font-semibold text-sm lg:text-base text-black mb-1">
                 {month.month || `Month ${paginationData.startIndex + index + 1}`}
               </div>
               <div className="flex flex-wrap gap-2 lg:gap-4 text-xs lg:text-sm">
