@@ -22,12 +22,14 @@ import {
   ChevronLeft,
   ChevronRight,
   ImageIcon,
-  X
+  X,
+  RefreshCw
 } from 'lucide-react';
 import { useAllProgressPhotos, useDeleteProgressPhoto } from '@/hooks/useProgressPhotos';
 import { useRBAC } from '@/hooks/useRBAC';
 import { formatFileSize } from '@/types/progress-photos';
 import type { ProgressPhoto, ProgressPhotoFilters } from '@/types/progress-photos';
+import { UniversalLoading, InlineLoading } from '@/components/ui/universal-loading';
 
 export default function ProgressPhotosManagement() {
   const [filters, setFilters] = useState<ProgressPhotoFilters>({});
@@ -35,6 +37,8 @@ export default function ProgressPhotosManagement() {
   const [deletingPhoto, setDeletingPhoto] = useState<string | null>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<ProgressPhoto | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isDownloading, setIsDownloading] = useState<string | null>(null);
   const itemsPerPage = 8; // Increased for more compact display
   
   const { photos, loading, error, refetch } = useAllProgressPhotos(filters);
@@ -111,6 +115,7 @@ export default function ProgressPhotosManagement() {
 
     try {
       setDeletingPhoto(photoId);
+      setIsDeleting(true);
       await deletePhoto(photoId);
       await refetch(); // Refresh the photos list
     } catch (error) {
@@ -118,6 +123,7 @@ export default function ProgressPhotosManagement() {
       alert(`Delete failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setDeletingPhoto(null);
+      setIsDeleting(false);
     }
   };
 
@@ -138,6 +144,7 @@ export default function ProgressPhotosManagement() {
 
   const downloadPhoto = async (photo: ProgressPhoto) => {
     try {
+      setIsDownloading(photo.id);
       const response = await fetch(photo.file_url);
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -151,6 +158,8 @@ export default function ProgressPhotosManagement() {
     } catch (error) {
       console.error('Download failed:', error);
       alert('Failed to download photo');
+    } finally {
+      setIsDownloading(null);
     }
   };
 
@@ -166,12 +175,16 @@ export default function ProgressPhotosManagement() {
             <p className="text-glass-secondary text-sm">View and manage all uploaded progress photos</p>
           </div>
         </div>
-        <GlassCard variant="elevated" className="text-center">
-          <GlassCardContent className="p-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-arsd-red mx-auto mb-4"></div>
-            <div className="text-glass-primary">Loading progress photos...</div>
-          </GlassCardContent>
-        </GlassCard>
+        <div className="flex justify-center">
+          <UniversalLoading
+            type="general"
+            message="Loading Progress Photos"
+            subtitle="Fetching progress photos from database..."
+            size="lg"
+            fullScreen={false}
+            className="max-w-md"
+          />
+        </div>
       </div>
     );
   }
@@ -198,6 +211,21 @@ export default function ProgressPhotosManagement() {
 
   return (
     <div className="space-y-8">
+      {/* Loading Overlay for Delete Operations */}
+      {isDeleting && (
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 p-8 max-w-md mx-4">
+            <UniversalLoading
+              type="general"
+              message="Deleting Photo"
+              subtitle="Removing photo from storage and database..."
+              size="md"
+              showProgress={false}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Header Section */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -220,6 +248,18 @@ export default function ProgressPhotosManagement() {
               Page {currentPage} of {totalPages}
             </Badge>
           )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              // Force refresh of photos list
+              refetch();
+            }}
+            className="glass-button bg-gradient-to-r from-arsd-red/20 to-red-500/20 text-arsd-red border-arsd-red/30 hover:from-arsd-red/30 hover:to-red-500/30"
+          >
+            <RefreshCw className="h-4 w-4 mr-1" />
+            Refresh
+          </Button>
         </div>
       </div>
 
@@ -334,20 +374,25 @@ export default function ProgressPhotosManagement() {
                           size="sm"
                           variant="secondary"
                           onClick={() => downloadPhoto(photo)}
+                          disabled={isDownloading === photo.id}
                           className="h-6 w-6 p-0"
                         >
-                          <Download className="h-3 w-3" />
+                          {isDownloading === photo.id ? (
+                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white" />
+                          ) : (
+                            <Download className="h-3 w-3" />
+                          )}
                         </Button>
                         {canDeletePhoto(photo) && (
                           <Button
                             size="sm"
                             variant="destructive"
                             onClick={() => handleDelete(photo.id)}
-                            disabled={deletingPhoto === photo.id}
+                            disabled={deletingPhoto === photo.id || isDeleting}
                             className="h-6 w-6 p-0"
                           >
-                            {deletingPhoto === photo.id ? (
-                              <div className="animate-spin rounded-full h-2 w-2 border-b-2 border-white" />
+                            {deletingPhoto === photo.id || isDeleting ? (
+                              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white" />
                             ) : (
                               <Trash2 className="h-3 w-3" />
                             )}
@@ -451,13 +496,29 @@ export default function ProgressPhotosManagement() {
                     {selectedPhoto.project_name} • Week ending: {formatDate(selectedPhoto.week_ending_date)}
                   </p>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setSelectedPhoto(null)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => downloadPhoto(selectedPhoto)}
+                    disabled={isDownloading === selectedPhoto.id}
+                    className="glass-button bg-gradient-to-r from-arsd-red/20 to-red-500/20 text-arsd-red border-arsd-red/30 hover:from-arsd-red/30 hover:to-red-500/30"
+                  >
+                    {isDownloading === selectedPhoto.id ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-arsd-red mr-2" />
+                    ) : (
+                      <Download className="h-4 w-4 mr-2" />
+                    )}
+                    {isDownloading === selectedPhoto.id ? 'Downloading...' : 'Download'}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedPhoto(null)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
             <div className="p-4">
