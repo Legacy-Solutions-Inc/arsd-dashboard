@@ -228,7 +228,7 @@ export function ProjectsTable({
             <TableRow className="glass-table-header">
               <TableHead className="glass-table-header-cell text-arsd-red">Project ID</TableHead>
               <TableHead className="glass-table-header-cell text-arsd-red">Project Name</TableHead>
-              <TableHead className="glass-table-header-cell text-arsd-red">Project Manager</TableHead>
+              <TableHead className="glass-table-header-cell text-arsd-red">Site Engineer</TableHead>
               <TableHead className="glass-table-header-cell text-arsd-red">Client</TableHead>
               <TableHead className="glass-table-header-cell text-arsd-red">Location</TableHead>
               <TableHead className="glass-table-header-cell text-arsd-red">Status</TableHead>
