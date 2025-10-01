@@ -5,7 +5,7 @@ import { useProjects } from '@/hooks/useProjects';
 import { ProjectsTable } from '@/components/projects/ProjectsTable';
 import ProjectCreateForm from '@/components/projects/ProjectCreateForm';
 import ProjectEditForm from '@/components/projects/ProjectEditForm';
-import { Project, ProjectManager } from '@/types/projects';
+import { Project, ProjectManager, ProjectInspector } from '@/types/projects';
 import { ProjectService } from '@/services/projects/project.service';
 import { useRBAC } from '@/hooks/useRBAC';
 import { useRouter } from 'next/navigation';
@@ -21,25 +21,30 @@ export default function DashboardPage() {
   const [isEditFormOpen, setIsEditFormOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [projectManagers, setProjectManagers] = useState<ProjectManager[]>([]);
+  const [projectInspectors, setProjectInspectors] = useState<ProjectInspector[]>([]);
   const [loadingManagers, setLoadingManagers] = useState(false);
 
   const projectService = new ProjectService();
 
-  // Load project managers when component mounts
+  // Load project managers and inspectors when component mounts
   useEffect(() => {
-    const loadProjectManagers = async () => {
+    const loadAssignees = async () => {
       try {
         setLoadingManagers(true);
-        const managers = await projectService.getAvailableProjectManagers();
+        const [managers, inspectors] = await Promise.all([
+          projectService.getAvailableProjectManagers(),
+          projectService.getAvailableProjectInspectors()
+        ]);
         setProjectManagers(managers);
+        setProjectInspectors(inspectors);
       } catch (error) {
-        console.error('Failed to load project managers:', error);
+        console.error('Failed to load project managers/inspectors:', error);
       } finally {
         setLoadingManagers(false);
       }
     };
 
-    loadProjectManagers();
+    loadAssignees();
   }, []);
 
   // Listen for project report approval events to refresh projects
@@ -241,6 +246,7 @@ export default function DashboardPage() {
           onClose={() => setIsCreateFormOpen(false)}
           onSuccess={handleCreateSuccess}
           projectManagers={projectManagers}
+          projectInspectors={projectInspectors}
         />
 
         {/* Project Edit Form */}
@@ -250,6 +256,7 @@ export default function DashboardPage() {
           onClose={handleCloseEditForm}
           onSuccess={handleEditSuccess}
           projectManagers={projectManagers}
+          projectInspectors={projectInspectors}
         />
       </div>
     </div>
