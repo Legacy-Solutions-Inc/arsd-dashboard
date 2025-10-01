@@ -17,6 +17,8 @@ export interface AccomplishmentReport {
   client?: string;
   location?: string;
   project_status?: string;
+  project_manager_id?: string;
+  project_inspector_id?: string;
   profile_id?: string;
   display_name?: string;
   email?: string;

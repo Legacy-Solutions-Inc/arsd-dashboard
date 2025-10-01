@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { AccomplishmentReportsService } from '@/services/accomplishment-reports/accomplishment-reports.service';
+import { useRBAC } from './useRBAC';
 import type { 
   AccomplishmentReport, 
   AccomplishmentReportFilters,
@@ -46,6 +47,7 @@ export function useAllAccomplishmentReports(filters?: AccomplishmentReportFilter
   const [reports, setReports] = useState<AccomplishmentReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useRBAC();
 
   const service = new AccomplishmentReportsService();
 
@@ -53,14 +55,37 @@ export function useAllAccomplishmentReports(filters?: AccomplishmentReportFilter
     try {
       setLoading(true);
       setError(null);
+      
+      // Fetch all reports from database
       const data = await service.getAllReports(filters);
-      setReports(data);
+      
+      // ROLE-BASED FILTERING:
+      // - Superadmins: See ALL reports (no filtering applied)
+      // - HR: See ALL reports (no filtering applied)
+      // - Project Inspectors: See ONLY reports for their assigned projects
+      // - Project Managers: See ONLY reports for their assigned projects
+      let filteredData = data;
+      
+      if (user?.role === 'project_inspector' && user?.user_id) {
+        // Filter to only show reports where this inspector is assigned to the project
+        filteredData = data.filter(report => 
+          report.project_inspector_id === user.user_id
+        );
+      } else if (user?.role === 'project_manager' && user?.user_id) {
+        // Filter to only show reports where this manager is assigned to the project
+        filteredData = data.filter(report => 
+          report.project_manager_id === user.user_id
+        );
+      }
+      // Note: Superadmins and HR bypass this filter and see all reports
+      
+      setReports(filteredData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch reports');
     } finally {
       setLoading(false);
     }
-  }, [filters]);
+  }, [filters, user?.role, user?.user_id]);
 
   useEffect(() => {
     fetchReports();

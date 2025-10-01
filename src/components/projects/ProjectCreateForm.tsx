@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ProjectStatus, CreateProjectData, ProjectManager } from '@/types/projects';
+import { ProjectStatus, CreateProjectData, ProjectManager, ProjectInspector } from '@/types/projects';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -27,6 +27,7 @@ interface ProjectCreateFormProps {
   onClose: () => void;
   onSuccess: () => void;
   projectManagers: ProjectManager[];
+  projectInspectors: ProjectInspector[];
 }
 
 export default function ProjectCreateForm({
@@ -34,13 +35,15 @@ export default function ProjectCreateForm({
   onClose,
   onSuccess,
   projectManagers,
+  projectInspectors,
 }: ProjectCreateFormProps) {
-  const [formData, setFormData] = useState<CreateProjectData>({
+  const [formData, setFormData] = useState<CreateProjectData & { project_manager_id: string, project_inspector_id: string }>({
     project_name: '',
     client: '',
     location: '',
     status: 'in_planning',
     project_manager_id: 'none',
+    project_inspector_id: 'none',
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -55,6 +58,7 @@ export default function ProjectCreateForm({
         location: '',
         status: 'in_planning',
         project_manager_id: 'none',
+        project_inspector_id: 'none',
       });
       setErrors({});
     }
@@ -102,10 +106,11 @@ export default function ProjectCreateForm({
 
     setLoading(true);
     try {
-      // Convert 'none' to undefined for project_manager_id
+      // Convert 'none' to undefined for both project_manager_id and project_inspector_id
       const dataToSubmit = {
         ...formData,
-        project_manager_id: formData.project_manager_id === 'none' ? undefined : formData.project_manager_id
+        project_manager_id: formData.project_manager_id === 'none' ? undefined : formData.project_manager_id,
+        project_inspector_id: formData.project_inspector_id === 'none' ? undefined : formData.project_inspector_id
       };
       
       await projectService.createProject(dataToSubmit);
@@ -197,6 +202,26 @@ export default function ProjectCreateForm({
                 {projectManagers.map((pm) => (
                   <SelectItem key={pm.user_id} value={pm.user_id}>
                     {pm.display_name} ({pm.email})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="project_inspector_id">Project Inspector</Label>
+            <Select
+              value={formData.project_inspector_id}
+              onValueChange={(value) => handleSelectChange('project_inspector_id', value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Assign Project Inspector (Optional)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Unassigned</SelectItem>
+                {projectInspectors.map((pi) => (
+                  <SelectItem key={pi.user_id} value={pi.user_id}>
+                    {pi.display_name} ({pi.email})
                   </SelectItem>
                 ))}
               </SelectContent>

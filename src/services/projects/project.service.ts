@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase';
-import { Project, CreateProjectData, UpdateProjectData, ProjectFilters, ProjectManager } from '@/types/projects';
+import { Project, CreateProjectData, UpdateProjectData, ProjectFilters, ProjectManager, ProjectInspector } from '@/types/projects';
 
 export class ProjectService {
   private supabase = createClient();
@@ -10,6 +10,11 @@ export class ProjectService {
       .select(`
         *,
         project_manager:profiles!project_manager_id(
+          user_id,
+          display_name,
+          email
+        ),
+        project_inspector:profiles!project_inspector_id(
           user_id,
           display_name,
           email
@@ -24,6 +29,10 @@ export class ProjectService {
 
     if (filters?.project_manager_id) {
       query = query.eq('project_manager_id', filters.project_manager_id);
+    }
+
+    if (filters?.project_inspector_id) {
+      query = query.eq('project_inspector_id', filters.project_inspector_id);
     }
 
     if (filters?.search) {
@@ -45,6 +54,11 @@ export class ProjectService {
       .select(`
         *,
         project_manager:profiles!project_manager_id(
+          user_id,
+          display_name,
+          email
+        ),
+        project_inspector:profiles!project_inspector_id(
           user_id,
           display_name,
           email
@@ -79,6 +93,11 @@ export class ProjectService {
           user_id,
           display_name,
           email
+        ),
+        project_inspector:profiles!project_inspector_id(
+          user_id,
+          display_name,
+          email
         )
       `)
       .single();
@@ -106,6 +125,11 @@ export class ProjectService {
       .select(`
         *,
         project_manager:profiles!project_manager_id(
+          user_id,
+          display_name,
+          email
+        ),
+        project_inspector:profiles!project_inspector_id(
           user_id,
           display_name,
           email
@@ -141,6 +165,21 @@ export class ProjectService {
 
     if (error) {
       throw new Error(`Failed to fetch project managers: ${error.message}`);
+    }
+
+    return data || [];
+  }
+
+  async getAvailableProjectInspectors(): Promise<ProjectInspector[]> {
+    const { data, error } = await this.supabase
+      .from('profiles')
+      .select('user_id, display_name, email')
+      .eq('role', 'project_inspector')
+      .eq('status', 'active')
+      .order('display_name');
+
+    if (error) {
+      throw new Error(`Failed to fetch project inspectors: ${error.message}`);
     }
 
     return data || [];

@@ -40,6 +40,7 @@ export const ROLE_PERMISSIONS = {
     'manage_uploads'
   ],
   project_inspector: [
+    'view_assigned_projects',
     'manage_uploads'
   ],
   pending: []

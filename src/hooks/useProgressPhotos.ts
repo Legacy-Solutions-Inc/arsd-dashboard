@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ProgressPhotosService } from '@/services/progress-photos/progress-photos.service';
+import { useRBAC } from './useRBAC';
 import type { 
   ProgressPhoto, 
   ProgressPhotoFilters,
@@ -47,6 +48,7 @@ export function useAllProgressPhotos(filters?: ProgressPhotoFilters) {
   const [photos, setPhotos] = useState<ProgressPhoto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useRBAC();
 
   const service = new ProgressPhotosService();
 
@@ -54,14 +56,37 @@ export function useAllProgressPhotos(filters?: ProgressPhotoFilters) {
     try {
       setLoading(true);
       setError(null);
+      
+      // Fetch all photos from database
       const data = await service.getAllProgressPhotos(filters);
-      setPhotos(data);
+      
+      // ROLE-BASED FILTERING:
+      // - Superadmins: See ALL photos (no filtering applied)
+      // - HR: See ALL photos (no filtering applied)
+      // - Project Inspectors: See ONLY photos for their assigned projects
+      // - Project Managers: See ONLY photos for their assigned projects
+      let filteredData = data;
+      
+      if (user?.role === 'project_inspector' && user?.user_id) {
+        // Filter to only show photos where this inspector is assigned to the project
+        filteredData = data.filter(photo => 
+          photo.project_inspector_id === user.user_id
+        );
+      } else if (user?.role === 'project_manager' && user?.user_id) {
+        // Filter to only show photos where this manager is assigned to the project
+        filteredData = data.filter(photo => 
+          photo.project_manager_id === user.user_id
+        );
+      }
+      // Note: Superadmins and HR bypass this filter and see all photos
+      
+      setPhotos(filteredData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch progress photos');
     } finally {
       setLoading(false);
     }
-  }, [filters]);
+  }, [filters, user?.role, user?.user_id]);
 
   useEffect(() => {
     fetchPhotos();

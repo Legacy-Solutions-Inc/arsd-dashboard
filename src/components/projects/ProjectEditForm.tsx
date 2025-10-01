@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Project, ProjectStatus, UpdateProjectData, ProjectManager } from '@/types/projects';
+import { Project, ProjectStatus, UpdateProjectData, ProjectManager, ProjectInspector } from '@/types/projects';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,6 +28,7 @@ interface ProjectEditFormProps {
   onClose: () => void;
   onSuccess: () => void;
   projectManagers: ProjectManager[];
+  projectInspectors: ProjectInspector[];
 }
 
 export default function ProjectEditForm({
@@ -36,13 +37,15 @@ export default function ProjectEditForm({
   onClose,
   onSuccess,
   projectManagers,
+  projectInspectors,
 }: ProjectEditFormProps) {
-  const [formData, setFormData] = useState<UpdateProjectData>({
+  const [formData, setFormData] = useState<UpdateProjectData & { project_manager_id: string | null, project_inspector_id: string | null }>({
     project_name: '',
     client: '',
     location: '',
     status: 'in_planning',
     project_manager_id: 'none',
+    project_inspector_id: 'none',
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -56,6 +59,7 @@ export default function ProjectEditForm({
         location: project.location,
         status: project.status,
         project_manager_id: project.project_manager_id || 'none',
+        project_inspector_id: project.project_inspector_id || 'none',
       });
       setErrors({});
     }
@@ -103,10 +107,11 @@ export default function ProjectEditForm({
 
     setLoading(true);
     try {
-      // Convert 'none' to null for project_manager_id
+      // Convert 'none' to null for both project_manager_id and project_inspector_id
       const dataToSubmit = {
         ...formData,
-        project_manager_id: formData.project_manager_id === 'none' ? null : formData.project_manager_id
+        project_manager_id: formData.project_manager_id === 'none' ? null : formData.project_manager_id,
+        project_inspector_id: formData.project_inspector_id === 'none' ? null : formData.project_inspector_id
       };
       
       await projectService.updateProject(project.id, dataToSubmit);
@@ -200,6 +205,26 @@ export default function ProjectEditForm({
                 {projectManagers.map((pm) => (
                   <SelectItem key={pm.user_id} value={pm.user_id}>
                     {pm.display_name} ({pm.email})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="project_inspector_id">Project Inspector</Label>
+            <Select
+              value={formData.project_inspector_id || 'none'}
+              onValueChange={(value) => handleSelectChange('project_inspector_id', value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Assign Project Inspector (Optional)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Unassigned</SelectItem>
+                {projectInspectors.map((pi) => (
+                  <SelectItem key={pi.user_id} value={pi.user_id}>
+                    {pi.display_name} ({pi.email})
                   </SelectItem>
                 ))}
               </SelectContent>

@@ -15,6 +15,8 @@ export interface ProgressPhoto {
   client?: string;
   location?: string;
   project_status?: string;
+  project_manager_id?: string;
+  project_inspector_id?: string;
   uploader_name?: string;
   uploader_email?: string;
 }
