@@ -10,12 +10,12 @@ import { ProjectService } from '@/services/projects/project.service';
 import { useRBAC } from '@/hooks/useRBAC';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassCardContent, GlassCardHeader, GlassCardTitle } from '@/components/ui/glass-card';
-import { TrendingUp, Users, Calendar, BarChart3, Sparkles } from 'lucide-react';
+import { TrendingUp, Users, Calendar, BarChart3, Sparkles, Medal } from 'lucide-react';
 import { DashboardLoading, InlineLoading } from '@/components/ui/universal-loading';
 
 export default function DashboardPage() {
   const { projects, loading, error, refetch } = useProjects();
-  const { hasPermission } = useRBAC();
+  const { hasPermission, isSuperAdmin } = useRBAC();
   const router = useRouter();
   const [isCreateFormOpen, setIsCreateFormOpen] = useState(false);
   const [isEditFormOpen, setIsEditFormOpen] = useState(false);
@@ -143,6 +143,16 @@ export default function DashboardPage() {
                   </div>
                 </div>
               </div>
+              {isSuperAdmin && (
+                <button
+                  onClick={() => router.push('/dashboard/leaderboard')}
+                  className="inline-flex items-center gap-2 rounded-xl px-4 py-2 bg-gradient-to-r from-amber-500 to-yellow-500 text-white shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all border-0"
+                >
+                  <Medal className="h-4 w-4" />
+                  <span className="hidden sm:inline">View Performance Leaderboard</span>
+                  <span className="sm:hidden">Leaderboard</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
