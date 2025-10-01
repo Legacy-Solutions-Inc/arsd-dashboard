@@ -3,7 +3,6 @@ import { SubmitButton } from "@/components/submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { SmtpMessage } from "../smtp-message";
 import { forgotPasswordAction } from "@/app/actions";
 import Navbar from "@/components/navbar";
 import { UrlProvider } from "@/components/url-provider";
@@ -69,7 +68,6 @@ export default async function ForgotPassword(props: {
             </form>
           </UrlProvider>
         </div>
-        <SmtpMessage />
       </div>
     </>
   );
