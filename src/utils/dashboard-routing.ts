@@ -15,7 +15,7 @@ export function getDefaultDashboardRoute(role: UserRole | undefined): string {
 
 export function getAccessibleRoutes(role: UserRole | undefined): string[] {
   const roleRoutes: Record<UserRole, string[]> = {
-    'superadmin': ['/dashboard', '/dashboard/users', '/dashboard/uploads', '/dashboard/website-details'],
+    'superadmin': ['/dashboard', '/dashboard/users', '/dashboard/leaderboard', '/dashboard/uploads', '/dashboard/website-details'],
     'hr': ['/dashboard/website-details'],
     'project_manager': ['/dashboard/uploads'],
     'project_inspector': ['/dashboard/uploads'],
