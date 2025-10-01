@@ -13,8 +13,9 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { UserWithRole, UserRole, UserStatus } from '@/types/rbac';
 import { rbacClient } from '@/services/role-based/rbac';
-import { Plus, Edit, Save, X, Users, ChevronLeft, ChevronRight, Sparkles, User as UserIcon, Mail, Calendar, Shield, UserCheck, UserPlus, Clock, CheckCircle2, XCircle } from 'lucide-react';
+import { Plus, Edit, Save, X, Users, ChevronLeft, ChevronRight, Sparkles, User as UserIcon, Mail, Calendar, Shield, UserCheck, UserPlus, Clock, CheckCircle2, XCircle, RefreshCw } from 'lucide-react';
 import { GlassCard, GlassCardContent, GlassCardHeader, GlassCardTitle } from '@/components/ui/glass-card';
+import { UniversalLoading, InlineLoading } from '@/components/ui/universal-loading';
 
 export default function UserManagementPage() {
   const { user: currentUser, refreshUser } = useRBAC();
@@ -32,6 +33,10 @@ export default function UserManagementPage() {
   const [newUsersPage, setNewUsersPage] = useState(1);
   const [itemsPerPage] = useState(8);
   const [selectedNewUsers, setSelectedNewUsers] = useState<string[]>([]);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isBulkApproving, setIsBulkApproving] = useState(false);
+  const [isBulkRejecting, setIsBulkRejecting] = useState(false);
+  const [isApproving, setIsApproving] = useState(false);
   const [newUser, setNewUser] = useState({
     email: '',
     password: '',
@@ -59,17 +64,21 @@ export default function UserManagementPage() {
 
   const handleUpdateUser = async (userId: string, role: UserRole, status: UserStatus) => {
     try {
+      setIsUpdating(true);
       await rbacClient.updateUserRole(userId, role, status);
       await fetchUsers();
       setEditingUser(null);
       setIsEditDialogOpen(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update user');
+    } finally {
+      setIsUpdating(false);
     }
   };
 
   const handleBulkApproveUsers = async (userIds: string[], role: UserRole) => {
     try {
+      setIsBulkApproving(true);
       const promises = userIds.map(userId => 
         rbacClient.updateUserRole(userId, role, 'active')
       );
@@ -78,11 +87,14 @@ export default function UserManagementPage() {
       setSelectedNewUsers([]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to approve users');
+    } finally {
+      setIsBulkApproving(false);
     }
   };
 
   const handleBulkRejectUsers = async (userIds: string[]) => {
     try {
+      setIsBulkRejecting(true);
       const promises = userIds.map(userId => 
         rbacClient.updateUserRole(userId, 'pending', 'inactive')
       );
@@ -91,6 +103,8 @@ export default function UserManagementPage() {
       setSelectedNewUsers([]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to reject users');
+    } finally {
+      setIsBulkRejecting(false);
     }
   };
 
@@ -119,12 +133,15 @@ export default function UserManagementPage() {
 
   const handleConfirmApproval = async (userId: string, role: UserRole, status: UserStatus) => {
     try {
+      setIsApproving(true);
       await rbacClient.updateUserRole(userId, role, status);
       await fetchUsers();
       setApprovingUser(null);
       setIsApproveDialogOpen(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to approve user');
+    } finally {
+      setIsApproving(false);
     }
   };
 
@@ -233,12 +250,16 @@ export default function UserManagementPage() {
             </h1>
           </div>
         </div>
-        <GlassCard variant="elevated" className="text-center">
-          <GlassCardContent className="p-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-arsd-red mx-auto mb-4"></div>
-            <div className="text-glass-primary">Loading users...</div>
-          </GlassCardContent>
-        </GlassCard>
+        <div className="flex justify-center">
+          <UniversalLoading
+            type="user"
+            message="Loading Users"
+            subtitle="Fetching user information from database..."
+            size="lg"
+            fullScreen={false}
+            className="max-w-md"
+          />
+        </div>
       </div>
     );
   }
@@ -246,6 +267,31 @@ export default function UserManagementPage() {
   return (
     <PermissionGate permission="manage_users">
       <div className="space-y-8">
+        {/* Loading Overlays for Operations */}
+        {(isUpdating || isBulkApproving || isBulkRejecting || isApproving) && (
+          <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center">
+            <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 p-8 max-w-md mx-4">
+              <UniversalLoading
+                type={isUpdating ? "user" : isBulkApproving || isApproving ? "user" : "general"}
+                message={
+                  isUpdating ? "Updating User" : 
+                  isBulkApproving ? "Approving Users" : 
+                  isBulkRejecting ? "Rejecting Users" : 
+                  "Approving User"
+                }
+                subtitle={
+                  isUpdating ? "Updating user role and status..." : 
+                  isBulkApproving ? "Processing bulk user approvals..." : 
+                  isBulkRejecting ? "Processing bulk user rejections..." : 
+                  "Setting user role and status..."
+                }
+                size="md"
+                showProgress={false}
+              />
+            </div>
+          </div>
+        )}
+
         {/* Header Section */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -258,6 +304,18 @@ export default function UserManagementPage() {
               </h1>
             </div>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              // Force refresh of users list
+              fetchUsers();
+            }}
+            className="glass-button bg-gradient-to-r from-arsd-red/20 to-red-500/20 text-arsd-red border-arsd-red/30 hover:from-arsd-red/30 hover:to-red-500/30"
+          >
+            <RefreshCw className="h-4 w-4 mr-1" />
+            Refresh
+          </Button>
         </div>
 
         {/* Error Display */}
@@ -299,27 +357,42 @@ export default function UserManagementPage() {
                       <Button
                         size="sm"
                         onClick={() => handleBulkApproveUsers(selectedNewUsers, 'project_inspector')}
+                        disabled={isBulkApproving || isBulkRejecting}
                         className="glass-button bg-gradient-to-r from-green-500/30 to-green-600/30 text-white border-green-500/50 hover:from-green-500/40 hover:to-green-600/40"
                       >
-                        <CheckCircle2 className="h-4 w-4 mr-1" />
-                        Approve as Project Manager
+                        {isBulkApproving ? (
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1" />
+                        ) : (
+                          <CheckCircle2 className="h-4 w-4 mr-1" />
+                        )}
+                        {isBulkApproving ? 'Approving...' : 'Approve as Project Manager'}
                       </Button>
                       <Button
                         size="sm"
                         onClick={() => handleBulkApproveUsers(selectedNewUsers, 'project_manager')}
+                        disabled={isBulkApproving || isBulkRejecting}
                         className="glass-button bg-gradient-to-r from-blue-500/30 to-blue-600/30 text-white border-blue-500/50 hover:from-blue-500/40 hover:to-blue-600/40"
                       >
-                        <CheckCircle2 className="h-4 w-4 mr-1" />
-                        Approve as Site Engineer
+                        {isBulkApproving ? (
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1" />
+                        ) : (
+                          <CheckCircle2 className="h-4 w-4 mr-1" />
+                        )}
+                        {isBulkApproving ? 'Approving...' : 'Approve as Site Engineer'}
                       </Button>
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => handleBulkRejectUsers(selectedNewUsers)}
+                        disabled={isBulkApproving || isBulkRejecting}
                         className="glass-button bg-gradient-to-r from-red-500/20 to-red-600/20 text-red-600 border-red-500/30 hover:from-red-500/30 hover:to-red-600/30"
                       >
-                        <XCircle className="h-4 w-4 mr-1" />
-                        Reject
+                        {isBulkRejecting ? (
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600 mr-1" />
+                        ) : (
+                          <XCircle className="h-4 w-4 mr-1" />
+                        )}
+                        {isBulkRejecting ? 'Rejecting...' : 'Reject'}
                       </Button>
                     </div>
                   </div>
@@ -403,19 +476,29 @@ export default function UserManagementPage() {
                             <Button
                               size="sm"
                               onClick={() => handleApproveUser(user)}
+                              disabled={isApproving || isBulkApproving || isBulkRejecting}
                               className="glass-button bg-gradient-to-r from-green-500/30 to-green-600/30 text-white border-green-500/50 hover:from-green-500/40 hover:to-green-600/40"
                             >
-                              <CheckCircle2 className="h-4 w-4 mr-1" />
-                              Approve
+                              {isApproving || isBulkApproving ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1" />
+                              ) : (
+                                <CheckCircle2 className="h-4 w-4 mr-1" />
+                              )}
+                              {isApproving || isBulkApproving ? 'Approving...' : 'Approve'}
                             </Button>
                             <Button
                               size="sm"
                               variant="outline"
                               onClick={() => handleBulkRejectUsers([user.id])}
+                              disabled={isApproving || isBulkApproving || isBulkRejecting}
                               className="glass-button bg-gradient-to-r from-red-500/20 to-red-600/20 text-red-600 border-red-500/30 hover:from-red-500/30 hover:to-red-600/30"
                             >
-                              <XCircle className="h-4 w-4 mr-1" />
-                              Reject
+                              {isBulkRejecting ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600 mr-1" />
+                              ) : (
+                                <XCircle className="h-4 w-4 mr-1" />
+                              )}
+                              {isBulkRejecting ? 'Rejecting...' : 'Reject'}
                             </Button>
                           </div>
                         </TableCell>
@@ -601,9 +684,14 @@ export default function UserManagementPage() {
                             setEditingUser(user);
                             setIsEditDialogOpen(true);
                           }}
+                          disabled={isUpdating}
                           className="glass-button bg-gradient-to-r from-arsd-red/30 to-red-500/30 text-white border-arsd-red/50 hover:from-arsd-red/40 hover:to-red-500/40 shadow-lg transition-colors duration-200"
                         >
-                          <Edit className="h-4 w-4" />
+                          {isUpdating ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                          ) : (
+                            <Edit className="h-4 w-4" />
+                          )}
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -754,10 +842,15 @@ export default function UserManagementPage() {
                       editingUser.role,
                       editingUser.status
                     )}
+                    disabled={isUpdating}
                     className="glass-button bg-gradient-to-r from-arsd-red/100 text-white border-arsd-red/50 hover:from-arsd-red/80"
                   >
-                    <Save className="h-4 w-4 mr-2" />
-                    Save Changes
+                    {isUpdating ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                    ) : (
+                      <Save className="h-4 w-4 mr-2" />
+                    )}
+                    {isUpdating ? 'Saving...' : 'Save Changes'}
                   </Button>
                 </div>
               </div>
@@ -828,10 +921,15 @@ export default function UserManagementPage() {
                   </Button>
                   <Button
                     onClick={() => handleConfirmApproval(approvingUser.id, approvalRole, approvalStatus)}
+                    disabled={isApproving}
                     className="glass-button bg-gradient-to-r from-green-500/100 text-white border-green-500/50 hover:from-green-600/100"
                   >
-                    <CheckCircle2 className="h-4 w-4 mr-2" />
-                    Approve User
+                    {isApproving ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                    ) : (
+                      <CheckCircle2 className="h-4 w-4 mr-2" />
+                    )}
+                    {isApproving ? 'Approving...' : 'Approve User'}
                   </Button>
                 </div>
               </div>
