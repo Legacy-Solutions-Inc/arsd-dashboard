@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 
 const nextConfig = {
+    // Configure Next.js to use src directory
+    srcDir: 'src/',
     images: {
         remotePatterns: [
             {
