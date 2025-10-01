@@ -127,7 +127,7 @@ export function ProjectTable({
                     size="sm"
                     onClick={() => onEdit(project)}
                     disabled={isUpdating || isDeleting}
-                    className="glass-button bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-glass-primary border-blue-300/50 hover:from-blue-500/30 hover:to-cyan-500/30 opacity-0 group-hover:opacity-100 transition-all duration-200"
+                    className="glass-button bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-glass-primary border-blue-300/50 hover:from-blue-500/30 hover:to-cyan-500/30 transition-all duration-200"
                     aria-label={`Edit ${project.name}`}
                   >
                     <Edit className="h-4 w-4" />
@@ -137,7 +137,7 @@ export function ProjectTable({
                     size="sm"
                     onClick={() => onDelete(project)}
                     disabled={isUpdating || isDeleting}
-                    className="glass-button bg-gradient-to-r from-red-500/20 to-pink-500/20 text-red-600 border-red-300/50 hover:from-red-500/30 hover:to-pink-500/30 opacity-0 group-hover:opacity-100 transition-all duration-200"
+                    className="glass-button bg-gradient-to-r from-red-500/20 to-pink-500/20 text-red-600 border-red-300/50 hover:from-red-500/30 hover:to-pink-500/30 transition-all duration-200"
                     aria-label={`Delete ${project.name}`}
                   >
                     {isDeleting ? (
