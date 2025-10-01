@@ -72,7 +72,7 @@ export async function middleware(req: NextRequest) {
     }
 
     // Superadmin-only routes
-    if (path.startsWith("/dashboard/users") && userData.role !== 'superadmin') {
+    if ((path.startsWith("/dashboard/users") || path.startsWith("/dashboard/leaderboard")) && userData.role !== 'superadmin') {
       return NextResponse.redirect(new URL("/dashboard", req.url))
     }
 
