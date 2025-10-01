@@ -46,28 +46,6 @@ export default function Uploads() {
     }
   }, [user, hasPermission]);
 
-  if (!user) {
-    return (
-      <div className="space-y-8">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-glass-subtle rounded-xl flex items-center justify-center">
-            <FileUp className="h-10 w-10 text-arsd-red" />
-          </div>
-          <div>
-            <h1 className="text-4xl font-bold text-glass-primary flex items-center gap-3 text-arsd-red">
-              Report Management
-            </h1>
-          </div>
-        </div>
-        <GlassCard variant="elevated" className="text-center">
-          <GlassCardContent className="p-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-arsd-red mx-auto mb-4"></div>
-            <div className="text-glass-primary">Loading...</div>
-          </GlassCardContent>
-        </GlassCard>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-8 mb-4">

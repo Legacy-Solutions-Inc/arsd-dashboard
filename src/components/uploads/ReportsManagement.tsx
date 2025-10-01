@@ -46,6 +46,7 @@ import { useRBAC } from '@/hooks/useRBAC';
 import { getStatusText, getStatusColor, formatFileSize } from '@/types/accomplishment-reports';
 import type { AccomplishmentReport, AccomplishmentReportFilters } from '@/types/accomplishment-reports';
 import { AccomplishmentReportParser } from './AccomplishmentReportParser';
+import { UniversalLoading, InlineLoading } from '@/components/ui/universal-loading';
 
 export default function ReportsManagement() {
   const [filters, setFilters] = useState<AccomplishmentReportFilters>({});
@@ -58,6 +59,9 @@ export default function ReportsManagement() {
   const [isRejectConfirmOpen, setIsRejectConfirmOpen] = useState(false);
   const [rejectNotes, setRejectNotes] = useState('');
   const [rejectingReport, setRejectingReport] = useState<AccomplishmentReport | null>(null);
+  const [isApproving, setIsApproving] = useState(false);
+  const [isRejecting, setIsRejecting] = useState(false);
+  const [isResubmitting, setIsResubmitting] = useState(false);
   const itemsPerPage = 5;
   
   const { reports, loading, error, refetch } = useAllAccomplishmentReports(filters);
@@ -133,6 +137,13 @@ export default function ReportsManagement() {
   const handleStatusUpdate = async (reportId: string, status: 'approved' | 'rejected', notes?: string) => {
     try {
       setUpdatingStatus(reportId);
+      
+      if (status === 'approved') {
+        setIsApproving(true);
+      } else if (status === 'rejected') {
+        setIsRejecting(true);
+      }
+      
       await updateStatus(reportId, status, notes);
       await refetch(); // Refresh the reports list
       
@@ -149,6 +160,8 @@ export default function ReportsManagement() {
       alert(`Status update failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setUpdatingStatus(null);
+      setIsApproving(false);
+      setIsRejecting(false);
     }
   };
 
@@ -161,6 +174,8 @@ export default function ReportsManagement() {
   const handleResubmitReport = async (report: AccomplishmentReport) => {
     try {
       setUpdatingStatus(report.id);
+      setIsResubmitting(true);
+      
       // Reset status to pending for resubmission
       await updateStatus(report.id, 'pending', 'Resubmitted by user');
       await refetch();
@@ -175,6 +190,7 @@ export default function ReportsManagement() {
       alert(`Resubmit failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setUpdatingStatus(null);
+      setIsResubmitting(false);
     }
   };
 
@@ -193,27 +209,6 @@ export default function ReportsManagement() {
     });
   };
 
-  if (loading) {
-    return (
-      <div className="space-y-6 mt-4">
-        <div className="flex items-center gap-4 mt-4">
-          <div className="w-12 h-12 bg-glass-subtle rounded-xl flex items-center justify-center">
-            <BarChart3 className="h-6 w-6 text-arsd-red" />
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold text-glass-primary text-arsd-red">Accomplishment Reports</h2>
-            <p className="text-glass-secondary text-sm">View and manage all uploaded accomplishment reports</p>
-          </div>
-        </div>
-        <GlassCard variant="elevated" className="text-center">
-          <GlassCardContent className="p-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-arsd-red mx-auto mb-4"></div>
-            <div className="text-glass-primary">Loading reports...</div>
-          </GlassCardContent>
-        </GlassCard>
-      </div>
-    );
-  }
 
   if (error) {
     return (
@@ -277,6 +272,29 @@ export default function ReportsManagement() {
 
   return (
       <div className="space-y-8">
+        {/* Loading Overlay for Operations */}
+        {(isApproving || isRejecting || isResubmitting) && (
+          <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center">
+            <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 p-8 max-w-md mx-4">
+              <UniversalLoading
+                type={isApproving ? "report" : isRejecting ? "general" : "report"}
+                message={
+                  isApproving ? "Approving Report" : 
+                  isRejecting ? "Rejecting Report" : 
+                  "Resubmitting Report"
+                }
+                subtitle={
+                  isApproving ? "Processing report approval and parsing data..." : 
+                  isRejecting ? "Updating report status..." : 
+                  "Resetting report to pending status..."
+                }
+                size="md"
+                showProgress={false}
+              />
+            </div>
+          </div>
+        )}
+
         {/* Accomplishment Report Parser
       {/* Header Section */}
       <div className="flex items-center justify-between">
@@ -498,15 +516,15 @@ export default function ReportsManagement() {
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
                                   onClick={() => handleStatusUpdate(report.id, 'approved')}
-                                  disabled={updatingStatus === report.id || statusLoading}
+                                  disabled={updatingStatus === report.id || statusLoading || isApproving}
                                   className="flex items-center gap-2 text-green-700"
                                 >
-                                  {updatingStatus === report.id ? (
+                                  {updatingStatus === report.id || isApproving ? (
                                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600" />
                                   ) : (
                                     <CheckCircle className="h-4 w-4" />
                                   )}
-                                  <span>Approve</span>
+                                  <span>{isApproving ? 'Approving...' : 'Approve'}</span>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() => {
@@ -514,15 +532,15 @@ export default function ReportsManagement() {
                                     setRejectNotes('');
                                     setIsRejectConfirmOpen(true);
                                   }}
-                                  disabled={updatingStatus === report.id || statusLoading}
+                                  disabled={updatingStatus === report.id || statusLoading || isRejecting}
                                   className="flex items-center gap-2 text-red-700"
                                 >
-                                  {updatingStatus === report.id ? (
+                                  {updatingStatus === report.id || isRejecting ? (
                                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600" />
                                   ) : (
                                     <AlertCircle className="h-4 w-4" />
                                   )}
-                                  <span>Reject</span>
+                                  <span>{isRejecting ? 'Rejecting...' : 'Reject'}</span>
                                 </DropdownMenuItem>
                               </>
                             )}
@@ -667,10 +685,10 @@ export default function ReportsManagement() {
                   </Button>
                   <Button
                     onClick={() => handleResubmitReport(selectedRejectedReport)}
-                    disabled={updatingStatus === selectedRejectedReport.id}
+                    disabled={updatingStatus === selectedRejectedReport.id || isResubmitting}
                     className="glass-button bg-gradient-to-r from-arsd-red/100 to-red-500/100 text-white border-arsd-red/50 hover:from-arsd-red/80 hover:to-red-500/80"
                   >
-                    {updatingStatus === selectedRejectedReport.id ? (
+                    {updatingStatus === selectedRejectedReport.id || isResubmitting ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
                         Resubmitting...
@@ -727,10 +745,10 @@ export default function ReportsManagement() {
                 setRejectNotes('');
                 setRejectingReport(null);
               }}
-              disabled={!!updatingStatus || statusLoading}
+              disabled={!!updatingStatus || statusLoading || isRejecting}
               className="glass-button bg-gradient-to-r from-red-500/20 to-rose-500/20 text-red-700 border-red-300/50 hover:from-red-500/30 hover:to-rose-500/30"
             >
-              {updatingStatus ? (
+              {updatingStatus || isRejecting ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600 mr-2" />
                   Rejecting...
