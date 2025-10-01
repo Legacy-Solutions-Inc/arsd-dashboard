@@ -10,9 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { UserWithRole, UserRole, UserStatus } from '@/types/rbac';
 import { rbacClient } from '@/services/role-based/rbac';
-import { Plus, Edit, Save, X, Users, ChevronLeft, ChevronRight, Sparkles, User as UserIcon, Mail, Calendar, Shield } from 'lucide-react';
+import { Plus, Edit, Save, X, Users, ChevronLeft, ChevronRight, Sparkles, User as UserIcon, Mail, Calendar, Shield, UserCheck, UserPlus, Clock, CheckCircle2, XCircle } from 'lucide-react';
 import { GlassCard, GlassCardContent, GlassCardHeader, GlassCardTitle } from '@/components/ui/glass-card';
 
 export default function UserManagementPage() {
@@ -23,8 +24,14 @@ export default function UserManagementPage() {
   const [editingUser, setEditingUser] = useState<UserWithRole | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
+  const [approvingUser, setApprovingUser] = useState<UserWithRole | null>(null);
+  const [approvalRole, setApprovalRole] = useState<UserRole>('project_inspector');
+  const [approvalStatus, setApprovalStatus] = useState<UserStatus>('active');
   const [currentPage, setCurrentPage] = useState(1);
+  const [newUsersPage, setNewUsersPage] = useState(1);
   const [itemsPerPage] = useState(8);
+  const [selectedNewUsers, setSelectedNewUsers] = useState<string[]>([]);
   const [newUser, setNewUser] = useState({
     email: '',
     password: '',
@@ -61,8 +68,72 @@ export default function UserManagementPage() {
     }
   };
 
-  // Sort users with superadmins first
-  const sortedUsers = [...users].sort((a, b) => {
+  const handleBulkApproveUsers = async (userIds: string[], role: UserRole) => {
+    try {
+      const promises = userIds.map(userId => 
+        rbacClient.updateUserRole(userId, role, 'active')
+      );
+      await Promise.all(promises);
+      await fetchUsers();
+      setSelectedNewUsers([]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to approve users');
+    }
+  };
+
+  const handleBulkRejectUsers = async (userIds: string[]) => {
+    try {
+      const promises = userIds.map(userId => 
+        rbacClient.updateUserRole(userId, 'pending', 'inactive')
+      );
+      await Promise.all(promises);
+      await fetchUsers();
+      setSelectedNewUsers([]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to reject users');
+    }
+  };
+
+  const handleSelectNewUser = (userId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedNewUsers(prev => [...prev, userId]);
+    } else {
+      setSelectedNewUsers(prev => prev.filter(id => id !== userId));
+    }
+  };
+
+  const handleSelectAllNewUsers = (checked: boolean) => {
+    if (checked) {
+      setSelectedNewUsers(paginatedNewUsers.map(user => user.id));
+    } else {
+      setSelectedNewUsers([]);
+    }
+  };
+
+  const handleApproveUser = (user: UserWithRole) => {
+    setApprovingUser(user);
+    setApprovalRole('project_inspector'); // Default role
+    setApprovalStatus('active'); // Default status
+    setIsApproveDialogOpen(true);
+  };
+
+  const handleConfirmApproval = async (userId: string, role: UserRole, status: UserStatus) => {
+    try {
+      await rbacClient.updateUserRole(userId, role, status);
+      await fetchUsers();
+      setApprovingUser(null);
+      setIsApproveDialogOpen(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to approve user');
+    }
+  };
+
+  // Separate new users (pending role/status) from existing users
+  const newUsers = users.filter(user => user.role === 'pending' && user.status === 'pending');
+  const existingUsers = users.filter(user => !(user.role === 'pending' && user.status === 'pending'));
+
+  // Sort existing users with superadmins first
+  const sortedExistingUsers = [...existingUsers].sort((a, b) => {
     // Superadmins always come first
     if (a.role === 'superadmin' && b.role !== 'superadmin') return -1;
     if (b.role === 'superadmin' && a.role !== 'superadmin') return 1;
@@ -73,15 +144,27 @@ export default function UserManagementPage() {
     return nameA.localeCompare(nameB);
   });
 
-  // Calculate pagination
-  const totalPages = Math.ceil(sortedUsers.length / itemsPerPage);
+  // Sort new users by creation date (newest first)
+  const sortedNewUsers = [...newUsers].sort((a, b) => {
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
+
+  // Calculate pagination for existing users
+  const totalPages = Math.ceil(sortedExistingUsers.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const paginatedUsers = sortedUsers.slice(startIndex, endIndex);
+  const paginatedExistingUsers = sortedExistingUsers.slice(startIndex, endIndex);
+
+  // Calculate pagination for new users
+  const totalNewUsersPages = Math.ceil(sortedNewUsers.length / itemsPerPage);
+  const newUsersStartIndex = (newUsersPage - 1) * itemsPerPage;
+  const newUsersEndIndex = newUsersStartIndex + itemsPerPage;
+  const paginatedNewUsers = sortedNewUsers.slice(newUsersStartIndex, newUsersEndIndex);
   
   // Reset to first page when users change
   useMemo(() => {
     setCurrentPage(1);
+    setNewUsersPage(1);
   }, [users.length]);
   
   const goToPage = (page: number) => {
@@ -94,6 +177,19 @@ export default function UserManagementPage() {
   
   const goToNextPage = () => {
     setCurrentPage(prev => Math.min(totalPages, prev + 1));
+  };
+
+  // New users pagination functions
+  const goToNewUsersPage = (page: number) => {
+    setNewUsersPage(Math.max(1, Math.min(page, totalNewUsersPages)));
+  };
+  
+  const goToPreviousNewUsersPage = () => {
+    setNewUsersPage(prev => Math.max(1, prev - 1));
+  };
+  
+  const goToNextNewUsersPage = () => {
+    setNewUsersPage(prev => Math.min(totalNewUsersPages, prev + 1));
   };
 
   const getRoleBadgeColor = (role: UserRole) => {
@@ -173,7 +269,236 @@ export default function UserManagementPage() {
           </GlassCard>
         )}
 
-        {/* Users Table */}
+        {/* New Users Table - Only show if there are new users */}
+        {newUsers.length > 0 && (
+          <GlassCard variant="elevated" className="overflow-hidden mb-8">
+            <GlassCardHeader className="bg-transparent border-amber-500/20">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-amber-500/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                    <UserPlus className="h-6 w-6 text-amber-600" />
+                  </div>
+                  <div>
+                    <GlassCardTitle className="text-2xl font-bold text-amber-600 flex items-center gap-2">
+                      New Users Awaiting Approval
+                      <Badge variant="glass" className="bg-amber-100/50 text-amber-800 border-amber-200/50">
+                        {newUsers.length}
+                      </Badge>
+                    </GlassCardTitle>
+                    <p className="text-glass-secondary text-sm mt-1">Review and approve new user registrations</p>
+                  </div>
+                </div>
+                
+                {/* Bulk Actions */}
+                {selectedNewUsers.length > 0 && (
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-glass-secondary">
+                      {selectedNewUsers.length} selected
+                    </span>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        onClick={() => handleBulkApproveUsers(selectedNewUsers, 'project_inspector')}
+                        className="glass-button bg-gradient-to-r from-green-500/30 to-green-600/30 text-white border-green-500/50 hover:from-green-500/40 hover:to-green-600/40"
+                      >
+                        <CheckCircle2 className="h-4 w-4 mr-1" />
+                        Approve as Project Manager
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => handleBulkApproveUsers(selectedNewUsers, 'project_manager')}
+                        className="glass-button bg-gradient-to-r from-blue-500/30 to-blue-600/30 text-white border-blue-500/50 hover:from-blue-500/40 hover:to-blue-600/40"
+                      >
+                        <CheckCircle2 className="h-4 w-4 mr-1" />
+                        Approve as Site Engineer
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleBulkRejectUsers(selectedNewUsers)}
+                        className="glass-button bg-gradient-to-r from-red-500/20 to-red-600/20 text-red-600 border-red-500/30 hover:from-red-500/30 hover:to-red-600/30"
+                      >
+                        <XCircle className="h-4 w-4 mr-1" />
+                        Reject
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </GlassCardHeader>
+          
+            <GlassCardContent className="p-0">
+              <div className="overflow-x-auto scrollbar-glass">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gradient-to-r from-amber-500/5 to-amber-600/5 border-b border-amber-500/10">
+                      <TableHead className="px-6 py-4 font-semibold text-amber-600 text-sm uppercase tracking-wider w-12">
+                        <Checkbox
+                          checked={selectedNewUsers.length === paginatedNewUsers.length && paginatedNewUsers.length > 0}
+                          onCheckedChange={handleSelectAllNewUsers}
+                          className="border-amber-500/50"
+                        />
+                      </TableHead>
+                      <TableHead className="px-6 py-4 font-semibold text-amber-600 text-sm uppercase tracking-wider">
+                        Name
+                      </TableHead>
+                      <TableHead className="px-6 py-4 font-semibold text-amber-600 text-sm uppercase tracking-wider">
+                        Email
+                      </TableHead>
+                      <TableHead className="px-6 py-4 font-semibold text-amber-600 text-sm uppercase tracking-wider">
+                        Registered
+                      </TableHead>
+                      <TableHead className="px-6 py-4 font-semibold text-amber-600 text-sm uppercase tracking-wider">
+                        Actions
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedNewUsers.map((user, index) => (
+                      <TableRow 
+                        key={user.id} 
+                        className={`border-b border-white/10 hover:bg-gradient-to-r hover:from-amber-500/5 hover:to-amber-600/5 transition-colors duration-200 ${
+                          index % 2 === 0 ? 'bg-white/2' : 'bg-white/5'
+                        } ${selectedNewUsers.includes(user.id) ? 'bg-amber-500/10' : ''}`}
+                      >
+                        <TableCell className="px-6 py-4">
+                          <Checkbox
+                            checked={selectedNewUsers.includes(user.id)}
+                            onCheckedChange={(checked) => handleSelectNewUser(user.id, checked as boolean)}
+                            className="border-amber-500/50"
+                          />
+                        </TableCell>
+                        <TableCell className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-gradient-to-br from-amber-500/20 to-amber-600/20 rounded-full flex items-center justify-center backdrop-blur-sm border border-amber-500/30">
+                              <UserIcon className="h-5 w-5 text-amber-600" />
+                            </div>
+                            <div>
+                              <div className="font-semibold text-glass-primary text-md">
+                                {user.full_name || user.name || 'N/A'}
+                              </div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-transparent rounded-lg flex items-center justify-center">
+                              <Mail className="h-4 w-4 text-amber-600" />
+                            </div>
+                            <span className="text-glass-primary font-medium">{user.email}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-transparent rounded-lg flex items-center justify-center">
+                              <Clock className="h-4 w-4 text-amber-600" />
+                            </div>
+                            <span className="text-glass-secondary font-medium">
+                              {new Date(user.created_at).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <Button
+                              size="sm"
+                              onClick={() => handleApproveUser(user)}
+                              className="glass-button bg-gradient-to-r from-green-500/30 to-green-600/30 text-white border-green-500/50 hover:from-green-500/40 hover:to-green-600/40"
+                            >
+                              <CheckCircle2 className="h-4 w-4 mr-1" />
+                              Approve
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleBulkRejectUsers([user.id])}
+                              className="glass-button bg-gradient-to-r from-red-500/20 to-red-600/20 text-red-600 border-red-500/30 hover:from-red-500/30 hover:to-red-600/30"
+                            >
+                              <XCircle className="h-4 w-4 mr-1" />
+                              Reject
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </GlassCardContent>
+          
+          {/* New Users Pagination */}
+          {totalNewUsersPages > 1 && (
+            <div className="bg-gradient-to-r from-amber-500/5 to-amber-600/5 border-t border-amber-500/10 p-6">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-glass-secondary font-medium">
+                  Showing {newUsersStartIndex + 1} to {Math.min(newUsersEndIndex, sortedNewUsers.length)} of {sortedNewUsers.length} new users
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={goToPreviousNewUsersPage}
+                    disabled={newUsersPage === 1}
+                    className="glass-button bg-gradient-to-r from-amber-500/20 to-amber-600/20 text-amber-600 border-amber-500/30 hover:from-amber-500/30 hover:to-amber-600/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Previous
+                  </Button>
+                  
+                  <div className="flex items-center gap-2">
+                    {Array.from({ length: totalNewUsersPages }, (_, i) => i + 1).map((page) => {
+                      const shouldShow = 
+                        page === 1 || 
+                        page === totalNewUsersPages || 
+                        (page >= newUsersPage - 1 && page <= newUsersPage + 1);
+                      
+                      if (!shouldShow) {
+                        if (page === 2 && newUsersPage > 4) {
+                          return <span key={`ellipsis-${page}`} className="px-3 text-glass-muted font-medium">...</span>;
+                        }
+                        if (page === totalNewUsersPages - 1 && newUsersPage < totalNewUsersPages - 3) {
+                          return <span key={`ellipsis-${page}`} className="px-3 text-glass-muted font-medium">...</span>;
+                        }
+                        return null;
+                      }
+                      
+                      return (
+                        <Button
+                          key={page}
+                          variant={newUsersPage === page ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => goToNewUsersPage(page)}
+                          className={`w-10 h-10 p-0 font-semibold ${
+                            newUsersPage === page 
+                              ? 'bg-amber-600 text-white border-amber-600 shadow-lg' 
+                              : 'glass-button bg-gradient-to-r from-amber-500/10 to-amber-600/10 text-amber-600 border-amber-500/20 hover:from-amber-500/20 hover:to-amber-600/20 transition-colors duration-200'
+                          }`}
+                        >
+                          {page}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={goToNextNewUsersPage}
+                    disabled={newUsersPage === totalNewUsersPages}
+                    className="glass-button bg-gradient-to-r from-amber-500/20 to-amber-600/20 text-amber-600 border-amber-500/30 hover:from-amber-500/30 hover:to-amber-600/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </GlassCard>
+        )}
+
+        {/* Existing Users Table */}
         <GlassCard variant="elevated" className="overflow-hidden">
           <GlassCardHeader className="bg-transparent border-arsd-red/20">
             <div className="flex items-center gap-4">
@@ -215,7 +540,7 @@ export default function UserManagementPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paginatedUsers.map((user, index) => (
+                  {paginatedExistingUsers.map((user, index) => (
                     <TableRow 
                       key={user.id} 
                       className={`border-b border-white/10 hover:bg-gradient-to-r hover:from-arsd-red/5 hover:to-red-500/5 transition-colors duration-200 ${
@@ -288,12 +613,12 @@ export default function UserManagementPage() {
             </div>
           </GlassCardContent>
           
-          {/* Pagination */}
+          {/* Existing Users Pagination */}
           {totalPages > 1 && (
             <div className="bg-gradient-to-r from-arsd-red/5 to-red-500/5 border-t border-arsd-red/10 p-6">
               <div className="flex items-center justify-between">
                 <div className="text-sm text-glass-secondary font-medium">
-                  Showing {startIndex + 1} to {Math.min(endIndex, sortedUsers.length)} of {sortedUsers.length} users
+                  Showing {startIndex + 1} to {Math.min(endIndex, sortedExistingUsers.length)} of {sortedExistingUsers.length} users
                 </div>
                 
                 <div className="flex items-center gap-3">
@@ -433,6 +758,80 @@ export default function UserManagementPage() {
                   >
                     <Save className="h-4 w-4 mr-2" />
                     Save Changes
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Approve User Modal */}
+        <Dialog open={isApproveDialogOpen} onOpenChange={setIsApproveDialogOpen}>
+          <DialogContent className="glass-elevated max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="text-green-600 flex items-center gap-2 text-xl">
+                <CheckCircle2 className="h-5 w-5" />
+                Approve User: {approvingUser?.full_name || approvingUser?.name}
+              </DialogTitle>
+              <DialogDescription className="text-glass-secondary">
+                Select the role and status for this new user account.
+              </DialogDescription>
+            </DialogHeader>
+            
+            {approvingUser && (
+              <div className="space-y-6 py-4">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="approve-role" className="text-glass-primary font-medium">Role</Label>
+                    <Select 
+                      value={approvalRole} 
+                      onValueChange={(value: UserRole) => setApprovalRole(value)}
+                    >
+                      <SelectTrigger className="glass-input">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="hr">HR</SelectItem>
+                        <SelectItem value="project_manager">Site Engineer</SelectItem>
+                        <SelectItem value="project_inspector">Project Manager</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="approve-status" className="text-glass-primary font-medium">Status</Label>
+                    <Select 
+                      value={approvalStatus} 
+                      onValueChange={(value: UserStatus) => setApprovalStatus(value)}
+                    >
+                      <SelectTrigger className="glass-input">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <div className="flex justify-end gap-3 pt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setApprovingUser(null);
+                      setIsApproveDialogOpen(false);
+                    }}
+                    className="glass-button bg-gradient-to-r from-gray-500/20 to-gray-600/20 text-glass-primary border-gray-400/50 hover:from-gray-500/30 hover:to-gray-600/30"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={() => handleConfirmApproval(approvingUser.id, approvalRole, approvalStatus)}
+                    className="glass-button bg-gradient-to-r from-green-500/100 text-white border-green-500/50 hover:from-green-600/100"
+                  >
+                    <CheckCircle2 className="h-4 w-4 mr-2" />
+                    Approve User
                   </Button>
                 </div>
               </div>
