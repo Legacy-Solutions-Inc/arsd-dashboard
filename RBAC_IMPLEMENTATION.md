@@ -23,16 +23,38 @@ The system uses the `public.profiles` table with:
 - `status` (enum): User's current status (active/inactive/pending)
 - `created_at`, `updated_at` (TIMESTAMPTZ): Timestamps
 
+### Projects Table Structure
+The system uses the `public.projects` table with:
+- `id` (UUID): Primary key
+- `project_id` (TEXT): System generated project ID
+- `project_name`, `client`, `location` (TEXT): Project details
+- `status` (enum): Project status (in_planning, in_progress, completed)
+- `project_manager_id` (UUID): References profiles.user_id - Site Engineer assigned
+- `project_inspector_id` (UUID): References profiles.user_id - Inspector assigned
+- `created_by`, `updated_by` (UUID): References profiles.user_id
+- `created_at`, `updated_at` (TIMESTAMPTZ): Timestamps
+
 ### Database Enums
 - `user_role`: superadmin, hr, project_manager, project_inspector, pending
 - `user_status`: active, inactive, pending
 
 ### Row-Level Security (RLS) Policies
 - **Profiles table**: RLS enabled with policies for role-based access
-- **Superadmins**: Can view and update all profiles
-- **Users**: Can view and update their own profile data
-- **Role/Status updates**: Restricted to superadmins only
-- **Profile creation**: Handled through application logic with proper validation
+  - **Superadmins**: Can view and update all profiles
+  - **Users**: Can view and update their own profile data
+  - **Role/Status updates**: Restricted to superadmins only
+  - **Profile creation**: Handled through application logic with proper validation
+
+- **Projects table**: RLS enabled with policies for project access control
+  - **Superadmins**: Can view, create, update, and delete all projects
+  - **HR**: Has NO access to projects (restricted)
+  - **Project Managers**: Can view and update projects where they are assigned as project_manager_id
+  - **Project Inspectors**: Can view and upload reports only for projects where they are assigned as project_inspector_id
+  - **Project access is enforced at the database level** to ensure data security
+
+- **Accomplishment Reports and Progress Photos**: RLS policies respect project assignments
+  - Project inspectors can only upload and view reports/photos for their assigned projects
+  - Project managers can upload and view reports/photos for their assigned projects
 
 ## User Roles and Permissions
 
@@ -43,8 +65,9 @@ The system uses the `public.profiles` table with:
 
 ### HR
 - **Permissions**: manage_website_details
-- **Access**: Website details management
+- **Access**: Website details management ONLY
 - **Can**: Edit website information and manage website projects
+- **Cannot**: View projects, accomplishment reports, or progress photos (restricted access)
 
 ### Project Manager
 - **Permissions**: manage_uploads
@@ -52,9 +75,18 @@ The system uses the `public.profiles` table with:
 - **Can**: Upload and manage project files
 
 ### Project Inspector
-- **Permissions**: manage_uploads
-- **Access**: File upload management
-- **Can**: Upload and manage project files
+- **Permissions**: view_assigned_projects, manage_uploads
+- **Access**: View assigned projects only, file upload management for assigned projects
+- **Can**: 
+  - View projects where they are assigned as project inspector
+  - View accomplishment reports for their assigned projects only
+  - Upload and manage files for their assigned projects
+  - Approve/reject reports for their assigned projects
+- **Restriction**: 
+  - Can ONLY see projects where they are assigned as the project inspector
+  - Can ONLY see reports for projects assigned to them
+  - Cannot view or access data from projects assigned to other inspectors
+- **Note**: Superadmins bypass all restrictions and see everything
 
 ### Pending
 - **Permissions**: None
@@ -320,3 +352,57 @@ This RBAC implementation provides:
 - **Developer Experience**: Clear APIs and comprehensive documentation
 
 This RBAC implementation provides a robust, scalable, and secure foundation for managing user access in the ARSD Dashboard application.
+
+## Project Inspector Assignment Feature
+
+### Overview
+Each project can be assigned to a specific project inspector. When a project inspector logs in, they can only view and manage projects that have been assigned to them.
+
+### Implementation Details
+
+#### Database Changes
+- Added `project_inspector_id` column to the `projects` table
+- Updated RLS policies to restrict project inspectors to their assigned projects only
+- Updated accomplishment_reports and progress_photos policies to respect inspector assignments
+
+#### Application Features
+1. **Project Assignment**:
+   - Superadmins can assign project inspectors when creating or editing projects
+   - Both Site Engineer (project_manager_id) and Project Inspector (project_inspector_id) can be assigned
+   - Assignments are optional and can be unassigned
+
+2. **Filtered Views**:
+   - Project inspectors automatically see only their assigned projects in the dashboard
+   - The `useProjects` hook automatically filters based on the user's role
+   - No additional configuration needed - filtering happens automatically
+
+3. **Upload Permissions**:
+   - Project inspectors can upload accomplishment reports and progress photos only for their assigned projects
+   - Database-level RLS ensures inspectors cannot access data for unassigned projects
+
+4. **Type Safety**:
+   - Full TypeScript support with `ProjectInspector` interface
+   - Type-safe filtering and assignment operations
+   - Compile-time checks for project inspector operations
+
+### Usage Example
+
+```typescript
+// Project inspectors automatically see filtered projects
+const { projects, loading, error } = useProjects();
+// For inspectors: only returns projects where project_inspector_id === user.user_id
+
+// Get available inspectors for assignment (superadmin only)
+const inspectors = await projectService.getAvailableProjectInspectors();
+
+// Assign inspector to project
+await projectService.updateProject(projectId, {
+  project_inspector_id: inspectorUserId
+});
+```
+
+### Security Benefits
+- **Database-Level Enforcement**: RLS policies ensure inspectors cannot bypass restrictions
+- **Automatic Filtering**: No manual permission checks needed in components
+- **Clean Separation**: Clear distinction between different user roles and their access
+- **Audit Trail**: All project assignments are tracked with created_by and updated_by fields
