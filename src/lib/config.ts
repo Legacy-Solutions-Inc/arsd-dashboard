@@ -35,6 +35,7 @@ export const config = {
     protected: ['/dashboard'],
     roleBased: {
       '/dashboard/users': ['superadmin'],
+      '/dashboard/leaderboard': ['superadmin'],
       '/dashboard/uploads': ['project_manager', 'project_inspector', 'superadmin'],
       '/dashboard/website-details': ['hr', 'superadmin'],
     },
