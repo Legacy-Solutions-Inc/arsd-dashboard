@@ -7,13 +7,10 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/auth";
 import { Button } from "./ui/button";
 import {
-  ChevronDown,
-  Building,
-  PenTool,
-  MapPin,
   Phone,
   Menu,
   X,
+  MapPin,
 } from "lucide-react";
 import UserProfile from "./user-profile";
 import { useRBAC } from "@/hooks/useRBAC";
@@ -133,55 +130,12 @@ export default function Navbar() {
                 Home
               </Link>
 
-              {/* Services Dropdown */}
-              <div className="relative group">
-                <button className="flex items-center space-x-1 text-gray-700 hover:text-arsd-red font-medium transition-colors">
-                  <span>Services</span>
-                  <ChevronDown className="w-4 h-4" />
-                </button>
-                <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                  <div className="py-2">
-                    <Link
-                      href="/services#building-construction"
-                      className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-arsd-red transition-colors"
-                    >
-                      <Building className="w-5 h-5 text-arsd-red" />
-                      <div>
-                        <div className="font-medium">Building Construction</div>
-                        <div className="text-sm text-gray-500">
-                          Residential & Commercial
-                        </div>
-                      </div>
-                    </Link>
-                    <Link
-                      href="/services#design-plan-preparation"
-                      className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-arsd-red transition-colors"
-                    >
-                      <PenTool className="w-5 h-5 text-arsd-red" />
-                      <div>
-                        <div className="font-medium">
-                          Design & Plan Preparation
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          Architectural & Engineering
-                        </div>
-                      </div>
-                    </Link>
-                    <Link
-                      href="/services#land-development"
-                      className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-arsd-red transition-colors"
-                    >
-                      <MapPin className="w-5 h-5 text-arsd-red" />
-                      <div>
-                        <div className="font-medium">Land Development</div>
-                        <div className="text-sm text-gray-500">
-                          Site Preparation & Infrastructure
-                        </div>
-                      </div>
-                    </Link>
-                  </div>
-                </div>
-              </div>
+              <Link
+                href="/services"
+                className="text-gray-700 hover:text-arsd-red font-medium transition-colors"
+              >
+                Services
+              </Link>
 
               <Link
                 href="/projects"
@@ -243,35 +197,13 @@ export default function Navbar() {
                   Home
                 </Link>
                 
-                <div className="space-y-2">
-                  <div className="text-gray-700 font-medium py-2">Services</div>
-                  <div className="pl-4 space-y-2">
-                    <Link
-                      href="/services#building-construction"
-                      className="flex items-center space-x-3 text-gray-600 hover:text-arsd-red transition-colors py-1"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      <Building className="w-4 h-4 text-arsd-red" />
-                      <span className="text-sm">Building Construction</span>
-                    </Link>
-                    <Link
-                      href="/services#design-plan-preparation"
-                      className="flex items-center space-x-3 text-gray-600 hover:text-arsd-red transition-colors py-1"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      <PenTool className="w-4 h-4 text-arsd-red" />
-                      <span className="text-sm">Design & Plan Preparation</span>
-                    </Link>
-                    <Link
-                      href="/services#land-development"
-                      className="flex items-center space-x-3 text-gray-600 hover:text-arsd-red transition-colors py-1"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      <MapPin className="w-4 h-4 text-arsd-red" />
-                      <span className="text-sm">Land Development</span>
-                    </Link>
-                  </div>
-                </div>
+                <Link
+                  href="/services"
+                  className="text-gray-700 hover:text-arsd-red font-medium transition-colors py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Services
+                </Link>
 
                 <Link
                   href="/projects"
