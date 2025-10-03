@@ -131,7 +131,7 @@ export default function Navbar() {
               </Link>
 
               <Link
-                href="/services"
+                href="/our-services"
                 className="text-gray-700 hover:text-arsd-red font-medium transition-colors"
               >
                 Services
@@ -145,14 +145,14 @@ export default function Navbar() {
               </Link>
 
               <Link
-                href="/about"
+                href="/about-us"
                 className="text-gray-700 hover:text-arsd-red font-medium transition-colors"
               >
                 About Us
               </Link>
 
               <Link
-                href="/contact"
+                href="/contact-us"
                 className="text-gray-700 hover:text-arsd-red font-medium transition-colors"
               >
                 Contact
@@ -198,7 +198,7 @@ export default function Navbar() {
                 </Link>
                 
                 <Link
-                  href="/services"
+                  href="/our-services"
                   className="text-gray-700 hover:text-arsd-red font-medium transition-colors py-2"
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -214,7 +214,7 @@ export default function Navbar() {
                 </Link>
 
                 <Link
-                  href="/about"
+                  href="/about-us"
                   className="text-gray-700 hover:text-arsd-red font-medium transition-colors py-2"
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -222,7 +222,7 @@ export default function Navbar() {
                 </Link>
 
                 <Link
-                  href="/contact"
+                  href="/contact-us"
                   className="text-gray-700 hover:text-arsd-red font-medium transition-colors py-2"
                   onClick={() => setMobileMenuOpen(false)}
                 >

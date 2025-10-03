@@ -1,3 +1,5 @@
+"use client";
+
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { useState } from "react";
 import {
   MapPin,
   Phone,
@@ -22,6 +25,14 @@ import Link from "next/link";
 import Image from "next/image";
 
 export default function Contact() {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [company, setCompany] = useState("");
+  const [budget, setBudget] = useState("");
+  const [timeline, setTimeline] = useState("");
+  const [message, setMessage] = useState("");
   // Contact information data
   const contactInfo: ContactInfo[] = [
     {
@@ -47,8 +58,6 @@ export default function Contact() {
       title: "Email Address",
       details: [
         "hr_arsd_iloilo@yahoo.com.ph",
-        "info@arsdconstruction.com",
-        "projects@arsdconstruction.com",
       ],
     },
     {
@@ -66,42 +75,44 @@ export default function Contact() {
     "Building Construction",
     "Design & Plan Preparation",
     "Land Development",
-    "Project Management",
-    "Renovation & Remodeling",
-    "Infrastructure Development",
+    "Waterproofing",
+    "Supply Aggregates",
   ];
 
-  const projectTypes = [
-    "Residential Construction",
-    "Commercial Buildings",
-    "Industrial Facilities",
-    "Infrastructure Projects",
-    "Renovation Projects",
-    "Other",
-  ];
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const to = "hr_arsd_iloilo@yahoo.com.ph";
+    const subject = `New inquiry from ${firstName} ${lastName}`;
+    const body = `Name: ${firstName} ${lastName}%0D%0AEmail: ${email}%0D%0APhone: ${phone}%0D%0ACompany: ${company}%0D%0ABudget: ${budget}%0D%0ATimeline: ${timeline}%0D%0A%0D%0ADetails:%0D%0A${encodeURIComponent(message)}`;
+    const mailto = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${body}`;
+    window.location.href = mailto;
+  };
 
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-arsd-red to-red-700 text-white py-20">
-        <div className="container mx-auto px-4">
+      <section className="relative text-white overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-arsd-red via-red-600 to-red-700" />
+        <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_20%_20%,white_2px,transparent_2px)] bg-[length:24px_24px]" />
+        <div className="container mx-auto px-4 py-16 sm:py-20 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-6">
-              Contact ARSD Construction
-            </h1>
-            <p className="text-xl text-red-100 mb-8">
-              Ready to start your construction project? Get in touch with our
-              expert team for a free consultation and quote.
+            <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-semibold mb-6 border border-white/30">
+              <Building className="h-4 w-4" />
+              Get in Touch
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">Contact ARSD Construction</h1>
+            <p className="text-lg sm:text-xl text-red-100 mb-8 max-w-5xl mx-auto">
+              Ready to start your construction project? Our team will respond within 24 hours.
             </p>
             <div className="flex justify-center">
               <Image
                 src="/images/arsd-logo.png"
                 alt="ARSD Construction Corporation"
-                width={80}
-                height={80}
-                className="rounded-full bg-white p-2"
+                width={84}
+                height={84}
+                className="rounded-full bg-white/90 p-2 shadow-lg"
               />
             </div>
           </div>
@@ -109,9 +120,9 @@ export default function Contact() {
       </section>
 
       {/* Contact Information */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-16 sm:py-20 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
+          <div className="text-center mb-10 sm:mb-16">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
               Get in Touch
             </h2>
@@ -121,16 +132,59 @@ export default function Contact() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {contactInfo.map((info, index) => (
-              <ContactInfoCard key={index} info={info} />
-            ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
+            {/* Location */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow p-5 sm:p-6 text-center">
+              <div className="w-10 h-10 rounded-xl bg-arsd-red/10 text-arsd-red flex items-center justify-center mx-auto mb-3">
+                <MapPin className="w-5 h-5" />
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">Our Location</h3>
+              <div className="text-sm text-gray-600 leading-6">
+                <div>Figueroa St. Bonifacio</div>
+                <div>Arevalo, Iloilo City</div>
+                <div>Philippines 5000</div>
+              </div>
+            </div>
+            {/* Phone */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow p-5 sm:p-6 text-center">
+              <div className="w-10 h-10 rounded-xl bg-arsd-red/10 text-arsd-red flex items-center justify-center mx-auto mb-3">
+                <Phone className="w-5 h-5" />
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">Phone Numbers</h3>
+              <div className="text-sm text-gray-600 leading-6">
+                <div>+63 33 123 4567</div>
+                <div>+63 917 123 4567</div>
+                <div>Landline: (033) 123-4567</div>
+              </div>
+            </div>
+            {/* Email */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow p-5 sm:p-6 text-center">
+              <div className="w-10 h-10 rounded-xl bg-arsd-red/10 text-arsd-red flex items-center justify-center mx-auto mb-3">
+                <Mail className="w-5 h-5" />
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">Email Address</h3>
+              <div className="text-sm text-gray-600 leading-6">
+                hr_arsd_iloilo@yahoo.com.ph
+              </div>
+            </div>
+            {/* Hours */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow p-5 sm:p-6 text-center">
+              <div className="w-10 h-10 rounded-xl bg-arsd-red/10 text-arsd-red flex items-center justify-center mx-auto mb-3">
+                <Clock className="w-5 h-5" />
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">Business Hours</h3>
+              <div className="text-sm text-gray-600 leading-6">
+                <div>Monday - Friday: 8:00 AM - 5:00 PM</div>
+                <div>Saturday: 8:00 AM - 12:00 PM</div>
+                <div>Sunday: Closed</div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Contact Form & Map */}
-      <section className="py-20 bg-white">
+      <section className="py-16 sm:py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="grid lg:grid-cols-2 gap-12">
             {/* Contact Form */}
@@ -143,7 +197,7 @@ export default function Contact() {
                 hours to discuss your project requirements.
               </p>
 
-              <form className="space-y-6">
+              <form className="space-y-4 sm:space-y-6" onSubmit={handleSubmit}>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="firstName">First Name *</Label>
@@ -151,6 +205,9 @@ export default function Contact() {
                       id="firstName"
                       placeholder="Enter your first name"
                       className="mt-1"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      required
                     />
                   </div>
                   <div>
@@ -159,6 +216,9 @@ export default function Contact() {
                       id="lastName"
                       placeholder="Enter your last name"
                       className="mt-1"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      required
                     />
                   </div>
                 </div>
@@ -171,6 +231,9 @@ export default function Contact() {
                       type="email"
                       placeholder="Enter your email"
                       className="mt-1 mobile-form-input"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
                     />
                   </div>
                   <div>
@@ -179,6 +242,8 @@ export default function Contact() {
                       id="phone"
                       placeholder="Enter your phone number"
                       className="mt-1 mobile-form-input"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
                     />
                   </div>
                 </div>
@@ -189,29 +254,17 @@ export default function Contact() {
                     id="company"
                     placeholder="Enter your company name"
                     className="mt-1"
+                    value={company}
+                    onChange={(e) => setCompany(e.target.value)}
                   />
                 </div>
-
-                <div>
-                  <Label htmlFor="projectType">Project Type *</Label>
-                  <select
-                    id="projectType"
-                    className="w-full mt-1 px-3 py-3 sm:py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-arsd-red focus:border-transparent text-base sm:text-sm"
-                  >
-                    <option value="">Select project type</option>
-                    {projectTypes.map((type, index) => (
-                      <option key={index} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
                 <div>
                   <Label htmlFor="budget">Estimated Budget</Label>
                   <select
                     id="budget"
                     className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-arsd-red focus:border-transparent"
+                    value={budget}
+                    onChange={(e) => setBudget(e.target.value)}
                   >
                     <option value="">Select budget range</option>
                     <option value="under-1m">Under ₱1 Million</option>
@@ -227,6 +280,8 @@ export default function Contact() {
                   <select
                     id="timeline"
                     className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-arsd-red focus:border-transparent"
+                    value={timeline}
+                    onChange={(e) => setTimeline(e.target.value)}
                   >
                     <option value="">Select timeline</option>
                     <option value="asap">As soon as possible</option>
@@ -243,10 +298,13 @@ export default function Contact() {
                     id="message"
                     placeholder="Please describe your project requirements, location, and any specific needs..."
                     className="mt-1 min-h-[120px]"
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    required
                   />
                 </div>
 
-                <Button className="w-full bg-arsd-red hover:bg-red-700 text-white">
+                <Button type="submit" className="w-full bg-arsd-red hover:bg-red-700 text-white">
                   <Send className="w-4 h-4 mr-2" />
                   Send Message
                 </Button>
@@ -325,47 +383,26 @@ export default function Contact() {
                   </div>
                 </CardContent>
               </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-3">
-                    <Calendar className="w-6 h-6 text-arsd-red" />
-                    Schedule a Visit
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 mb-4">
-                    Prefer to meet in person? Visit our office or schedule a
-                    site visit for your project.
-                  </p>
-                  <Button
-                    variant="outline"
-                    className="w-full border-arsd-red text-arsd-red hover:bg-arsd-red hover:text-white"
-                  >
-                    Schedule Appointment
-                  </Button>
-                </CardContent>
-              </Card>
             </div>
           </div>
         </div>
       </section>
 
       {/* Map Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-16 sm:py-20 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
               Visit Our Office
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto px-2">
               Located in the heart of Arevalo, Iloilo City, our office is easily
               accessible and we welcome visitors during business hours.
             </p>
           </div>
 
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            <div className="grid lg:grid-cols-2 gap-8 items-center">
+          <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-100">
+            <div className="grid lg:grid-cols-2 gap-6 sm:gap-8 items-center">
               <div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-4">
                   ARSD Construction Corporation
@@ -410,14 +447,14 @@ export default function Contact() {
                   </div>
                 </div>
               </div>
-              <div className="bg-gray-200 rounded-lg h-64 flex items-center justify-center">
-                <div className="text-center text-gray-500">
-                  <MapPin className="w-12 h-12 mx-auto mb-2" />
-                  <p>Interactive Map</p>
-                  <p className="text-sm">
-                    Figueroa St. Bonifacio, Arevalo, Iloilo City
-                  </p>
-                </div>
+              <div className="rounded-lg overflow-hidden h-64">
+                <iframe
+                  title="ARSD Office Map"
+                  className="w-full h-full border-0"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  src="https://www.google.com/maps?q=Figueroa%20St.%20Bonifacio%2C%20Arevalo%2C%20Iloilo%20City&output=embed"
+                />
               </div>
             </div>
           </div>

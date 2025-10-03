@@ -22,6 +22,7 @@ import {
   ArrowUpRight,
   Star,
   CheckCircle2,
+  HardHat,
 } from "lucide-react";
 import { ServiceCard, Service } from "@/components/ServiceCard";
 import Link from "next/link";
@@ -107,6 +108,37 @@ export default function Services() {
     }
   ];
 
+  // Equipment overview stats (generalized)
+  const equipmentOverview = [
+    {
+      title: "Heavy Equipment",
+      icon: <Hammer className="w-6 h-6 text-white" />,
+      points: [
+        "Excavators, loaders, bulldozers, road rollers",
+        "Concrete batching and crushing plants",
+        "Cranes and material handling equipment",
+      ],
+    },
+    {
+      title: "Transport Fleet",
+      icon: <Truck className="w-6 h-6 text-white" />,
+      points: [
+        "6W/10W dump trucks and tipper trucks",
+        "Transit mixers and boom trucks",
+        "Service and self-loading trucks",
+      ],
+    },
+    {
+      title: "Tools & Support",
+      icon: <HardHat className="w-6 h-6 text-white" />,
+      points: [
+        "Generators, compactors, welding and cutting tools",
+        "Power tools and site instruments",
+        "IT equipment for digital project delivery",
+      ],
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
@@ -135,7 +167,7 @@ export default function Services() {
                   From residential homes to commercial complexes, we deliver exceptional construction services that stand the test of time.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
-                  <Link href="/contact">
+                  <Link href="/contact-us">
                     <Button size="lg" className="w-full sm:w-auto bg-arsd-red hover:bg-arsd-red/90 text-white px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-300">
                       Get Free Quote
                       <ArrowUpRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
@@ -271,6 +303,43 @@ export default function Services() {
         </div>
       </section>
 
+      {/* Equipment & Fleet Section */}
+      <section className="py-16 sm:py-20 lg:py-24 bg-gray-50">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12 sm:mb-16 lg:mb-20">
+            <div className="inline-flex items-center gap-2 bg-arsd-red/10 text-arsd-red px-4 py-2 sm:px-6 sm:py-3 rounded-full text-xs sm:text-sm font-semibold mb-4 sm:mb-6">
+              <Truck className="h-4 w-4" />
+              Our Equipment & Fleet
+            </div>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6">
+              Capabilities Overview
+            </h2>
+            <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              Our company maintains a robust inventory of heavy equipment, transport vehicles, and support tools that enable efficient and safe execution of civil, building, and infrastructure projects.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 sm:gap-8">
+            {equipmentOverview.map((group, idx) => (
+              <div key={idx} className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-100 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-arsd-red to-red-600 rounded-xl flex items-center justify-center mb-4 sm:mb-5">
+                  {group.icon}
+                </div>
+                <h4 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4">{group.title}</h4>
+                <ul className="space-y-2 sm:space-y-3">
+                  {group.points.map((p, i) => (
+                    <li key={i} className="flex items-start gap-2 sm:gap-3 text-sm sm:text-base text-gray-700">
+                      <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-arsd-red mt-0.5 flex-shrink-0" />
+                      <span>{p}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-16 sm:py-20 lg:py-24 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
         <div className="absolute inset-0">
@@ -287,7 +356,7 @@ export default function Services() {
               Let's discuss your construction needs and create something extraordinary together.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-              <Link href="/contact">
+              <Link href="/contact-us">
                 <Button size="lg" className="w-full sm:w-auto bg-arsd-red hover:bg-arsd-red/90 text-white px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-300">
                   Start Your Project
                   <ArrowUpRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
