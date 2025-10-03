@@ -37,11 +37,9 @@ export default function Services() {
       subtitle: "Complete Construction Solutions",
       description: "From residential homes to commercial complexes, we deliver exceptional construction services that stand the test of time.",
       features: [
-        "Residential homes and condominiums",
+        "Residential homes and hospitals",
         "Commercial buildings and offices", 
         "Industrial facilities and warehouses",
-        "Renovation and remodeling projects",
-        "Structural repairs and maintenance"
       ],
       bgColor: "from-blue-600 to-blue-800",
       textColor: "text-blue-600"
@@ -54,8 +52,6 @@ export default function Services() {
       features: [
         "Architectural design and planning",
         "Structural engineering analysis",
-        "MEP (Mechanical, Electrical, Plumbing) design",
-        "3D modeling and visualization",
         "Permit processing and documentation"
       ],
       bgColor: "from-purple-600 to-purple-800",
@@ -69,9 +65,7 @@ export default function Services() {
       features: [
         "Site surveying and analysis",
         "Earthworks and excavation",
-        "Utility installation and connections",
         "Road construction and paving",
-        "Drainage and sewerage systems"
       ],
       bgColor: "from-green-600 to-green-800",
       textColor: "text-green-600"
@@ -84,8 +78,6 @@ export default function Services() {
       features: [
         "Roof waterproofing systems",
         "Basement and foundation waterproofing",
-        "Bathroom and kitchen waterproofing",
-        "Balcony and terrace waterproofing",
         "Waterproofing maintenance and repair"
       ],
       bgColor: "from-cyan-600 to-cyan-800",
@@ -100,8 +92,6 @@ export default function Services() {
         "Sand and gravel supply",
         "Concrete aggregates",
         "Crushed stone materials",
-        "Construction sand",
-        "Delivery and logistics services"
       ],
       bgColor: "from-orange-600 to-orange-800",
       textColor: "text-orange-600"

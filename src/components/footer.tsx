@@ -53,11 +53,11 @@ export default function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
           {/* Platform Column */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-4">Platform</h3>
+            <h3 className="font-semibold text-gray-900 mb-4">Company</h3>
             <ul className="space-y-2">
               <li>
                 <Link
-                  href="#features"
+                  href="/our-services"
                   className="text-gray-600 hover:text-red-600"
                 >
                   Our Services
@@ -65,101 +65,37 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="/dashboard"
+                  href="/projects"
                   className="text-gray-600 hover:text-red-600"
                 >
                   Projects
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-gray-600 hover:text-red-600">
-                  Construction Management
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-gray-600 hover:text-red-600">
-                  Quality Control
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Solutions Column */}
-          <div>
-            <h3 className="font-semibold text-gray-900 mb-4">Specialties</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link href="#" className="text-gray-600 hover:text-red-600">
-                  Residential Construction
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-gray-600 hover:text-red-600">
-                  Commercial Buildings
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-gray-600 hover:text-red-600">
-                  Infrastructure Projects
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-gray-600 hover:text-red-600">
-                  Renovation & Remodeling
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Resources Column */}
-          <div>
-            <h3 className="font-semibold text-gray-900 mb-4">Resources</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link href="#" className="text-gray-600 hover:text-red-600">
-                  Project Gallery
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-gray-600 hover:text-red-600">
-                  Client Testimonials
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-gray-600 hover:text-red-600">
-                  Construction Tips
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-gray-600 hover:text-red-600">
-                  Get Quote
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Company Column */}
-          <div>
-            <h3 className="font-semibold text-gray-900 mb-4">Company</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link href="#" className="text-gray-600 hover:text-red-600">
-                  About ARSD
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-gray-600 hover:text-red-600">
+                <Link href="/contact-us" className="text-gray-600 hover:text-red-600">
                   Contact Us
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-gray-600 hover:text-red-600">
-                  Careers
+                <Link href="/about-us" className="text-gray-600 hover:text-red-600">
+                  About ARSD
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Platform Column */}
+          <div>
+            <h3 className="font-semibold text-gray-900 mb-4">Platform</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link href="/sign-in" className="text-gray-600 hover:text-red-600">
+                  Sign In
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-gray-600 hover:text-red-600">
-                  Safety Standards
+                <Link href="/sign-up" className="text-gray-600 hover:text-red-600">
+                  Sign Up
                 </Link>
               </li>
             </ul>

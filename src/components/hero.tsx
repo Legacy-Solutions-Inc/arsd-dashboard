@@ -5,10 +5,14 @@ import { ArrowUpRight, Check } from "lucide-react";
 export default function Hero() {
   return (
     <div className="relative overflow-hidden bg-white">
-      {/* Animated Background Gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-arsd-red/10 via-white to-gray-100 opacity-80 animate-pulse" />
+      {/* Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-arsd-red/10 via-white to-gray-100 opacity-80" />
+      <div className="pointer-events-none absolute inset-0" aria-hidden>
+        <div className="absolute top-[-20%] right-[-10%] w-[420px] h-[420px] rounded-full bg-arsd-red/10 blur-3xl" />
+        <div className="absolute bottom-[-20%] left-[-10%] w-[420px] h-[420px] rounded-full bg-orange-500/10 blur-3xl" />
+      </div>
 
-      <div className="relative pt-20 pb-24 sm:pt-28 sm:pb-36 lg:pt-36 lg:pb-44">
+      <div className="relative pt-20 pb-20 sm:pt-28 sm:pb-32 lg:pt-36 lg:pb-44">
         <div className="responsive-container">
           <div className="text-center max-w-7xl mx-auto">
             <div className="flex justify-center mb-6 sm:mb-8">
@@ -20,17 +24,17 @@ export default function Hero() {
                 className="rounded-full shadow-lg border-4 border-arsd-red bg-white sm:w-32 sm:h-32 lg:w-36 lg:h-36"
               />
             </div>
-            <h1 className="text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold text-gray-900 mb-4 sm:mb-6 tracking-tight drop-shadow-lg">
+            <h1 className="text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold text-gray-900 mb-3 sm:mb-6 tracking-tight drop-shadow-lg">
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-arsd-red to-orange-600 animate-gradient-x">
                 ARSD Construction Corporation
               </span>
             </h1>
-            <h2 className="text-base sm:text-xl lg:text-2xl font-semibold text-gray-700 mb-6 sm:mb-8">
+            <h2 className="text-sm sm:text-xl lg:text-2xl font-semibold text-gray-700 mb-5 sm:mb-8 px-4">
               Building Excellence in Iloilo City & Beyond
             </h2>
 
-            <p className="text-sm sm:text-base lg:text-lg text-gray-600 mb-8 sm:mb-10 max-w-2xl mx-auto leading-relaxed px-4">
-              Trusted partner for residential, commercial, and industrial projects. We deliver innovative solutions, transparent cost control, and real-time project management—ensuring your vision becomes reality.
+            <p className="text-sm sm:text-base lg:text-lg text-gray-600 mb-8 sm:mb-10 max-w-3xl mx-auto leading-relaxed px-4">
+              Your trusted construction partner in Iloilo City and beyond, delivering exceptional projects with integrity, excellence, and commitment.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mb-6 sm:mb-8 px-4">
@@ -43,14 +47,14 @@ export default function Hero() {
               </Link>
 
               <Link
-                href="#features"
+                href="/our-services"
                 className="inline-flex items-center px-6 sm:px-8 py-3 sm:py-4 text-arsd-red bg-white border border-arsd-red rounded-lg hover:bg-arsd-red hover:text-white transition-colors text-base sm:text-lg font-bold shadow w-full sm:w-auto justify-center"
               >
-                Explore Features
+                Our Services
               </Link>
             </div>
 
-            <div className="mt-8 sm:mt-10 flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-sm sm:text-base text-gray-700 px-4">
+            <div className="mt-8 sm:mt-10 flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-xs sm:text-base text-gray-700 px-4">
               <div className="flex items-center gap-2">
                 <Check className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0" />
                 <span>Building Construction</span>
@@ -66,13 +70,11 @@ export default function Hero() {
               </div>
               <div className="flex items-center gap-2">
                 <Check className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0" />
-                <span className="hidden sm:inline">Quality Assurance</span>
-                <span className="sm:hidden">Quality</span>
+                <span>Waterproofing</span>
               </div>
               <div className="flex items-center gap-2">
                 <Check className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0" />
-                <span className="hidden sm:inline">On-Time Delivery</span>
-                <span className="sm:hidden">On-Time</span>
+                <span>Supply Aggregates</span>
               </div>
             </div>
           </div>
