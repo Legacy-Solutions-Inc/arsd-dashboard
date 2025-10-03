@@ -74,20 +74,8 @@ export default function Navbar() {
               ) : user ? (
                 <UserProfile />
               ) : (
-                <>
-                  <Link
-                    href="/sign-in"
-                    className="text-white hover:text-gray-200 transition-colors text-sm"
-                  >
-                    Sign In
-                  </Link>
-                  <Link
-                    href="/sign-up"
-                    className="bg-white text-arsd-red px-3 py-1 rounded text-sm font-medium hover:bg-gray-100 transition-colors"
-                  >
-                    Sign Up
-                  </Link>
-                </>
+                <div className="text-white text-sm">
+                </div>
               )}
             </div>
           </div>
