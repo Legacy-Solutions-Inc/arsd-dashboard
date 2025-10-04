@@ -173,7 +173,7 @@ export default function Services() {
               <div className="relative mt-8 lg:mt-0">
                 <div className="relative z-10">
                   <Image
-                    src="/images/arsd-logo.png"
+                    src="/images/photos/tool3.jpg"
                     alt="ARSD Construction Corporation"
                     width={250}
                     height={250}
