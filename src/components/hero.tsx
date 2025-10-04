@@ -5,8 +5,19 @@ import { ArrowUpRight, Check } from "lucide-react";
 export default function Hero() {
   return (
     <div className="relative overflow-hidden bg-white">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-arsd-red/10 via-white to-gray-100 opacity-80" />
+      {/* Background Image */}
+      <div className="absolute inset-0">
+        <Image
+          src="/images/photos/office2.jpg"
+          alt="ARSD Construction office building background"
+          fill
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-arsd-red/20 via-black/80 to-black/90 rounded-lg" />
+      </div>
+      
+      {/* Decorative elements */}
       <div className="pointer-events-none absolute inset-0" aria-hidden>
         <div className="absolute top-[-20%] right-[-10%] w-[420px] h-[420px] rounded-full bg-arsd-red/10 blur-3xl" />
         <div className="absolute bottom-[-20%] left-[-10%] w-[420px] h-[420px] rounded-full bg-orange-500/10 blur-3xl" />
@@ -24,16 +35,16 @@ export default function Hero() {
                 className="rounded-full shadow-lg border-4 border-arsd-red bg-white sm:w-32 sm:h-32 lg:w-36 lg:h-36"
               />
             </div>
-            <h1 className="text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold text-gray-900 mb-3 sm:mb-6 tracking-tight drop-shadow-lg">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-arsd-red to-orange-600 animate-gradient-x">
+            <h1 className="text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold text-white mb-3 sm:mb-6 tracking-tight drop-shadow-2xl">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-arsd-red to-orange-300 animate-gradient-x">
                 ARSD Construction Corporation
               </span>
             </h1>
-            <h2 className="text-sm sm:text-xl lg:text-2xl font-semibold text-gray-700 mb-5 sm:mb-8 px-4">
+            <h2 className="text-sm sm:text-xl lg:text-2xl font-semibold text-white mb-5 sm:mb-8 px-4 drop-shadow-lg">
               Building Excellence in Iloilo City & Beyond
             </h2>
 
-            <p className="text-sm sm:text-base lg:text-lg text-gray-600 mb-8 sm:mb-10 max-w-3xl mx-auto leading-relaxed px-4">
+            <p className="text-sm sm:text-base lg:text-lg text-gray-200 mb-8 sm:mb-10 max-w-3xl mx-auto leading-relaxed px-4 drop-shadow-md">
               Your trusted construction partner in Iloilo City and beyond, delivering exceptional projects with integrity, excellence, and commitment.
             </p>
 
@@ -54,7 +65,7 @@ export default function Hero() {
               </Link>
             </div>
 
-            <div className="mt-8 sm:mt-10 flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-xs sm:text-base text-gray-700 px-4">
+            <div className="mt-8 sm:mt-10 flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-xs sm:text-base text-white px-4 drop-shadow-md">
               <div className="flex items-center gap-2">
                 <Check className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0" />
                 <span>Building Construction</span>
