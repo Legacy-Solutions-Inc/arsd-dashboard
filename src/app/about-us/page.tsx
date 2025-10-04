@@ -125,11 +125,11 @@ export default function AboutPage() {
               <div className="relative mt-8 lg:mt-0">
                 <div className="relative z-10">
                   <Image
-                    src="/images/arsd-logo.png"
-                    alt="ARSD Construction Corporation"
-                    width={250}
-                    height={250}
-                    className="mx-auto rounded-2xl shadow-2xl w-48 h-48 sm:w-64 sm:h-64 lg:w-80 lg:h-80"
+                    src="/images/photos/office2.jpg"
+                    alt="ARSD Construction Corporation Office Building"
+                    width={400}
+                    height={300}
+                    className="mx-auto rounded-2xl shadow-2xl w-48 h-48 sm:w-64 sm:h-64 lg:w-80 lg:h-80 object-cover"
                   />
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-br from-arsd-red/20 to-blue-500/20 rounded-2xl blur-xl"></div>
