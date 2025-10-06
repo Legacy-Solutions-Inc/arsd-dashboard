@@ -317,10 +317,6 @@ export function Materials({ materials, purchaseOrders }: MaterialsProps) {
           </div>
           <div className="space-y-2 text-xs lg:text-sm">
             <div className="flex justify-between px-3 lg:px-4 py-2 bg-white rounded">
-              <span className="text-gray-600">Total Quantity:</span>
-              <span className="font-bold text-blue-600">{selectedMaterial?.totalQuantity} {selectedMaterial?.unit}</span>
-            </div>
-            <div className="flex justify-between px-3 lg:px-4 py-2 bg-white rounded">
               <span className="text-gray-600">Requested:</span>
               <span className="font-bold text-orange-600">{selectedMaterial?.requestedQuantity} {selectedMaterial?.unit}</span>
             </div>
@@ -394,10 +390,10 @@ export function Materials({ materials, purchaseOrders }: MaterialsProps) {
                   <TableHead className="text-xs lg:text-sm">Material</TableHead>
                   <TableHead className="text-xs lg:text-sm">Type</TableHead>
                   <TableHead className="text-xs lg:text-sm">Unit</TableHead>
-                  <TableHead className="text-xs lg:text-sm">Total Qty</TableHead>
                   <TableHead className="text-xs lg:text-sm">Requested</TableHead>
                   <TableHead className="text-xs lg:text-sm">Received</TableHead>
                   <TableHead className="text-xs lg:text-sm">Utilized</TableHead>
+                  <TableHead className="text-xs lg:text-sm">Pending</TableHead>
                   <TableHead className="text-xs lg:text-sm">Status</TableHead>
                 </TableRow>
               </TableHeader>
@@ -421,7 +417,6 @@ export function Materials({ materials, purchaseOrders }: MaterialsProps) {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-gray-900 text-xs lg:text-sm">{material.unit}</TableCell>
-                    <TableCell className="text-blue-600 font-medium text-xs lg:text-sm">{material.totalQuantity}</TableCell>
                     <TableCell className="text-orange-600 font-medium text-xs lg:text-sm">{material.requestedQuantity}</TableCell>
                     <TableCell
                       className={
@@ -433,6 +428,7 @@ export function Materials({ materials, purchaseOrders }: MaterialsProps) {
                       {material.receivedQuantity}
                     </TableCell>
                     <TableCell className="text-blue-600 font-medium text-xs lg:text-sm">{material.utilizedQuantity}</TableCell>
+                    <TableCell className="text-blue-600 font-medium text-xs lg:text-sm">{material.pendingQuantity}</TableCell>
                     <TableCell>
                       <Badge 
                         variant="outline" 

@@ -8,16 +8,23 @@ import AssignedProjectsList from '@/components/uploads/AssignedProjectsList';
 import ReportsManagement from '@/components/uploads/ReportsManagement';
 import ProgressPhotosManagement from '@/components/uploads/ProgressPhotosManagement';
 import { GlassCard, GlassCardContent, GlassCardHeader, GlassCardTitle } from '@/components/ui/glass-card';
+import { UniversalLoading } from '@/components/ui/universal-loading';
 
 export default function Uploads() {
-  const { user, hasPermission } = useRBAC();
+  const { user, hasPermission, loading: rbacLoading } = useRBAC();
   const [activeTab, setActiveTab] = useState('upload');
   const [canUpload, setCanUpload] = useState(false);
   const [canViewAll, setCanViewAll] = useState(false);
+  const [permissionsChecked, setPermissionsChecked] = useState(false);
 
   // Determine which tabs to show based on user role
   useEffect(() => {
     const checkPermissions = async () => {
+      if (!user) {
+        setPermissionsChecked(true);
+        return;
+      }
+
       const hasUploadPermission = await hasPermission('manage_uploads');
       
       // Project managers can upload reports and view their own progress photos
@@ -25,6 +32,7 @@ export default function Uploads() {
         setCanUpload(hasUploadPermission);
         setCanViewAll(hasUploadPermission); // Allow viewing progress photos
         setActiveTab('upload');
+        setPermissionsChecked(true);
         return;
       }
       
@@ -33,19 +41,34 @@ export default function Uploads() {
         setCanUpload(false);
         setCanViewAll(hasUploadPermission);
         setActiveTab('manage');
+        setPermissionsChecked(true);
         return;
       }
       
       // Default case - no permissions
       setCanUpload(false);
       setCanViewAll(false);
+      setPermissionsChecked(true);
     };
     
-    if (user) {
+    if (!rbacLoading && user !== undefined) {
       checkPermissions();
     }
-  }, [user, hasPermission]);
+  }, [user, hasPermission, rbacLoading]);
 
+
+  // Show loading state while checking permissions
+  if (rbacLoading || !permissionsChecked) {
+    return (
+      <UniversalLoading
+        type="report"
+        message="Loading Report Management"
+        subtitle="Checking your permissions and loading available features"
+        size="lg"
+        fullScreen={true}
+      />
+    );
+  }
 
   return (
     <div className="space-y-8 mb-4">

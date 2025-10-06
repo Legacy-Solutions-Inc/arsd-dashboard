@@ -38,7 +38,7 @@ const navigationItems: Array<{
     permission: 'manage_website_details' as const
   },
   { 
-    name: "Uploads", 
+    name: "Reports Management", 
     href: "/dashboard/uploads", 
     icon: <Upload className="h-5 w-5" />,
     permission: 'manage_uploads' as const
