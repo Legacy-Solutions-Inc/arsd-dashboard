@@ -60,13 +60,13 @@ export default function AboutPage() {
         "Achieved PhilGEPS certification for government electronic procurement system participation.",
     },
     {
-      year: "2015",
-      title: "PCAB Category A",
+      year: "2012",
+      title: "PCAB's License",
       description:
-        "Upgraded to PCAB Category A license, enabling us to handle larger and more complex projects.",
+        "Upgraded to PCAB Category A license this 2023, enabling us to handle larger and more complex projects.",
     },
     {
-      year: "2024",
+      year: "2025",
       title: "25+ Years Strong",
       description:
         "Celebrating over 25 years of excellence with 500+ completed projects and continued growth.",
