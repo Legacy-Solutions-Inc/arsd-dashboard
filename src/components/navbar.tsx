@@ -15,6 +15,7 @@ import {
 import UserProfile from "./user-profile";
 import { useRBAC } from "@/hooks/useRBAC";
 import { getDefaultDashboardRoute } from "@/utils/dashboard-routing";
+import { CONTACT_INFO } from "@/constants/contact-info";
 
 export default function Navbar() {
   const [user, setUser] = useState<any>(null);
@@ -59,13 +60,13 @@ export default function Navbar() {
             <div className="flex flex-col sm:flex-row items-center space-y-1 sm:space-y-0 sm:space-x-6">
               <div className="flex items-center space-x-2">
                 <Phone className="w-4 h-4" />
-                <span className="hidden xs:inline">Contact: hr_arsd_iloilo@yahoo.com.ph</span>
-                <span className="xs:hidden">hr_arsd_iloilo@yahoo.com.ph</span>
+                <span className="hidden xs:inline">Contact: {CONTACT_INFO.email.display}</span>
+                <span className="xs:hidden">{CONTACT_INFO.email.display}</span>
               </div>
               <div className="flex items-center space-x-2">
                 <MapPin className="w-4 h-4" />
-                <span className="hidden sm:inline">Figueroa St. Bonifacio, Arevalo, Iloilo City</span>
-                <span className="sm:hidden">Iloilo City</span>
+                <span className="hidden sm:inline">{CONTACT_INFO.address.street}, {CONTACT_INFO.address.city}</span>
+                <span className="sm:hidden">{CONTACT_INFO.address.short}</span>
               </div>
             </div>
             <div className="flex items-center space-x-4">
@@ -97,10 +98,10 @@ export default function Navbar() {
               />
               <div className="hidden sm:block">
                 <h1 className="text-base sm:text-lg font-bold text-gray-900">
-                  ARSD Construction Corporation
+                  {CONTACT_INFO.company.name}
                 </h1>
                 <p className="text-xs text-gray-600">
-                  In God We Trust
+                  {CONTACT_INFO.company.tagline}
                 </p>
               </div>
               <div className="sm:hidden">
