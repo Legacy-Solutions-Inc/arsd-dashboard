@@ -31,6 +31,7 @@ import { WebsiteProjectsService } from "@/services/projects/website-projects";
 import { ProjectSkeleton } from "@/components/website-projects/ProjectSkeleton";
 import { ProjectCard } from "@/components/ProjectCard";
 import { useToast } from "@/components/ui/use-toast";
+import { PROJECTS_DATA } from "@/constants/projects-data";
 
 interface ProjectWithUrls {
   id: string;
@@ -134,48 +135,14 @@ export default function Projects() {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [loading]);
 
-  // Sample projects for demonstration (replace with actual data)
-  const sampleProjects = [
-    {
-      id: "1",
-      name: "Lambunao Municipal Building",
-      location: "Lambunao, Iloilo",
-      created_at: "2024-01-15",
-      photoUrls: ["/images/reference1.png", "/images/reference2.png", "/images/reference3.png"],
-      status: "Completed",
-      type: "Government Building",
-      value: "₱15M"
-    },
-    {
-      id: "2", 
-      name: "Iloilo Hospital Phase 2",
-      location: "Iloilo City, Philippines",
-      created_at: "2024-02-20",
-      photoUrls: ["/images/reference2.png", "/images/reference1.png"],
-      status: "In Progress",
-      type: "Healthcare Facility",
-      value: "₱45M"
-    },
-    {
-      id: "3",
-      name: "Iloilo Correctional Facility",
-      location: "Iloilo City, Philippines", 
-      created_at: "2024-03-10",
-      photoUrls: ["/images/reference3.png", "/images/reference1.png"],
-      status: "Completed",
-      type: "Infrastructure",
-      value: "₱28M"
-    }
-  ];
-
-  // Use sample projects if no real data
-  const displayProjects = projectsWithUrls.length > 0 ? projectsWithUrls : sampleProjects;
+  // Use sample projects if no real data (from constants)
+  const displayProjects = projectsWithUrls.length > 0 ? projectsWithUrls : PROJECTS_DATA.sampleProjects.map(p => ({...p, photoUrls: [...p.photoUrls]}));
   const visibleProjects = showAll ? displayProjects : displayProjects.slice(0, 6);
 
   // Gallery functions
-  const openGallery = (project: ProjectWithUrls) => {
+  const openGallery = (project: any) => {
     if (project.photoUrls && project.photoUrls.length >= 1) {
-      setCurrentProject(project);
+      setCurrentProject(project as ProjectWithUrls);
       setCurrentPhotoIndex(0);
       setGalleryOpen(true);
     }
@@ -252,27 +219,19 @@ export default function Projects() {
       <section className="py-12 sm:py-16 lg:py-20 bg-white border-b border-gray-100">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
-            <div className="text-center group">
-              <div className="w-16 h-16 bg-gradient-to-br from-arsd-red to-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                <BarChart3 className="w-8 h-8 text-white" />
-              </div>
-              <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">500+</div>
-              <div className="text-gray-600 font-medium">Projects Completed</div>
-            </div>
-            <div className="text-center group">
-              <div className="w-16 h-16 bg-gradient-to-br from-arsd-red to-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                <Clock className="w-8 h-8 text-white" />
-              </div>
-              <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">25+</div>
-              <div className="text-gray-600 font-medium">Years Experience</div>
-            </div>
-            <div className="text-center group col-span-2 lg:col-span-1">
-              <div className="w-16 h-16 bg-gradient-to-br from-arsd-red to-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                <Users className="w-8 h-8 text-white" />
-              </div>
-              <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">100+</div>
-              <div className="text-gray-600 font-medium">Satisfied Clients</div>
-            </div>
+            {PROJECTS_DATA.stats.map((stat, index) => {
+              const icons: Record<string, any> = { BarChart3, Clock, Users };
+              const IconComponent = icons[stat.icon];
+              return (
+                <div key={index} className={`text-center group ${index === 2 ? 'col-span-2 lg:col-span-1' : ''}`}>
+                  <div className="w-16 h-16 bg-gradient-to-br from-arsd-red to-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <IconComponent className="w-8 h-8 text-white" />
+                  </div>
+                  <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">{stat.number}</div>
+                  <div className="text-gray-600 font-medium">{stat.label}</div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -456,36 +415,14 @@ export default function Projects() {
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10">
-            {[
-              {
-                step: "01",
-                title: "Planning & Design",
-                description: "Comprehensive project analysis and architectural design development",
-                icon: <Building2 className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-              },
-              {
-                step: "02", 
-                title: "Permits & Approvals",
-                description: "Securing all necessary permits and regulatory approvals",
-                icon: <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-              },
-              {
-                step: "03",
-                title: "Construction",
-                description: "Professional execution with regular progress updates and quality control",
-                icon: <Award className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-              },
-              {
-                step: "04",
-                title: "Handover",
-                description: "Final inspection, documentation, and project handover with ongoing support",
-                icon: <Star className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-              },
-            ].map((process, index) => (
+            {PROJECTS_DATA.deliveryProcess.map((process, index) => {
+              const icons: Record<string, any> = { Building2, CheckCircle, Award, Star };
+              const IconComponent = icons[process.icon];
+              return (
               <div key={index} className="text-center group">
                 <div className="relative mb-6 sm:mb-8">
                   <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-arsd-red to-red-600 rounded-2xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300 shadow-xl">
-                    {process.icon}
+                    <IconComponent className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                   </div>
                   <div className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 w-6 h-6 sm:w-8 sm:h-8 bg-white text-arsd-red rounded-full flex items-center justify-center text-xs sm:text-sm font-bold border-2 border-arsd-red">
                     {process.step}
@@ -496,7 +433,8 @@ export default function Projects() {
                 </h3>
                 <p className="text-sm sm:text-base text-gray-600 leading-relaxed">{process.description}</p>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
