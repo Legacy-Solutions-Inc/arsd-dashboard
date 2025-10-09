@@ -31,54 +31,12 @@ import { ValueCard } from "@/components/ValueCard";
 import { MilestoneCard, Milestone } from "@/components/MilestoneCard";
 import { TeamMemberCard, TeamMember } from "@/components/TeamMemberCard";
 import Image from "next/image";
+import { ABOUT_US_DATA } from "@/constants/about-us-data";
 
 export default function AboutPage() {
-  // Company milestones data
-  const milestones: Milestone[] = [
-    {
-      year: "1998",
-      title: "Company Founded",
-      description:
-        "ARSD Construction was founded with courage, honesty and dedication, starting with humble beginnings in labor contracting.",
-    },
-    {
-      year: "1999",
-      title: "First Expansion",
-      description:
-        "Introduced seed capital and ventured into straight contract work, coupled with determination and dedication.",
-    },
-    {
-      year: "2007",
-      title: "SEC Registration",
-      description:
-        "Registered with the Securities & Exchange Commission (SEC) to increase clients' confidence and upgrade services.",
-    },
-    {
-      year: "2010",
-      title: "PhilGEPS Certification",
-      description:
-        "Achieved PhilGEPS certification for government electronic procurement system participation.",
-    },
-    {
-      year: "2012",
-      title: "PCAB's License",
-      description:
-        "Upgraded to PCAB Category A license this 2023, enabling us to handle larger and more complex projects.",
-    },
-    {
-      year: "2025",
-      title: "25+ Years Strong",
-      description:
-        "Celebrating over 25 years of excellence with 500+ completed projects and continued growth.",
-    },
-  ];
-
-  // Achievements data
-  const achievements = [
-    { number: "25+", label: "Years of Experience" },
-    { number: "500+", label: "Projects Completed" },
-    { number: "100+", label: "Satisfied Clients" },
-  ];
+  // Get data from centralized constants
+  const milestones = ABOUT_US_DATA.milestones;
+  const achievements = ABOUT_US_DATA.achievements;
 
   return (
     <div className="min-h-screen bg-white">
@@ -151,15 +109,11 @@ export default function AboutPage() {
                 Who We Are
               </h2>
               <div className="space-y-4 sm:space-y-6">
-                <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
-                  ARSD Construction was founded with courage, honesty and dedication as it was started with a humble beginning in 1998. At first it was just labor contracting; after a year, a small seed capital was introduced and coupled with determination and dedication straight contract was ventured.
-                </p>
-                <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
-                  As a new player, tough and rough situations molded and strengthened ARSD to its existence. While maintaining its good reputation to clients and suppliers; to date, those networks keep the company growing strong that by August 2007 the founder decided to register the company with the Securities & Exchange Commission (SEC) to increase clients' confidence and to upgrade its offered services.
-                </p>
-                <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
-                  ARSD believes that maintaining clients are doing quality works coupled with approachable staffs and promptness in all its actions.
-                </p>
+                {ABOUT_US_DATA.story.paragraphs.map((paragraph, index) => (
+                  <p key={index} className="text-base sm:text-lg text-gray-600 leading-relaxed">
+                    {paragraph}
+                  </p>
+                ))}
               </div>
               <div className="mt-6 sm:mt-8">
                 <Link href="/contact-us">
@@ -223,7 +177,7 @@ export default function AboutPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600 leading-relaxed text-base sm:text-lg">
-                  We aim to implement a timeless relationship with our clients based on simply doing the job right at the first time. To fulfill the mission, all employees will be treated fairly and involve them in quality improvement process to insure efficient work execution by us, and for the customers. To safely deliver any project, any time, in any environment for the benefit of our customers, shareholders, employees and the communities we serve.
+                  {ABOUT_US_DATA.mission}
                 </p>
               </CardContent>
             </Card>
@@ -239,7 +193,7 @@ export default function AboutPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600 leading-relaxed text-base sm:text-lg">
-                  We persevere to deliver with utmost superiority, dependability, and promptly to achieve total customer satisfaction. Hand in hand with our clients, we act and win as a team.
+                  {ABOUT_US_DATA.vision}
                 </p>
               </CardContent>
             </Card>
@@ -287,23 +241,7 @@ export default function AboutPage() {
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {[
-              {
-                title: "SEC No.",
-                description: "CS 2007 28366",
-                subtitle: "Securities & Exchange Commission Registration"
-              },
-              {
-                title: "PCAB License No.",
-                description: "36037",
-                subtitle: "Valid until August 22, 2025 • Category A"
-              },
-              {
-                title: "PhilGEPS Certificate No.",
-                description: "2010-63063",
-                subtitle: "Philippine Government Electronic Procurement System"
-              },
-            ].map((cert, index) => (
+            {ABOUT_US_DATA.certifications.map((cert, index) => (
               <div
                 key={index}
                 className="text-center bg-white p-6 sm:p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-gray-100 group"
