@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Facebook, Mail, MapPin } from "lucide-react";
+import { Mail, MapPin } from "lucide-react";
+import { FacebookIcon } from "@/components/ui/facebook-icon";
 import { CONTACT_INFO } from "@/constants/contact-info";
 
 export default function Footer() {
@@ -38,7 +39,7 @@ export default function Footer() {
               </a>
             </div>
             <div className="flex items-center gap-2">
-              <Facebook className="w-5 h-5 text-red-600" />
+              <FacebookIcon className="w-5 h-5 text-red-600" />
               <a
                 href={CONTACT_INFO.social.facebook.url}
                 target="_blank"
@@ -116,7 +117,7 @@ export default function Footer() {
               className="text-gray-400 hover:text-red-600"
             >
               <span className="sr-only">Facebook</span>
-              <Facebook className="h-6 w-6" />
+              <FacebookIcon className="h-6 w-6" />
             </a>
             <a
               href={`mailto:${CONTACT_INFO.email.primary}`}

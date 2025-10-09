@@ -13,13 +13,13 @@ import {
   Phone,
   Mail,
   Clock,
-  Facebook,
   Send,
   Building,
   MessageSquare,
   Calendar,
   CheckCircle,
 } from "lucide-react";
+import { FacebookIcon } from "@/components/ui/facebook-icon";
 import { ContactInfoCard, ContactInfo } from "@/components/ContactInfoCard";
 import Link from "next/link";
 import Image from "next/image";
@@ -432,7 +432,7 @@ export default function Contact() {
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <Facebook className="w-5 h-5 text-arsd-red mt-1" />
+                    <FacebookIcon className="w-5 h-5 text-arsd-red mt-1" />
                     <div>
                       <p className="font-semibold text-gray-900">Follow Us:</p>
                       <Link
