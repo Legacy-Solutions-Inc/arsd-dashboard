@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Facebook, Mail, MapPin } from "lucide-react";
+import { CONTACT_INFO } from "@/constants/contact-info";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -20,31 +21,31 @@ export default function Footer() {
             />
           </div>
           <h3 className="text-2xl font-bold text-gray-900 mb-4">
-            ARSD Construction Corporation
+            {CONTACT_INFO.company.name}
           </h3>
           <div className="flex flex-col md:flex-row justify-center items-center gap-6 text-gray-600">
             <div className="flex items-center gap-2">
               <MapPin className="w-5 h-5 text-red-600" />
-              <span>Figueroa St. Bonifacio, Arevalo, Iloilo City</span>
+              <span>{CONTACT_INFO.address.street}, {CONTACT_INFO.address.city}</span>
             </div>
             <div className="flex items-center gap-2">
               <Mail className="w-5 h-5 text-red-600" />
               <a
-                href="mailto:hr_arsd_iloilo@yahoo.com.ph"
+                href={`mailto:${CONTACT_INFO.email.primary}`}
                 className="hover:text-red-600"
               >
-                hr_arsd_iloilo@yahoo.com.ph
+                {CONTACT_INFO.email.display}
               </a>
             </div>
             <div className="flex items-center gap-2">
               <Facebook className="w-5 h-5 text-red-600" />
               <a
-                href="https://www.facebook.com/ARSDConCorp"
+                href={CONTACT_INFO.social.facebook.url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-red-600"
               >
-                ARSDConCorp
+                {CONTACT_INFO.social.facebook.handle}
               </a>
             </div>
           </div>
@@ -109,7 +110,7 @@ export default function Footer() {
 
           <div className="flex space-x-6">
             <a
-              href="https://www.facebook.com/ARSDConCorp"
+              href={CONTACT_INFO.social.facebook.url}
               target="_blank"
               rel="noopener noreferrer"
               className="text-gray-400 hover:text-red-600"
@@ -118,7 +119,7 @@ export default function Footer() {
               <Facebook className="h-6 w-6" />
             </a>
             <a
-              href="mailto:hr_arsd_iloilo@yahoo.com.ph"
+              href={`mailto:${CONTACT_INFO.email.primary}`}
               className="text-gray-400 hover:text-red-600"
             >
               <span className="sr-only">Email</span>
