@@ -27,107 +27,29 @@ import {
 import { ServiceCard, Service } from "@/components/ServiceCard";
 import Link from "next/link";
 import Image from "next/image";
+import { SERVICES_DATA } from "@/constants/services-data";
 
 export default function Services() {
-  // All 5 main services data
-  const services = [
-    {
-      icon: <Building className="w-16 h-16 text-white" />,
-      title: "Building Construction",
-      subtitle: "Complete Construction Solutions",
-      description: "From residential homes to commercial complexes, we deliver exceptional construction services that stand the test of time.",
-      features: [
-        "Residential homes and hospitals",
-        "Commercial buildings and offices", 
-        "Industrial facilities and warehouses",
-      ],
-      bgColor: "from-blue-600 to-blue-800",
-      textColor: "text-blue-600"
-    },
-    {
-      icon: <PenTool className="w-16 h-16 text-white" />,
-      title: "Design & Plan Preparation",
-      subtitle: "Professional Design Services",
-      description: "Our expert architects and engineers create innovative designs that meet your vision and exceed industry standards.",
-      features: [
-        "Architectural design and planning",
-        "Structural engineering analysis",
-        "Permit processing and documentation"
-      ],
-      bgColor: "from-purple-600 to-purple-800",
-      textColor: "text-purple-600"
-    },
-    {
-      icon: <MapPin className="w-16 h-16 text-white" />,
-      title: "Land Development",
-      subtitle: "Infrastructure Development",
-      description: "Transform raw land into developed properties with our comprehensive land development and infrastructure services.",
-      features: [
-        "Site surveying and analysis",
-        "Earthworks and excavation",
-        "Road construction and paving",
-      ],
-      bgColor: "from-green-600 to-green-800",
-      textColor: "text-green-600"
-    },
-    {
-      icon: <Droplets className="w-16 h-16 text-white" />,
-      title: "Waterproofing",
-      subtitle: "Protection Solutions",
-      description: "Expert waterproofing solutions to protect your structures from water damage and ensure long-term durability.",
-      features: [
-        "Roof waterproofing systems",
-        "Basement and foundation waterproofing",
-        "Waterproofing maintenance and repair"
-      ],
-      bgColor: "from-cyan-600 to-cyan-800",
-      textColor: "text-cyan-600"
-    },
-    {
-      icon: <Truck className="w-16 h-16 text-white" />,
-      title: "Supply Aggregates",
-      subtitle: "Material Supply & Logistics",
-      description: "Quality construction materials and aggregates delivered to your project site with reliable logistics and competitive pricing.",
-      features: [
-        "Sand and gravel supply",
-        "Concrete aggregates",
-        "Crushed stone materials",
-      ],
-      bgColor: "from-orange-600 to-orange-800",
-      textColor: "text-orange-600"
-    }
-  ];
+  // Get icon component by name
+  const getIcon = (iconName: string, className: string) => {
+    const icons: Record<string, any> = {
+      Building, PenTool, MapPin, Droplets, Truck, Hammer, HardHat, Users, CheckCircle
+    };
+    const IconComponent = icons[iconName];
+    return IconComponent ? <IconComponent className={className} /> : <Building className={className} />;
+  };
 
-  // Equipment overview stats (generalized)
-  const equipmentOverview = [
-    {
-      title: "Heavy Equipment",
-      icon: <Hammer className="w-6 h-6 text-white" />,
-      points: [
-        "Excavators, loaders, bulldozers, road rollers",
-        "Concrete batching and crushing plants",
-        "Cranes and material handling equipment",
-      ],
-    },
-    {
-      title: "Transport Fleet",
-      icon: <Truck className="w-6 h-6 text-white" />,
-      points: [
-        "6W/10W dump trucks and tipper trucks",
-        "Transit mixers and boom trucks",
-        "Service and self-loading trucks",
-      ],
-    },
-    {
-      title: "Tools & Support",
-      icon: <HardHat className="w-6 h-6 text-white" />,
-      points: [
-        "Generators, compactors, welding and cutting tools",
-        "Power tools and site instruments",
-        "IT equipment for digital project delivery",
-      ],
-    },
-  ];
+  // Map services data with actual icon components
+  const services = SERVICES_DATA.mainServices.map(service => ({
+    ...service,
+    icon: getIcon(service.icon, "w-16 h-16 text-white")
+  }));
+
+  // Map equipment overview with actual icon components
+  const equipmentOverview = SERVICES_DATA.equipmentOverview.map(equipment => ({
+    ...equipment,
+    icon: getIcon(equipment.icon, "w-6 h-6 text-white")
+  }));
 
   return (
     <div className="min-h-screen bg-white">
@@ -248,36 +170,11 @@ export default function Services() {
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10">
-            {[
-              {
-                step: "01",
-                title: "Consultation",
-                description: "Initial meeting to understand your requirements and vision",
-                icon: <Users className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-              },
-              {
-                step: "02", 
-                title: "Design & Planning",
-                description: "Detailed architectural plans and project timeline development",
-                icon: <PenTool className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-              },
-              {
-                step: "03",
-                title: "Construction",
-                description: "Professional execution with regular progress updates",
-                icon: <Hammer className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-              },
-              {
-                step: "04",
-                title: "Completion",
-                description: "Final inspection, handover, and ongoing support",
-                icon: <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-              },
-            ].map((process, index) => (
+            {SERVICES_DATA.workProcess.map((process, index) => (
               <div key={index} className="text-center group">
                 <div className="relative mb-6 sm:mb-8">
                   <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-arsd-red to-red-600 rounded-2xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300 shadow-xl">
-                    {process.icon}
+                    {getIcon(process.icon, "w-6 h-6 sm:w-8 sm:h-8 text-white")}
                   </div>
                   <div className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 w-6 h-6 sm:w-8 sm:h-8 bg-white text-arsd-red rounded-full flex items-center justify-center text-xs sm:text-sm font-bold border-2 border-arsd-red">
                     {process.step}

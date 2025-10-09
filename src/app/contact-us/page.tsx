@@ -13,16 +13,17 @@ import {
   Phone,
   Mail,
   Clock,
-  Facebook,
   Send,
   Building,
   MessageSquare,
   Calendar,
   CheckCircle,
 } from "lucide-react";
+import { FacebookIcon } from "@/components/ui/facebook-icon";
 import { ContactInfoCard, ContactInfo } from "@/components/ContactInfoCard";
 import Link from "next/link";
 import Image from "next/image";
+import { CONTACT_INFO } from "@/constants/contact-info";
 
 export default function Contact() {
   const [firstName, setFirstName] = useState("");
@@ -39,34 +40,34 @@ export default function Contact() {
       icon: <MapPin className="w-6 h-6 text-arsd-red" />,
       title: "Our Location",
       details: [
-        "Figueroa St. Bonifacio",
-        "Arevalo, Iloilo City",
-        "Philippines 5000",
+        CONTACT_INFO.address.street,
+        CONTACT_INFO.address.city,
+        `${CONTACT_INFO.address.country} ${CONTACT_INFO.address.postalCode}`,
       ],
     },
     {
       icon: <Phone className="w-6 h-6 text-arsd-red" />,
       title: "Phone Numbers",
       details: [
-        "+63 33 123 4567",
-        "+63 917 123 4567",
-        "Landline: (033) 123-4567",
+        CONTACT_INFO.phone.landline,
+        CONTACT_INFO.phone.mobile1,
+        `Landline: ${CONTACT_INFO.phone.landlineFormatted}`,
       ],
     },
     {
       icon: <Mail className="w-6 h-6 text-arsd-red" />,
       title: "Email Address",
       details: [
-        "hr_arsd_iloilo@yahoo.com.ph",
+        CONTACT_INFO.email.display,
       ],
     },
     {
       icon: <Clock className="w-6 h-6 text-arsd-red" />,
       title: "Business Hours",
       details: [
-        "Monday - Friday: 8:00 AM - 5:00 PM",
-        "Saturday: 8:00 AM - 12:00 PM",
-        "Sunday: Closed",
+        CONTACT_INFO.businessHours.weekdays,
+        CONTACT_INFO.businessHours.saturday,
+        CONTACT_INFO.businessHours.sunday,
       ],
     },
   ];
@@ -81,10 +82,9 @@ export default function Contact() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const to = "hr_arsd_iloilo@yahoo.com.ph";
     const subject = `New inquiry from ${firstName} ${lastName}`;
     const body = `Name: ${firstName} ${lastName}%0D%0AEmail: ${email}%0D%0APhone: ${phone}%0D%0ACompany: ${company}%0D%0ABudget: ${budget}%0D%0ATimeline: ${timeline}%0D%0A%0D%0ADetails:%0D%0A${encodeURIComponent(message)}`;
-    const mailto = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${body}`;
+    const mailto = `mailto:${CONTACT_INFO.email.primary}?subject=${encodeURIComponent(subject)}&body=${body}`;
     window.location.href = mailto;
   };
 
@@ -140,9 +140,9 @@ export default function Contact() {
               </div>
               <h3 className="font-semibold text-gray-900 mb-2">Our Location</h3>
               <div className="text-sm text-gray-600 leading-6">
-                <div>Figueroa St. Bonifacio</div>
-                <div>Arevalo, Iloilo City</div>
-                <div>Philippines 5000</div>
+                <div>{CONTACT_INFO.address.street}</div>
+                <div>{CONTACT_INFO.address.city}</div>
+                <div>{CONTACT_INFO.address.country} {CONTACT_INFO.address.postalCode}</div>
               </div>
             </div>
             {/* Phone */}
@@ -152,9 +152,9 @@ export default function Contact() {
               </div>
               <h3 className="font-semibold text-gray-900 mb-2">Phone Numbers</h3>
               <div className="text-sm text-gray-600 leading-6">
-                <div>+63 33 123 4567</div>
-                <div>+63 917 123 4567</div>
-                <div>Landline: (033) 123-4567</div>
+                <div>{CONTACT_INFO.phone.landline}</div>
+                <div>{CONTACT_INFO.phone.mobile1}</div>
+                <div>Landline: {CONTACT_INFO.phone.landlineFormatted}</div>
               </div>
             </div>
             {/* Email */}
@@ -164,7 +164,7 @@ export default function Contact() {
               </div>
               <h3 className="font-semibold text-gray-900 mb-2">Email Address</h3>
               <div className="text-sm text-gray-600 leading-6">
-                hr_arsd_iloilo@yahoo.com.ph
+                {CONTACT_INFO.email.display}
               </div>
             </div>
             {/* Hours */}
@@ -174,9 +174,9 @@ export default function Contact() {
               </div>
               <h3 className="font-semibold text-gray-900 mb-2">Business Hours</h3>
               <div className="text-sm text-gray-600 leading-6">
-                <div>Monday - Friday: 8:00 AM - 5:00 PM</div>
-                <div>Saturday: 8:00 AM - 12:00 PM</div>
-                <div>Sunday: Closed</div>
+                <div>{CONTACT_INFO.businessHours.weekdays}</div>
+                <div>{CONTACT_INFO.businessHours.saturday}</div>
+                <div>{CONTACT_INFO.businessHours.sunday}</div>
               </div>
             </div>
           </div>
@@ -413,8 +413,7 @@ export default function Contact() {
                     <div>
                       <p className="font-semibold text-gray-900">Address:</p>
                       <p className="text-gray-600">
-                        Figueroa St. Bonifacio, Arevalo, Iloilo City,
-                        Philippines 5000
+                        {CONTACT_INFO.address.full}
                       </p>
                     </div>
                   </div>
@@ -425,23 +424,23 @@ export default function Contact() {
                         Office Hours:
                       </p>
                       <p className="text-gray-600">
-                        Monday - Friday: 8:00 AM - 5:00 PM
+                        {CONTACT_INFO.businessHours.weekdays}
                       </p>
                       <p className="text-gray-600">
-                        Saturday: 8:00 AM - 12:00 PM
+                        {CONTACT_INFO.businessHours.saturday}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <Facebook className="w-5 h-5 text-arsd-red mt-1" />
+                    <FacebookIcon className="w-5 h-5 text-arsd-red mt-1" />
                     <div>
                       <p className="font-semibold text-gray-900">Follow Us:</p>
                       <Link
-                        href="https://www.facebook.com/ARSDConCorp"
+                        href={CONTACT_INFO.social.facebook.url}
                         target="_blank"
                         className="text-arsd-red hover:underline"
                       >
-                        facebook.com/ARSDConCorp
+                        facebook.com/{CONTACT_INFO.social.facebook.handle}
                       </Link>
                     </div>
                   </div>
@@ -453,7 +452,7 @@ export default function Contact() {
                   className="w-full h-full border-0"
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
-                  src="https://www.google.com/maps?q=Figueroa%20St.%20Bonifacio%2C%20Arevalo%2C%20Iloilo%20City&output=embed"
+                  src={CONTACT_INFO.maps.embedUrl}
                 />
               </div>
             </div>
