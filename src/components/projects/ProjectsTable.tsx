@@ -116,10 +116,24 @@ export function ProjectsTable({
         </div>
       </div>
       
-      {/* Mobile Card Layout */}
-      <div className="block lg:hidden">
-        <div className="p-3 sm:p-4 space-y-3">
-          {paginatedProjects.map((project) => (
+      {/* Show skeleton table when no projects exist */}
+      {projects.length === 0 ? (
+        <div className="p-6">
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Building2 className="h-8 w-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">No projects added yet</h3>
+            <p className="text-gray-500 text-sm">Create your first project to get started with project management</p>
+          </div>
+          <SkeletonTable rows={itemsPerPage} columns={8} />
+        </div>
+      ) : (
+        <>
+          {/* Mobile Card Layout */}
+          <div className="block lg:hidden">
+            <div className="p-3 sm:p-4 space-y-3">
+              {paginatedProjects.map((project) => (
             <div key={project.id} className="glass-subtle rounded-xl p-3 sm:p-4 border border-white/20">
               <div className="flex flex-col gap-3">
                 {/* Project Header */}
@@ -415,6 +429,8 @@ export function ProjectsTable({
             </div>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );
