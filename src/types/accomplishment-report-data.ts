@@ -34,6 +34,7 @@ export interface ProjectCosts {
   balance?: number;
   collectibles?: number;
   direct_cost_savings?: number;
+  target_percentage?: number;
   received_percentage?: number;
   utilization_percentage?: number;
   total_pos?: number;
