@@ -156,6 +156,8 @@ export class ProjectDetailsService {
       .from('cost_items')
       .select('*')
       .eq('accomplishment_report_id', latestReportId)
+      .in('type', ['Target', 'Equipment', 'Labor', 'Materials'])
+      .order('date', { ascending: true });
     
     if (error) console.error('Error fetching cost items:', error);
     return data || [];
