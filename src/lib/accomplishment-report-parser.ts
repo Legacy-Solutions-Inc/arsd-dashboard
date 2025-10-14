@@ -289,7 +289,7 @@ export class AccomplishmentReportParser {
   private parseProjectCosts(jsonData: any[][], section: { start: number; end: number }, accomplishmentReportId?: string): ProjectCosts[] {
     const costs: ProjectCosts[] = [];
     
-    // COLUMN MAPPING - Project Costs is from AN to AX (columns 39-49):
+    // COLUMN MAPPING - Project Costs is from AN to AY (columns 39-50):
     const COLUMNS = {
       target_cost_total: 39,           // Column AN = 39
       swa_cost_total: 40,              // Column AO = 40
@@ -298,9 +298,10 @@ export class AccomplishmentReportParser {
       balance: 43,                     // Column AR = 43
       collectibles: 44,                // Column AS = 44
       direct_cost_savings: 45,         // Column AT = 45
-      received_percentage: 47,         // Column AU = 46
-      utilization_percentage: 48,      // Column AV = 47
-      total_pos: 49                    // Column AW = 48
+      received_percentage: 47,         // Column AV = 47
+      utilization_percentage: 48,      // Column AW = 48
+      total_pos: 49,                   // Column AX = 49
+      target_percentage: 50        // Column AY = 50
     };
 
     for (let i = section.start + 1; i < section.end; i++) {
@@ -314,6 +315,12 @@ export class AccomplishmentReportParser {
       });
 
       if (!hasData) continue;
+      console.log('ProjectCosts row', i, {
+        receivedRaw: this.getCellValueByIndex(row, COLUMNS.received_percentage),
+        utilizationRaw: this.getCellValueByIndex(row, COLUMNS.utilization_percentage),
+        totalPosRaw: this.getCellValueByIndex(row, COLUMNS.total_pos),
+        targetPercentageRaw: this.getCellValueByIndex(row, COLUMNS.target_percentage)
+      });
 
       costs.push({
         id: '',
@@ -329,7 +336,8 @@ export class AccomplishmentReportParser {
         received_percentage: this.parseNumber(this.getCellValueByIndex(row, COLUMNS.received_percentage)),
         utilization_percentage: this.parseNumber(this.getCellValueByIndex(row, COLUMNS.utilization_percentage)),
         total_pos: this.parseNumber(this.getCellValueByIndex(row, COLUMNS.total_pos)),
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        target_percentage: this.parseNumber(this.getCellValueByIndex(row, COLUMNS.target_percentage)),
       });
     }
 
@@ -758,7 +766,9 @@ export class AccomplishmentReportParser {
   private parseNumber(value: string): number | undefined {
     if (!value || value === '') return undefined;
     
-    const parsed = parseFloat(value.replace(/,/g, ''));
+    // Remove all non-numeric characters except minus sign and decimal point
+    const sanitized = value.toString().replace(/[^0-9.-]/g, '');
+    const parsed = parseFloat(sanitized);
     return isNaN(parsed) ? undefined : parsed;
   }
 
