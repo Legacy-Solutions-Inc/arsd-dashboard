@@ -64,7 +64,7 @@ const calculateProjectStats = (project: ProjectDetails) => {
   const targetCostTotal = parseNumericValue(latestProjectCost.target_cost_total);
   const directCostTotal = parseNumericValue(latestProjectCost.direct_cost_total);
 
-  const targetProgress = roundToTwoDecimals(calculatePercentage(targetCostTotal, contractAmount));
+  const targetProgress = roundToTwoDecimals(latestProjectCost.target_percentage*100);
   const actualProgress = roundToTwoDecimals(calculatePercentage(directCostTotal, contractAmount));
   const slippage = roundToTwoDecimals(targetProgress - actualProgress);
 
@@ -309,7 +309,11 @@ const ProjectStatsGrid = ({ stats }: { stats: ReturnType<typeof calculateProject
           />
           <StatCard 
             label="Target %" 
-            value={stats.targetProgress} 
+            value={(() => { 
+              const v = parseNumericValue(stats.latestProjectCost.target_percentage); 
+              const scaled = v <= 1 ? v * 100 : v; 
+              return Math.round(scaled * 100) / 100; 
+            })()} 
             isPercentage={true}
             icon={Target}
             isPositive={stats.targetProgress <= 100}
