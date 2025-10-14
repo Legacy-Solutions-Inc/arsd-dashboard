@@ -80,37 +80,30 @@ const sortDataChronologically = <T extends { month: string }>(data: T[]): T[] =>
 };
 
 const processCostItems = (items: any[]) => {
-  const typeBreakdown = items.reduce((acc: any, item: any) => {
-    const type = item.type || 'Unknown';
-    const cost = parseFloat(item.cost) || 0;
+  // Normalize common type variants to canonical buckets
+  const normalizeType = (raw: any): string => {
+    const s = (raw || '').toString().toLowerCase().trim();
+    if (s.includes('target')) return 'Target';
+    if (s.includes('equipment')) return 'Equipment';
+    if (s.includes('labor') || s.includes('labour')) return 'Labor';
+    if (s.includes('materials') || s.includes('matl')) return 'Materials';
+    return raw || 'Other';
+  };
+
+  const typeBreakdown = items.reduce((acc: Record<string, number>, item: any) => {
+    const type = normalizeType(item.type);
+    const raw = item.cost ?? 0;
+    const num = typeof raw === 'number' 
+      ? raw 
+      : parseFloat(String(raw).replace(/[^0-9.-]/g, ''));
+    const cost = isNaN(num) ? 0 : num;
     acc[type] = (acc[type] || 0) + cost;
     return acc;
-  }, {});
+  }, {} as Record<string, number>);
 
-  // Define preferred order with Target first
-  const preferredOrder = ['Target', 'Equipment', 'Labor', 'Materials'];
-  
-  return Object.entries(typeBreakdown)
-    .map(([type, cost]) => ({
-      type,
-      cost: cost as number
-    }))
-    .sort((a, b) => {
-      const aIndex = preferredOrder.indexOf(a.type);
-      const bIndex = preferredOrder.indexOf(b.type);
-      
-      // If both are in preferred order, sort by their position
-      if (aIndex !== -1 && bIndex !== -1) {
-        return aIndex - bIndex;
-      }
-      
-      // If only one is in preferred order, prioritize it
-      if (aIndex !== -1) return -1;
-      if (bIndex !== -1) return 1;
-      
-      // If neither is in preferred order, sort alphabetically
-      return a.type.localeCompare(b.type);
-    });
+  // Only keep the four primary categories (in this exact order)
+  const preferredOrder = ['Target', 'Equipment', 'Labor', 'Materials'] as const;
+  return preferredOrder.map(key => ({ type: key, cost: typeBreakdown[key] || 0 }));
 };
 
 export function CostAnalysis({ costData, costItemsData = [], manHoursData = [], projectData }: CostAnalysisProps) {
@@ -118,17 +111,34 @@ export function CostAnalysis({ costData, costItemsData = [], manHoursData = [], 
   // Data processing with useMemo for performance
   const processedData = useMemo(() => {
     // Normalize cost data to handle both formats
-    const normalizedCostData = costData.map((item: any, index: number) => ({
-      id: `${item.month || item.month_name || item.period || `Month ${index + 1}`}-${index}`,
-      month: item.month || item.month_name || item.period || `Month ${index + 1}`,
-      target: item.target || item.target_cost || 0,
-      swa: item.swa || item.swa_cost || 0,
-      billed: item.billed || item.billed_cost || 0,
-      direct: item.direct || item.direct_cost || 0,
+    const normalizedCostData = costData.map((item: any) => ({
+      id: `${item.month || item.month_name || item.period || ''}`,
+      month: item.month || item.month_name || item.period || '',
+      target: Number(item.target || item.target_cost || 0),
+      swa: Number(item.swa || item.swa_cost || 0),
+      billed: Number(item.billed || item.billed_cost || 0),
+      direct: Number(item.direct || item.direct_cost || 0),
     })).filter(item => item.month);
 
-    // Sort data chronologically
-    const sortedCostData = sortDataChronologically(normalizedCostData);
+    // Aggregate rows with the same month/date by summing each cost bucket
+    const monthToTotals = new Map<string, { id: string; month: string; target: number; swa: number; billed: number; direct: number }>();
+    for (const row of normalizedCostData) {
+      const key = row.month;
+      const existing = monthToTotals.get(key);
+      if (existing) {
+        existing.target += row.target;
+        existing.swa += row.swa;
+        existing.billed += row.billed;
+        existing.direct += row.direct;
+      } else {
+        monthToTotals.set(key, { ...row });
+      }
+    }
+
+    const aggregatedCostData = Array.from(monthToTotals.values());
+
+    // Sort aggregated data chronologically
+    const sortedCostData = sortDataChronologically(aggregatedCostData);
 
     // Process cost items
     const costItemsBreakdown = processCostItems(costItemsData);
