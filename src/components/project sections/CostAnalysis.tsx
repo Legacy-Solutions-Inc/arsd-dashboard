@@ -126,12 +126,19 @@ const ManHoursChart = ({
 
   const currentData = view === 'monthly' ? monthlyData : dailyData;
   const isMonthly = view === 'monthly';
+  
+  // For daily view, transform data to show persons instead of hours
+  const chartData = isMonthly ? currentData : currentData.map(item => ({
+    ...item,
+    actual: item.actualPersons || 0,
+    projected: item.projectedPersons || 0
+  }));
 
   return (
     <div className="bg-white rounded-lg p-3 lg:p-4 shadow-sm border">
       <div className="flex items-center justify-between mb-2">
         <h3 className="font-semibold text-sm lg:text-base text-arsd-red">
-          Man Hours Tracking ({isMonthly ? 'Monthly' : 'Daily'})
+          Man Hours Tracking ({isMonthly ? 'Cumulative' : 'Daily Basis'})
         </h3>
         <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
           <Button
@@ -141,7 +148,7 @@ const ManHoursChart = ({
             className="h-7 px-2 text-xs"
           >
             <BarChart3 className="h-3 w-3 mr-1" />
-            Monthly
+            Cumulative
           </Button>
           <Button
             variant={view === 'daily' ? 'default' : 'ghost'}
@@ -150,40 +157,49 @@ const ManHoursChart = ({
             className="h-7 px-2 text-xs"
           >
             <Calendar className="h-3 w-3 mr-1" />
-            Daily
+            Daily Basis
           </Button>
         </div>
       </div>
       <ResponsiveContainer width="100%" height={isMonthly ? CHART_HEIGHT : CHART_HEIGHT_DAILY}>
-        <BarChart data={currentData} margin={{ top: 15, right: 20, left: 0, bottom: isMonthly ? 40 : 40 }}>
+        <BarChart data={chartData} margin={{ top: 15, right: 20, left: 0, bottom: isMonthly ? 40 : 40 }}>
           <XAxis
             dataKey="date"
             tick={{ fontSize: isMonthly ? 10 : 9 }}
             angle={-45}
             textAnchor="end"
             height={isMonthly ? 80 : 120}
-            interval={isMonthly ? 0 : Math.max(1, Math.floor(currentData.length / 15))}
+            interval={isMonthly ? 0 : Math.max(1, Math.floor(chartData.length / 15))}
             tickFormatter={(value) => formatDateLabel(value, isMonthly)}
           />
           <YAxis
             tick={{ fontSize: 10 }}
-            tickFormatter={formatHours}
+            tickFormatter={isMonthly ? formatHours : (value) => `${Math.round(value)} pax`}
           />
           <Tooltip
-            formatter={(value, name) => [`${Math.round(Number(value))} hours`, name]}
+            formatter={(value, name) => {
+              if (isMonthly) {
+                return [`${Math.round(Number(value))} hours`, name];
+              } else {
+                // For daily view, show pax
+                const pax = Math.round(Number(value));
+                const hours = pax * 8;
+                return [`${pax} pax (${hours} hours)`, name];
+              }
+            }}
             labelFormatter={(label) => `Period: ${formatDateLabel(label, isMonthly)}`}
           />
           <Legend />
           <Bar 
             dataKey="actual" 
-            name="Actual Hours" 
+            name={isMonthly ? "Actual Hours" : "Daily Actual Pax"} 
             fill={CHART_COLORS.actual} 
             maxBarSize={isMonthly ? 60 : 40}
             radius={[2, 2, 0, 0]}
           />
           <Bar 
             dataKey="projected" 
-            name="Projected Hours" 
+            name={isMonthly ? "Projected Hours" : "Daily Projected Pax"} 
             fill={CHART_COLORS.projected} 
             maxBarSize={isMonthly ? 60 : 40}
             radius={[2, 2, 0, 0]}
