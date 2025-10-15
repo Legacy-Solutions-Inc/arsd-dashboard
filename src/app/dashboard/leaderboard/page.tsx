@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { Project } from '@/types/projects';
 import { ProjectDetailsService } from '@/services/projects/project-details.service';
 import { ArrowDown, ArrowUp, AlertTriangle, CheckCircle2, Medal, Trophy, Percent, PiggyBank, User as UserIcon, List } from 'lucide-react';
+import { calculateLeaderboardStats, parseNumericValue, roundToTwoDecimals } from '@/utils/project-calculations';
 
 type LeaderboardRow = {
   project: Project;
@@ -30,19 +31,7 @@ type EngineerRow = {
   projectsCount: number;
 };
 
-const round2 = (v: number) => Math.round(v * 100) / 100;
-const safeNum = (v: any) => {
-  if (v === null || v === undefined) return 0;
-  if (typeof v === 'number') return isNaN(v) ? 0 : v;
-  if (typeof v === 'string') {
-    // Remove currency symbols and thousand separators
-    const cleaned = v.replace(/[^0-9.\-]/g, '');
-    const n = Number(cleaned);
-    return isNaN(n) ? 0 : n;
-  }
-  const n = Number(v);
-  return isNaN(n) ? 0 : n;
-};
+// Utility functions (now imported from centralized utils)
 
 export default function LeaderboardPage() {
   const { user, isSuperAdmin } = useRBAC();
@@ -75,7 +64,12 @@ export default function LeaderboardPage() {
         // For each project, pull the latest parsed data via service (respects RLS and latest-approved logic)
         const fetched: LeaderboardRow[] = [];
         const fetchedSavings: SavingsRow[] = [];
-        const engineerToStats = new Map<string, { totalSlip: number; count: number; email?: string }>();
+        const engineerToStats = new Map<string, { 
+          totalSlip: number; 
+          count: number; 
+          email?: string;
+          slippages: number[];
+        }>();
         // Determine sinceDate based on selected period
         let sinceDate: Date | null = null;
         if (period === 'week') {
@@ -115,13 +109,23 @@ export default function LeaderboardPage() {
               return null;
             }
 
-            const contractAmount = safeNum((latestDetail as any)?.contract_amount);
-            const targetTotal = safeNum((latestCost as any)?.target_cost_total);
-            const directTotal = safeNum((latestCost as any)?.direct_cost_total);
-
-            const targetPct = contractAmount > 0 ? round2((targetTotal / contractAmount) * 100) : 0;
-            const actualPct = contractAmount > 0 ? round2((directTotal / contractAmount) * 100) : 0;
-            const slippage = round2(targetPct - actualPct);
+            // Use centralized calculation function
+            const { targetProgress: targetPct, actualProgress: actualPct, slippage } = calculateLeaderboardStats(latestCost, latestDetail);
+            
+            // Debug logging for slippage calculations - log all projects for Rafael
+            const engineerName = p.project_manager?.display_name?.trim() || (latestDetail as any)?.site_engineer_name?.trim();
+            if (engineerName && engineerName.includes('Rafael')) {
+              console.log('Debug slippage calculation for Rafael project:', {
+                projectName: p.project_name,
+                engineerName,
+                targetProgress: targetPct,
+                actualProgress: actualPct,
+                slippage,
+                targetPercentage: latestCost?.target_percentage,
+                swaCostTotal: latestCost?.swa_cost_total,
+                contractAmount: latestDetail?.contract_amount
+              });
+            }
 
             const result = {
               project: p,
@@ -132,8 +136,9 @@ export default function LeaderboardPage() {
             };
 
             // Savings leaderboard
-            const savingsAmt = safeNum((latestCost as any)?.direct_cost_savings);
-            const savingsPct = contractAmount > 0 ? round2((savingsAmt / contractAmount) * 100) : 0;
+            const contractAmount = parseNumericValue((latestDetail as any)?.contract_amount);
+            const savingsAmt = parseNumericValue((latestCost as any)?.direct_cost_savings);
+            const savingsPct = contractAmount > 0 ? roundToTwoDecimals((savingsAmt / contractAmount) * 100) : 0;
             const savingsResult = {
               project: p,
               savingsAmount: savingsAmt,
@@ -164,7 +169,13 @@ export default function LeaderboardPage() {
             if (result) fetched.push(result);
             if (savingsResult) fetchedSavings.push(savingsResult);
             if (engineerResult) {
-              const existing = engineerToStats.get(engineerResult.key) || { totalSlip: 0, count: 0, email: engineerResult.email };
+              const existing = engineerToStats.get(engineerResult.key) || { 
+                totalSlip: 0, 
+                count: 0, 
+                email: engineerResult.email,
+                slippages: [] as number[] // Store individual slippage values for proper averaging
+              };
+              existing.slippages.push(engineerResult.slippage);
               existing.totalSlip += engineerResult.slippage;
               existing.count += 1;
               existing.email = engineerResult.email || existing.email;
@@ -182,12 +193,30 @@ export default function LeaderboardPage() {
         setSavingsAll(savingsSorted);
         setSavings(savingsSorted.slice(0, 10));
         // Build engineer leaderboard (lower avg slippage is better)
-        const engineerRows: EngineerRow[] = Array.from(engineerToStats.entries()).map(([key, s]) => ({
-          name: key.split('__')[0],
-          email: s.email,
-          avgSlippage: round2(s.totalSlip / Math.max(1, s.count)),
-          projectsCount: s.count,
-        }));
+        const engineerRows: EngineerRow[] = Array.from(engineerToStats.entries()).map(([key, s]) => {
+          const avgSlippage = s.slippages && s.slippages.length > 0 
+            ? roundToTwoDecimals(s.slippages.reduce((sum: number, slip: number) => sum + slip, 0) / s.slippages.length)
+            : roundToTwoDecimals(s.totalSlip / Math.max(1, s.count));
+          
+          // Debug logging for engineer slippage
+          if (key.includes('Rafael III Prudente')) {
+            console.log('Debug engineer slippage calculation:', {
+              engineer: key.split('__')[0],
+              slippages: s.slippages,
+              avgSlippage,
+              projectsCount: s.count,
+              totalSlip: s.totalSlip,
+              calculation: s.slippages ? `${s.slippages.join(' + ')} / ${s.slippages.length} = ${avgSlippage}%` : `${s.totalSlip} / ${s.count} = ${avgSlippage}%`
+            });
+          }
+          
+          return {
+            name: key.split('__')[0],
+            email: s.email,
+            avgSlippage,
+            projectsCount: s.count,
+          };
+        });
         engineerRows.sort((a, b) => a.avgSlippage - b.avgSlippage || b.projectsCount - a.projectsCount || a.name.localeCompare(b.name));
         setEngineersAll(engineerRows);
         setEngineers(engineerRows.slice(0, 10));
