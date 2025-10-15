@@ -112,20 +112,6 @@ export default function LeaderboardPage() {
             // Use centralized calculation function
             const { targetProgress: targetPct, actualProgress: actualPct, slippage } = calculateLeaderboardStats(latestCost, latestDetail);
             
-            // Debug logging for slippage calculations - log all projects for Rafael
-            const engineerName = p.project_manager?.display_name?.trim() || (latestDetail as any)?.site_engineer_name?.trim();
-            if (engineerName && engineerName.includes('Rafael')) {
-              console.log('Debug slippage calculation for Rafael project:', {
-                projectName: p.project_name,
-                engineerName,
-                targetProgress: targetPct,
-                actualProgress: actualPct,
-                slippage,
-                targetPercentage: latestCost?.target_percentage,
-                swaCostTotal: latestCost?.swa_cost_total,
-                contractAmount: latestDetail?.contract_amount
-              });
-            }
 
             const result = {
               project: p,
@@ -231,24 +217,25 @@ export default function LeaderboardPage() {
   }, [projects, projectsLoading, period]);
 
   const topPerformers = useMemo(() => {
-    // Lowest slippage is best (ahead or on schedule). Ties stable by name.
-    return [...rows]
-      .sort((a, b) => a.slippage - b.slippage || a.project.project_name.localeCompare(b.project.project_name))
-      .slice(0, 10);
-  }, [rows]);
-
-  const underPerformers = useMemo(() => {
+    // Highest slippage (more positive) is best. Ties stable by name.
     return [...rows]
       .sort((a, b) => b.slippage - a.slippage || a.project.project_name.localeCompare(b.project.project_name))
       .slice(0, 10);
   }, [rows]);
 
+  const underPerformers = useMemo(() => {
+    // Lowest slippage (more negative) is worst
+    return [...rows]
+      .sort((a, b) => a.slippage - b.slippage || a.project.project_name.localeCompare(b.project.project_name))
+      .slice(0, 10);
+  }, [rows]);
+
   const topPerformersAll = useMemo(() => {
-    return [...rows].sort((a, b) => a.slippage - b.slippage || a.project.project_name.localeCompare(b.project.project_name));
+    return [...rows].sort((a, b) => b.slippage - a.slippage || a.project.project_name.localeCompare(b.project.project_name));
   }, [rows]);
 
   const underPerformersAll = useMemo(() => {
-    return [...rows].sort((a, b) => b.slippage - a.slippage || a.project.project_name.localeCompare(b.project.project_name));
+    return [...rows].sort((a, b) => a.slippage - b.slippage || a.project.project_name.localeCompare(b.project.project_name));
   }, [rows]);
 
   return (
@@ -313,7 +300,7 @@ export default function LeaderboardPage() {
                       </div>
                       <div className="text-right">
                         <div className="text-xs sm:text-sm font-semibold text-emerald-700 flex items-center gap-1 justify-end"><ArrowDown className="h-4 w-4" />{r.slippage.toFixed(2)}%</div>
-                        <div className="text-[10px] sm:text-[11px] text-gray-500">Target {r.targetProgress.toFixed(1)}% vs Actual {r.actualProgress.toFixed(1)}%</div>
+                        <div className="text-[10px] sm:text-[11px] text-gray-500">Target {r.targetProgress.toFixed(2)}% vs Actual {r.actualProgress.toFixed(2)}%</div>
                       </div>
                     </div>
                   ))
