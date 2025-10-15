@@ -7,49 +7,16 @@ import { Button } from "@/components/ui/button";
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useState, useMemo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { 
+  processScheduleTasksData, 
+  getTaskColor, 
+  isTaskActiveInWeek,
+  calculateTaskPagination,
+  calculateAccomplishmentsPagination
+} from "@/utils/schedule-tasks-utils";
+import { ScheduleTasksProps, Task, GanttTask, WeeklyAccomplishment } from "@/types/schedule-tasks";
 
-interface Task {
-  id: number;
-  name: string;
-  progress: number;
-  weight: number;
-  cost: number;
-  startDate: string;
-  endDate: string;
-  status: string;
-}
-
-interface GanttTask {
-  id: string;
-  item: string;
-  description: string;
-  startDate: string;
-  endDate: string;
-  cost: number;
-  type: string;
-  weight?: number;
-  manpower?: number;
-  duration?: number;
-}
-
-interface WeeklyAccomplishment {
-  week: number;
-  weekStart: string;
-  periodicPhysical: number;
-  periodicFinancial: number;
-  accumulativePhysical: number;
-  accumulativeFinancial: number;
-}
-
-interface ScheduleTasksProps {
-  tasks: Task[];
-  costItemsSecondaryData?: any[];
-  targetCostTotal?: number;
-  projectData?: {
-    actualProgress: number;
-    targetProgress: number;
-  };
-}
+// Interfaces are now imported from types file
 
 export function ScheduleTasks({ tasks, costItemsSecondaryData = [], targetCostTotal = 0, projectData }: ScheduleTasksProps) {
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
@@ -57,227 +24,40 @@ export function ScheduleTasks({ tasks, costItemsSecondaryData = [], targetCostTo
   const [currentAccomplishmentsPage, setCurrentAccomplishmentsPage] = useState(1);
   const itemsPerPage = 5;
 
-  // Process costItemsSecondaryData into Gantt tasks
-  const ganttTasks = useMemo(() => {
-    if (!costItemsSecondaryData || costItemsSecondaryData.length === 0) return [];
-
-    const taskMap = new Map<string, GanttTask>();
-    
-    costItemsSecondaryData.forEach((item, index) => {
-      // Skip invalid entries
-      if (!item || (!item.item && !item.type && !item.description)) return;
-      
-      const key = `${item.item || item.type || `item-${index}`}-${item.description || item.name || 'task'}`;
-      
-      if (!taskMap.has(key)) {
-        // Create new task with proper validation
-        const startDate = item.date || item.start_date;
-        const endDate = item.end_date || item.date;
-        
-        // Validate dates
-        if (!startDate || startDate === 'Invalid Date' || isNaN(new Date(startDate).getTime())) {
-          return; // Skip invalid entries
-        }
-        
-        taskMap.set(key, {
-          id: key,
-          item: item.item || item.type || `Item ${index + 1}`,
-          description: item.description || item.name || 'Task Description',
-          startDate: startDate,
-          endDate: endDate || startDate,
-          cost: parseFloat(item.cost) || 0,
-          type: item.type || 'target',
-          weight: parseFloat(item.weight) || 0,
-          manpower: parseInt(item.manpower) || 0,
-          duration: 0
-        });
-      } else {
-        // Update existing task
-        const existing = taskMap.get(key)!;
-        const currentDate = item.date || item.start_date;
-        
-        if (currentDate && currentDate !== 'Invalid Date' && !isNaN(new Date(currentDate).getTime())) {
-          // Update end date if current date is later
-          if (new Date(currentDate) > new Date(existing.endDate)) {
-            existing.endDate = currentDate;
-          }
-          // Update start date if current date is earlier
-          if (new Date(currentDate) < new Date(existing.startDate)) {
-            existing.startDate = currentDate;
-          }
-        }
-        // Accumulate cost
-        existing.cost += parseFloat(item.cost) || 0;
-      }
-    });
-
-    // Calculate duration for each task and filter out invalid ones
-    const validTasks = Array.from(taskMap.values()).filter(task => {
-      const start = new Date(task.startDate);
-      const end = new Date(task.endDate);
-      
-      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-        return false;
-      }
-      
-      task.duration = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-      return task.duration > 0;
-    });
-
-    // Calculate weight percentage for each task based on target cost total
-    validTasks.forEach(task => {
-      if (targetCostTotal > 0) {
-        // Calculate weight based on: (item cost / target cost total) * 100
-        task.weight = (task.cost / targetCostTotal) * 100;
-      } else {
-        // Fallback to 0 if no target cost total provided
-        task.weight = 0;
-      }
-    });
-
-    return validTasks.sort((a, b) => 
-      new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
-    );
-  }, [costItemsSecondaryData, targetCostTotal]);
-
-  // Calculate timeline bounds
-  const timelineBounds = useMemo(() => {
-    if (ganttTasks.length === 0) return { start: new Date(), end: new Date() };
-    
-    const dates = ganttTasks.flatMap(task => [
-      new Date(task.startDate),
-      new Date(task.endDate)
-    ]);
-    
-    return {
-      start: new Date(Math.min(...dates.map(d => d.getTime()))),
-      end: new Date(Math.max(...dates.map(d => d.getTime())))
-    };
-  }, [ganttTasks]);
-
-  // Generate weekly timeline
-  const weeklyTimeline = useMemo(() => {
-    if (ganttTasks.length === 0) return [];
-    
-    const weeks = [];
-    const current = new Date(timelineBounds.start);
-    const end = new Date(timelineBounds.end);
-    
-    // Start from the beginning of the week
-    current.setDate(current.getDate() - current.getDay());
-    
-    let weekNumber = 1;
-    while (current <= end) {
-      const weekStart = new Date(current);
-      const weekEnd = new Date(current);
-      weekEnd.setDate(weekEnd.getDate() + 6);
-      
-      weeks.push({
-        week: weekNumber,
-        start: weekStart,
-        end: weekEnd,
-        label: `WEEK ${weekNumber}`,
-        dateLabel: weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-      });
-      
-      current.setDate(current.getDate() + 7);
-      weekNumber++;
+  // Process all schedule tasks data using utility functions
+  const {
+    ganttTasks,
+    timelineBounds,
+    weeklyTimeline,
+    weeklyAccomplishments,
+    sCurveData,
+    totalProjectCost,
+    totalWeight
+  } = useMemo(() => {
+    if (!projectData) {
+      return {
+        ganttTasks: [],
+        timelineBounds: { start: new Date(), end: new Date() },
+        weeklyTimeline: [],
+        weeklyAccomplishments: [],
+        sCurveData: [],
+        totalProjectCost: 0,
+        totalWeight: 0
+      };
     }
-    
-    return weeks;
-  }, [timelineBounds, ganttTasks]);
 
-  // Generate weekly accomplishments (mock data for now)
-  const weeklyAccomplishments = useMemo(() => {
-    if (ganttTasks.length === 0) return [];
-    
-    const totalCost = ganttTasks.reduce((sum, task) => sum + task.cost, 0);
-    const accomplishments: WeeklyAccomplishment[] = [];
-    
-    let accumulativePhysical = 0;
-    let accumulativeFinancial = 0;
-    
-    weeklyTimeline.forEach((week, index) => {
-      // Calculate periodic values (mock calculation)
-      const periodicPhysical = Math.random() * 8; // 0-8% per week
-      const periodicFinancial = Math.random() * (totalCost * 0.1); // 0-10% of total cost
-      
-      accumulativePhysical += periodicPhysical;
-      accumulativeFinancial += periodicFinancial;
-      
-      // Cap at 100%
-      if (accumulativePhysical > 100) accumulativePhysical = 100;
-      if (accumulativeFinancial > totalCost) accumulativeFinancial = totalCost;
-      
-      accomplishments.push({
-        week: week.week,
-        weekStart: week.start.toISOString().split('T')[0],
-        periodicPhysical: Math.round(periodicPhysical * 100) / 100,
-        periodicFinancial: Math.round(periodicFinancial * 100) / 100,
-        accumulativePhysical: Math.round(accumulativePhysical * 100) / 100,
-        accumulativeFinancial: Math.round(accumulativeFinancial * 100) / 100
-      });
-    });
-    
-    return accomplishments;
-  }, [weeklyTimeline, ganttTasks]);
+    return processScheduleTasksData(costItemsSecondaryData, targetCostTotal, projectData);
+  }, [costItemsSecondaryData, targetCostTotal, projectData]);
 
-  // Generate S-curve data based on accumulative physical accomplishment
-  const sCurveData = useMemo(() => {
-    if (ganttTasks.length === 0 || !projectData || targetCostTotal === 0) return [];
-    
-    const data: { week: string; date: string; progress: number }[] = [];
-    const totalWeeks = weeklyTimeline.length;
-    
-    // Generate S-curve data for each week based on accumulative physical accomplishment
-    weeklyTimeline.forEach((week, weekIndex) => {
-      // Use accumulative physical accomplishment for S-curve progress
-      let sCurveProgress = 0;
-      if (weeklyAccomplishments.length > weekIndex) {
-        // Use the accumulative physical accomplishment from weekly accomplishments
-        sCurveProgress = weeklyAccomplishments[weekIndex].accumulativePhysical;
-      } else {
-        // Fallback: calculate basic progress based on week position
-        sCurveProgress = Math.min((weekIndex / (totalWeeks - 1)) * 100, 100);
-      }
-      
-      // Cap progress at 100%
-      sCurveProgress = Math.min(sCurveProgress, 100);
-      
-      data.push({
-        week: `Week ${week.week}`,
-        date: week.start.toLocaleDateString('en-GB'), // DD/MM/YYYY format
-        progress: Math.round(sCurveProgress * 100) / 100
-      });
-    });
-    
-    return data;
-  }, [weeklyTimeline, ganttTasks, projectData, targetCostTotal, weeklyAccomplishments]);
+  // Calculate pagination for tasks
+  const taskPagination = useMemo(() => {
+    return calculateTaskPagination(ganttTasks, currentPage, itemsPerPage);
+  }, [ganttTasks, currentPage, itemsPerPage]);
 
-  // Get task color based on type
-  const getTaskColor = (type: string) => {
-    switch (type.toLowerCase()) {
-      case 'target': return 'bg-blue-500';
-      case 'actual': return 'bg-green-500';
-      case 'completed': return 'bg-gray-500';
-      default: return 'bg-blue-500';
-    }
-  };
-
-  const totalProjectCost = ganttTasks.reduce((sum, task) => sum + task.cost, 0);
-  const totalWeight = ganttTasks.reduce((sum, task) => sum + (task.weight || 0), 0);
-
-  // Pagination logic for tasks
-  const totalPages = Math.ceil(ganttTasks.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedTasks = ganttTasks.slice(startIndex, endIndex);
-
-  // Pagination logic for accomplishments
-  const totalAccomplishmentsPages = Math.ceil(weeklyAccomplishments.length / itemsPerPage);
-  const accomplishmentsStartIndex = (currentAccomplishmentsPage - 1) * itemsPerPage;
-  const accomplishmentsEndIndex = accomplishmentsStartIndex + itemsPerPage;
-  const paginatedAccomplishments = weeklyAccomplishments.slice(accomplishmentsStartIndex, accomplishmentsEndIndex);
+  // Calculate pagination for accomplishments
+  const accomplishmentsPagination = useMemo(() => {
+    return calculateAccomplishmentsPagination(weeklyAccomplishments, currentAccomplishmentsPage, itemsPerPage);
+  }, [weeklyAccomplishments, currentAccomplishmentsPage, itemsPerPage]);
 
   return (
     <Card className="border-l-4 border-l-arsd-red mt-4 lg:mt-6">
@@ -398,9 +178,7 @@ export function ScheduleTasks({ tasks, costItemsSecondaryData = [], targetCostTo
                         }`}>
                           <div className="flex h-full">
                             {weeklyTimeline.map((week, weekIndex) => {
-                              const taskStart = new Date(task.startDate);
-                              const taskEnd = new Date(task.endDate);
-                              const isActive = taskStart <= week.end && taskEnd >= week.start;
+                              const isActive = isTaskActiveInWeek(task, week.start, week.end);
                               
                               return (
                                 <div key={weekIndex} className="w-16 lg:w-20 flex-shrink-0 h-full border-r border-gray-200 relative">
@@ -579,7 +357,7 @@ export function ScheduleTasks({ tasks, costItemsSecondaryData = [], targetCostTo
                   </TableHeader>
 
                   <TableBody>
-                    {paginatedTasks.map((task) => (
+                    {taskPagination.paginatedTasks.map((task) => (
                       <TableRow key={task.id}>
                         <TableCell className="font-medium text-xs">{task.item}</TableCell>
                         <TableCell className="max-w-xs truncate text-xs" title={task.description}>
@@ -610,10 +388,10 @@ export function ScheduleTasks({ tasks, costItemsSecondaryData = [], targetCostTo
                 </Table>
 
                 {/* Pagination Controls */}
-                {totalPages > 1 && (
+                {taskPagination.totalPages > 1 && (
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-4 pt-4 border-t gap-3">
                     <div className="text-xs text-gray-600 text-center sm:text-left">
-                      Showing {startIndex + 1} to {Math.min(endIndex, ganttTasks.length)} of {ganttTasks.length} tasks
+                      Showing {taskPagination.startIndex + 1} to {Math.min(taskPagination.endIndex, ganttTasks.length)} of {ganttTasks.length} tasks
                     </div>
                     <div className="flex items-center justify-center gap-2">
                       <Button
@@ -627,7 +405,7 @@ export function ScheduleTasks({ tasks, costItemsSecondaryData = [], targetCostTo
                         Previous
                       </Button>
                       <div className="flex items-center gap-1">
-                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        {Array.from({ length: taskPagination.totalPages }, (_, i) => i + 1).map((page) => (
                           <Button
                             key={page}
                             variant={page === currentPage ? "default" : "outline"}
@@ -642,8 +420,8 @@ export function ScheduleTasks({ tasks, costItemsSecondaryData = [], targetCostTo
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                        disabled={currentPage === totalPages}
+                        onClick={() => setCurrentPage(Math.min(taskPagination.totalPages, currentPage + 1))}
+                        disabled={currentPage === taskPagination.totalPages}
                         className="text-xs"
                       >
                         Next
@@ -714,7 +492,7 @@ export function ScheduleTasks({ tasks, costItemsSecondaryData = [], targetCostTo
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {paginatedAccomplishments.map((acc, index) => (
+                        {accomplishmentsPagination.paginatedAccomplishments.map((acc, index) => (
                           <TableRow key={index}>
                             <TableCell className="font-medium text-xs">Week {acc.week}</TableCell>
                             <TableCell className="text-xs">{new Date(acc.weekStart).toLocaleDateString('en-GB')}</TableCell>
@@ -728,10 +506,10 @@ export function ScheduleTasks({ tasks, costItemsSecondaryData = [], targetCostTo
                     </Table>
 
                     {/* Pagination Controls for Weekly Accomplishments */}
-                    {totalAccomplishmentsPages > 1 && (
+                    {accomplishmentsPagination.totalPages > 1 && (
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-4 pt-4 border-t gap-3">
                         <div className="text-xs text-gray-600 text-center sm:text-left">
-                          Showing {accomplishmentsStartIndex + 1} to {Math.min(accomplishmentsEndIndex, weeklyAccomplishments.length)} of {weeklyAccomplishments.length} accomplishments
+                          Showing {accomplishmentsPagination.startIndex + 1} to {Math.min(accomplishmentsPagination.endIndex, weeklyAccomplishments.length)} of {weeklyAccomplishments.length} accomplishments
                         </div>
                         <div className="flex items-center justify-center gap-2">
                           <Button
@@ -745,7 +523,7 @@ export function ScheduleTasks({ tasks, costItemsSecondaryData = [], targetCostTo
                             Previous
                           </Button>
                           <div className="flex items-center gap-1">
-                            {Array.from({ length: totalAccomplishmentsPages }, (_, i) => i + 1).map((page) => (
+                            {Array.from({ length: accomplishmentsPagination.totalPages }, (_, i) => i + 1).map((page) => (
                               <Button
                                 key={page}
                                 variant={page === currentAccomplishmentsPage ? "default" : "outline"}
@@ -760,8 +538,8 @@ export function ScheduleTasks({ tasks, costItemsSecondaryData = [], targetCostTo
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setCurrentAccomplishmentsPage(Math.min(totalAccomplishmentsPages, currentAccomplishmentsPage + 1))}
-                            disabled={currentAccomplishmentsPage === totalAccomplishmentsPages}
+                            onClick={() => setCurrentAccomplishmentsPage(Math.min(accomplishmentsPagination.totalPages, currentAccomplishmentsPage + 1))}
+                            disabled={currentAccomplishmentsPage === accomplishmentsPagination.totalPages}
                             className="text-xs"
                           >
                             Next
