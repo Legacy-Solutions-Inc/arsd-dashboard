@@ -13,31 +13,16 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, ArrowLeft, Loader2, DollarSign, TrendingUp, Target, AlertTriangle, CheckCircle, Clock, BarChart3, Wallet, PiggyBank, Download, Share2, Edit3, Eye } from "lucide-react";
 import { ProjectLoading, InlineLoading } from "@/components/ui/universal-loading";
 import { Button } from "@/components/ui/button";
+import { calculateProjectStats, formatTargetPercentage, parseNumericValue, formatCurrency } from "@/utils/project-calculations";
 
 // Constants
 const CARD_STYLES = "border-l-4 border-l-arsd-red bg-white rounded shadow p-3";
 const STAT_CARD_GRID = "grid grid-cols-2 md:grid-cols-6 gap-3 mb-4";
 
-// Utility functions
-const formatCurrency = (value: number | string): string => {
-  const numValue = typeof value === 'string' ? parseFloat(value) : value;
-  return `₱${numValue.toLocaleString()}`;
-};
-
-const parseNumericValue = (value: string | undefined, defaultValue: number = 0): number => {
-  return value ? parseFloat(value) || defaultValue : defaultValue;
-};
-
-const calculatePercentage = (numerator: number, denominator: number): number => {
-  return denominator > 0 ? (numerator / denominator) * 100 : 0;
-};
-
-const roundToTwoDecimals = (value: number): number => {
-  return Math.round(value * 100) / 100;
-};
+// Utility functions (imported from centralized utils)
 
 // Data processing functions
-const calculateProjectStats = (project: ProjectDetails) => {
+const calculateProjectStatsData = (project: ProjectDetails) => {
   const projectDetails = project.project_details || [];
   const projectCosts = project.project_costs || [];
   const manHours = project.man_hours || [];
@@ -57,23 +42,10 @@ const calculateProjectStats = (project: ProjectDetails) => {
   const latestMaterials = materials || {};
   const latestPurchaseOrders = purchaseOrders || {};
 
-  // Contract amount from project_details table
-  const contractAmount = parseNumericValue(latestProjectDetails.contract_amount);
+  // Use centralized calculation function
+  const stats = calculateProjectStats(latestProjectCost, latestProjectDetails);
 
-  // Calculate percentages using project_costs data
-  const targetCostTotal = parseNumericValue(latestProjectCost.target_cost_total);
-  const directCostTotal = parseNumericValue(latestProjectCost.direct_cost_total);
-
-  const targetProgress = roundToTwoDecimals(latestProjectCost.target_percentage*100);
-  const actualProgress = roundToTwoDecimals(calculatePercentage(directCostTotal, contractAmount));
-  const slippage = roundToTwoDecimals(targetProgress - actualProgress);
-
-  // Financial values from project_costs table
-  const balance = parseNumericValue(latestProjectCost.balance);
-  const collectible = parseNumericValue(latestProjectCost.collectibles);
-  const savings = parseNumericValue(latestProjectCost.direct_cost_savings);
-
-  // Calculate totals
+  // Calculate additional totals
   const totalCosts = projectCosts.reduce((sum, cost) => {
     return sum + parseNumericValue(cost.direct_cost_total);
   }, 0);
@@ -87,13 +59,7 @@ const calculateProjectStats = (project: ProjectDetails) => {
   }, 0);
 
   return {
-    contractAmount,
-    actualProgress,
-    targetProgress,
-    slippage,
-    balance,
-    collectible,
-    savings,
+    ...stats,
     totalCosts,
     totalActualHours,
     totalProjectedHours,
@@ -189,7 +155,8 @@ const StatCard = ({
   isCurrency = false,
   isPercentage = false,
   isPositive = true,
-  icon: Icon
+  icon: Icon,
+  contractAmount
 }: { 
   label: string; 
   value: number | string; 
@@ -197,6 +164,7 @@ const StatCard = ({
   isPercentage?: boolean;
   isPositive?: boolean;
   icon?: any;
+  contractAmount?: number;
 }) => {
   const numericValue = typeof value === 'string' ? parseFloat(value) : value;
   const isNegative = numericValue < 0;
@@ -220,7 +188,12 @@ const StatCard = ({
     if (isPercentage) {
       return Math.min(Math.abs(numericValue), 100);
     }
-    return 60; // Default for non-percentage values
+    if (isCurrency && contractAmount && contractAmount > 0) {
+      // Calculate percentage relative to contract amount, cap at 100%
+      const percentage = (Math.abs(numericValue) / contractAmount) * 100;
+      return Math.min(percentage, 100);
+    }
+    return 60; // Default for non-percentage, non-currency values
   };
 
   return (
@@ -247,7 +220,7 @@ const StatCard = ({
   );
 };
 
-const ProjectStatsGrid = ({ stats }: { stats: ReturnType<typeof calculateProjectStats> }) => {
+const ProjectStatsGrid = ({ stats }: { stats: ReturnType<typeof calculateProjectStatsData> }) => {
   const isOverBudget = parseNumericValue(stats.latestProjectCost.direct_cost_total) > stats.contractAmount;
   const isOnTrack = stats.actualProgress >= stats.targetProgress * 0.9; // Within 90% of target
   const hasPositiveSavings = stats.savings > 0;
@@ -292,6 +265,7 @@ const ProjectStatsGrid = ({ stats }: { stats: ReturnType<typeof calculateProject
             isCurrency 
             icon={DollarSign}
             isPositive={true}
+            contractAmount={stats.contractAmount}
           />
           <StatCard 
             label="Direct Cost Total" 
@@ -299,6 +273,7 @@ const ProjectStatsGrid = ({ stats }: { stats: ReturnType<typeof calculateProject
             isCurrency 
             icon={TrendingUp}
             isPositive={parseNumericValue(stats.latestProjectCost.direct_cost_total) <= stats.contractAmount}
+            contractAmount={stats.contractAmount}
           />
           <StatCard 
             label="SWA Cost Total" 
@@ -306,14 +281,11 @@ const ProjectStatsGrid = ({ stats }: { stats: ReturnType<typeof calculateProject
             isCurrency 
             icon={Target}
             isPositive={true}
+            contractAmount={stats.contractAmount}
           />
           <StatCard 
             label="Target %" 
-            value={(() => { 
-              const v = parseNumericValue(stats.latestProjectCost.target_percentage); 
-              const scaled = v <= 1 ? v * 100 : v; 
-              return Math.round(scaled * 100) / 100; 
-            })()} 
+            value={formatTargetPercentage(stats.targetProgress)} 
             isPercentage={true}
             icon={Target}
             isPositive={stats.targetProgress <= 100}
@@ -334,10 +306,11 @@ const ProjectStatsGrid = ({ stats }: { stats: ReturnType<typeof calculateProject
           />
           <StatCard 
             label="Target Cost Total" 
-            value={parseNumericValue(stats.latestProjectCost.target_cost_total)} 
+            value={parseNumericValue(stats.latestProjectDetails.direct_contract_amount)} 
             isCurrency 
             icon={Target}
             isPositive={true}
+            contractAmount={stats.contractAmount}
           />
           <StatCard 
             label="Billed Cost Total" 
@@ -345,6 +318,7 @@ const ProjectStatsGrid = ({ stats }: { stats: ReturnType<typeof calculateProject
             isCurrency 
             icon={Clock}
             isPositive={true}
+            contractAmount={stats.contractAmount}
           />
           <StatCard 
             label="Collectible" 
@@ -352,6 +326,7 @@ const ProjectStatsGrid = ({ stats }: { stats: ReturnType<typeof calculateProject
             isCurrency 
             icon={Wallet}
             isPositive={stats.collectible > 0}
+            contractAmount={stats.contractAmount}
           />
           <StatCard 
             label="Balance" 
@@ -359,6 +334,7 @@ const ProjectStatsGrid = ({ stats }: { stats: ReturnType<typeof calculateProject
             isCurrency 
             icon={BarChart3}
             isPositive={stats.balance > 0}
+            contractAmount={stats.contractAmount}
           />
           <StatCard 
             label="Savings" 
@@ -366,6 +342,7 @@ const ProjectStatsGrid = ({ stats }: { stats: ReturnType<typeof calculateProject
             isCurrency 
             icon={PiggyBank}
             isPositive={stats.savings > 0}
+            contractAmount={stats.contractAmount}
           />
         </div>
       </div>
@@ -378,7 +355,7 @@ const ProjectTabs = ({
   stats 
 }: { 
   project: ProjectDetails; 
-  stats: ReturnType<typeof calculateProjectStats>; 
+  stats: ReturnType<typeof calculateProjectStatsData>; 
 }) => (
   <div className="relative">
     <div className="absolute inset-0 bg-gradient-to-r from-arsd-red/5 via-blue-500/5 to-purple-500/5 rounded-xl blur-2xl"></div>
@@ -448,6 +425,12 @@ const ProjectTabs = ({
                 targetProgress: stats.targetProgress,
                 savings: stats.savings
               }}
+              projectStats={{
+                contractAmount: stats.contractAmount,
+                targetCostTotal: stats.latestProjectDetails.direct_contract_amount,
+                directCostTotal: stats.directCostTotal,
+                swaCostTotal: stats.swaCostTotal
+              }}
             />
           </TabsContent>
 
@@ -502,7 +485,7 @@ export default function ProjectProfilePage() {
   if (loading) return <LoadingState />;
   if (error || !project) return <ErrorState error={error || 'Project not found'} onBack={() => router.back()} />;
 
-  const stats = calculateProjectStats(project);
+  const stats = calculateProjectStatsData(project);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
