@@ -1,17 +1,25 @@
 "use client";
-interface Project {
-  id: string;
-  name: string;
-  client: string;
-  location: string;
-  status: string;
-}
+import { useMemo } from "react";
+import { 
+  processProjectListData,
+  getStatusBadgeStyling,
+  formatStatus,
+  validateProject,
+  calculateProjectListMetrics,
+  Project
+} from "@/utils/project-list-utils";
+
 interface ProjectListProps {
   projects: Project[];
   onSelect: (projectId: string) => void;
 }
 
 const ProjectList: React.FC<ProjectListProps> = ({ projects, onSelect }) => {
+  // Calculate project metrics using utility function
+  const projectMetrics = useMemo(() => {
+    return calculateProjectListMetrics(projects);
+  }, [projects]);
+
   return (
     <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
       <div className="flex items-center mb-6 gap-2">
@@ -33,7 +41,7 @@ const ProjectList: React.FC<ProjectListProps> = ({ projects, onSelect }) => {
             </tr>
           </thead>
           <tbody>
-            {projects.map((project) => (
+            {projects.map((project: Project) => (
               <tr
                 key={project.id}
                 className="bg-white rounded-lg shadow-sm transition-all duration-150 hover:shadow-md hover:bg-yellow-50"
@@ -43,12 +51,8 @@ const ProjectList: React.FC<ProjectListProps> = ({ projects, onSelect }) => {
                 <td className="py-3 px-4 text-gray-900 text-sm">{project.client}</td>
                 <td className="py-3 px-4 text-gray-900 text-sm">{project.location}</td>
                 <td className="py-3 px-4">
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${
-                    project.status === "active"
-                      ? "bg-green-100 text-green-700 border border-green-300"
-                      : "bg-gray-100 text-gray-700 border border-gray-300"
-                  }`}>
-                    {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${getStatusBadgeStyling(project.status)}`}>
+                    {formatStatus(project.status)}
                   </span>
                 </td>
                 <td className="py-3 px-4 rounded-r-lg">
