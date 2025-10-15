@@ -242,11 +242,40 @@ export const aggregateCostDataByMonth = (normalizedCostData: CostMonth[]): CostM
  * Process man hours data for daily view
  */
 export const processDailyManHoursData = (manHoursData: ManHoursData[]): any[] => {
-  return manHoursData.map((item: any) => ({
+  // First, sort the data chronologically
+  const sortedData = manHoursData.map((item: any) => ({
     date: item.date || item.period || 'Unknown',
     actual: parseFloat(item.actual_man_hours) || 0,
     projected: parseFloat(item.projected_man_hours) || 0,
   })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  // Calculate daily differences (current - previous)
+  const dailyData = sortedData.map((item, index) => {
+    if (index === 0) {
+      // First day: use the cumulative value as is
+      return {
+        date: item.date,
+        actual: item.actual,
+        projected: item.projected,
+        actualPersons: item.actual / 8,
+        projectedPersons: item.projected / 8
+      };
+    }
+
+    const previousItem = sortedData[index - 1];
+    const dailyActual = item.actual - previousItem.actual;
+    const dailyProjected = item.projected - previousItem.projected;
+
+    return {
+      date: item.date,
+      actual: Math.max(0, dailyActual), // Ensure non-negative values
+      projected: Math.max(0, dailyProjected), // Ensure non-negative values
+      actualPersons: Math.max(0, dailyActual) / 8,
+      projectedPersons: Math.max(0, dailyProjected) / 8
+    };
+  });
+
+  return dailyData;
 };
 
 /**
