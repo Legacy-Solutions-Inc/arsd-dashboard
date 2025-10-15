@@ -9,97 +9,27 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ChevronLeft, ChevronRight, Search, Filter } from "lucide-react";
+import { 
+  processMaterialsDataComplete,
+  getMaterialStatus,
+  getStatusBadgeVariant,
+  getStatusLabel,
+  getPOStatusBadgeStyling,
+  getPriorityBadgeStyling,
+  calculatePercentReceived,
+  generatePieData,
+  PIE_COLORS,
+  STATUS_OPTIONS
+} from "@/utils/materials-utils";
+import { DatabaseMaterial, DatabasePurchaseOrder, Material, MaterialFilters } from "@/utils/materials-utils";
 
-// Constants
+// Constants and interfaces are now imported from utils file
 const ITEMS_PER_PAGE = 8;
-const PIE_COLORS = ["#F59E0B", "#14B8A6", "#3B82F6", "#F8BBD9"]; // Orange, Teal, Blue, Pink
-const STATUS_OPTIONS = [
-  { value: "all", label: "All Status" },
-  { value: "partial", label: "Partial" },
-  { value: "received", label: "Received" },
-  { value: "utilized", label: "Utilized" },
-  { value: "pending", label: "Pending" }
-] as const;
-
-// Database material interface (from materials table)
-interface DatabaseMaterial {
-  id: string;
-  material: string;
-  type: string;
-  unit: string;
-  sum_qty: number;
-  created_at: string;
-}
-
-// Database purchase order interface (from purchase_orders table)
-interface DatabasePurchaseOrder {
-  id: string;
-  po_number: string;
-  date_requested: string;
-  expected_delivery_date: string;
-  materials_requested: string;
-  qty: number;
-  unit: string;
-  status: string;
-  priority_level: string;
-  created_at: string;
-}
-
-// Combined material interface for display
-interface Material {
-  name: string;
-  type: string;
-  unit: string;
-  totalQuantity: number;
-  requestedQuantity: number;
-  receivedQuantity: number;
-  utilizedQuantity: number;
-  pendingQuantity: number;
-  purchaseOrders: DatabasePurchaseOrder[];
-}
 
 interface MaterialsProps {
   materials: DatabaseMaterial[];
   purchaseOrders: DatabasePurchaseOrder[];
 }
-
-// Utility functions
-const getMaterialStatus = (material: Material): string => {
-  if (material.utilizedQuantity >= material.receivedQuantity && material.receivedQuantity > 0) {
-    return "utilized";
-  } else if (material.utilizedQuantity > 0) {
-    return "partial";
-  } else if (material.receivedQuantity > 0) {
-    return "received";
-  }
-  return "pending";
-};
-
-const getStatusBadgeVariant = (status: string) => {
-  switch (status) {
-    case "utilized":
-      return "bg-green-100 text-green-800 border-green-200";
-    case "partial":
-      return "bg-yellow-100 text-yellow-800 border-yellow-200";
-    case "received":
-      return "bg-blue-100 text-blue-800 border-blue-200";
-    default:
-      return "bg-red-100 text-red-800 border-red-200";
-  }
-};
-
-const getStatusLabel = (status: string) => {
-  switch (status) {
-    case "utilized":
-      return "Utilized";
-    case "partial":
-      return "Partial";
-    case "received":
-      return "Received";
-    default:
-      return "Pending";
-  }
-};
 
 export function Materials({ materials, purchaseOrders }: MaterialsProps) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -107,125 +37,36 @@ export function Materials({ materials, purchaseOrders }: MaterialsProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedIdx, setSelectedIdx] = useState(0);
 
-  // Process and combine materials with purchase orders
-  const processedMaterials = useMemo(() => {
-    const materialMap = new Map<string, Material>();
-    
-    // Process materials from database - determine status from material name/type
-    materials.forEach((dbMaterial) => {
-      const materialName = dbMaterial.material;
-      const materialType = dbMaterial.type?.toLowerCase() || '';
-      const key = materialName.toLowerCase(); // Use material name as key to group by material
-      
-      if (!materialMap.has(key)) {
-        const material: Material = {
-          name: materialName,
-          type: materialType,
-          unit: dbMaterial.unit,
-          totalQuantity: dbMaterial.sum_qty,
-          requestedQuantity: 0,
-          receivedQuantity: 0,
-          utilizedQuantity: 0,
-          pendingQuantity: 0,
-          purchaseOrders: []
-        };
-        
-        // Determine status based on type
-        if (materialType === 'requested') {
-          material.requestedQuantity = dbMaterial.sum_qty;
-        } else if (materialType === 'received' || materialType === 'recieved') {
-          material.receivedQuantity = dbMaterial.sum_qty;
-        } else if (materialType === 'utilized') {
-          material.utilizedQuantity = dbMaterial.sum_qty;
-        }
-        
-        materialMap.set(key, material);
-      } else {
-        // Accumulate quantities for same material
-        const existing = materialMap.get(key)!;
-        existing.totalQuantity += dbMaterial.sum_qty;
-        
-        // Update quantities based on type
-        if (materialType === 'requested') {
-          existing.requestedQuantity += dbMaterial.sum_qty;
-        } else if (materialType === 'received' || materialType === 'recieved') {
-          existing.receivedQuantity += dbMaterial.sum_qty;
-        } else if (materialType === 'utilized') {
-          existing.utilizedQuantity += dbMaterial.sum_qty;
-        }
-      }
-    });
-    
-    // Process purchase orders and match with materials
-    purchaseOrders.forEach((po) => {
-      const materialName = po.materials_requested.toLowerCase();
-      const matchingMaterial = Array.from(materialMap.values()).find(
-        m => m.name.toLowerCase().includes(materialName) || materialName.includes(m.name.toLowerCase())
-      );
-      
-      if (matchingMaterial) {
-        matchingMaterial.purchaseOrders.push(po);
-      }
-    });
-    
-    // Calculate pending quantities
-    materialMap.forEach((material) => {
-      material.pendingQuantity = Math.max(0, material.requestedQuantity - material.receivedQuantity);
-    });
-    
-    return Array.from(materialMap.values());
-  }, [materials, purchaseOrders]);
-
-  // Filter and paginate materials
-  const filteredMaterials = useMemo(() => {
-    return processedMaterials.filter((material) => {
-      const matchesSearch = material.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const materialStatus = getMaterialStatus(material);
-      const matchesStatus = statusFilter === "all" || materialStatus === statusFilter;
-      
-      return matchesSearch && matchesStatus;
-    });
-  }, [processedMaterials, searchTerm, statusFilter]);
-
-  const paginatedMaterials = useMemo(() => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const endIndex = startIndex + ITEMS_PER_PAGE;
-    return filteredMaterials.slice(startIndex, endIndex);
-  }, [filteredMaterials, currentPage]);
-
-  const totalPages = Math.ceil(filteredMaterials.length / ITEMS_PER_PAGE);
-  const selectedMaterial = processedMaterials[selectedIdx] || processedMaterials[0];
-
-  // Pie chart data for selected material
-  const pieData = selectedMaterial
-    ? [
-        { name: "Requested", value: selectedMaterial.requestedQuantity },
-        { name: "Received", value: selectedMaterial.receivedQuantity },
-        { name: "Utilized", value: selectedMaterial.utilizedQuantity },
-        { name: "Pending", value: selectedMaterial.pendingQuantity },
-      ].filter(item => item.value > 0)
-    : [];
-
-  // Calculate percent received
-  const percentReceived = selectedMaterial && selectedMaterial.requestedQuantity > 0
-    ? Math.round((selectedMaterial.receivedQuantity / selectedMaterial.requestedQuantity) * 100)
-    : 0;
-
-  // Calculate summary statistics
-  const summaryStats = useMemo(() => {
-    const totalRequests = processedMaterials.reduce((sum, material) => sum + material.requestedQuantity, 0);
-    const totalReceived = processedMaterials.reduce((sum, material) => sum + material.receivedQuantity, 0);
-    const totalUtilized = processedMaterials.reduce((sum, material) => sum + material.utilizedQuantity, 0);
-    
-    const receivedPercentage = totalRequests > 0 ? (totalReceived / totalRequests) * 100 : 0;
-    const utilizedPercentage = totalReceived > 0 ? (totalUtilized / totalReceived) * 100 : 0;
-    
-    return {
-      totalRequests,
-      receivedPercentage: Math.round(receivedPercentage * 100) / 100,
-      utilizedPercentage: Math.round(utilizedPercentage * 100) / 100
+  // Process all materials data using utility functions
+  const {
+    processedMaterials,
+    filteredMaterials,
+    paginatedMaterials,
+    paginationInfo,
+    summaryStats,
+    pieData
+  } = useMemo(() => {
+    const filters: MaterialFilters = {
+      searchTerm,
+      statusFilter,
+      typeFilter: ""
     };
-  }, [processedMaterials]);
+
+    const sorting = {
+      field: 'name' as const,
+      direction: 'asc' as const
+    };
+
+    const selectedMaterial = materials.length > 0 ? 
+      processMaterialsDataComplete(materials, purchaseOrders, { searchTerm: "", statusFilter: "all", typeFilter: "" }, sorting, 1, 8).processedMaterials[selectedIdx] || null : 
+      null;
+
+    return processMaterialsDataComplete(materials, purchaseOrders, filters, sorting, currentPage, ITEMS_PER_PAGE, selectedMaterial);
+  }, [materials, purchaseOrders, searchTerm, statusFilter, currentPage, selectedIdx]);
+
+  // Calculate percent received for selected material
+  const selectedMaterial = processedMaterials[selectedIdx] || processedMaterials[0];
+  const percentReceived = calculatePercentReceived(selectedMaterial);
 
   return (
     <div className="space-y-4 lg:space-y-6 mt-4 lg:mt-6">
@@ -366,7 +207,7 @@ export function Materials({ materials, purchaseOrders }: MaterialsProps) {
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  {STATUS_OPTIONS.map((option) => (
+                  {STATUS_OPTIONS.map((option: { value: string; label: string }) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
                     </SelectItem>
@@ -445,10 +286,10 @@ export function Materials({ materials, purchaseOrders }: MaterialsProps) {
           </div>
 
           {/* Pagination Controls */}
-          {totalPages > 1 && (
+          {paginationInfo.totalPages > 1 && (
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-3 lg:mt-4 gap-2">
               <div className="text-xs lg:text-sm text-gray-600">
-                Page {currentPage} of {totalPages}
+                Page {currentPage} of {paginationInfo.totalPages}
               </div>
               <div className="flex items-center gap-2">
                 <Button
@@ -464,8 +305,8 @@ export function Materials({ materials, purchaseOrders }: MaterialsProps) {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(prev => Math.min(paginationInfo.totalPages, prev + 1))}
+                  disabled={currentPage === paginationInfo.totalPages}
                   className="text-xs"
                 >
                   Next
