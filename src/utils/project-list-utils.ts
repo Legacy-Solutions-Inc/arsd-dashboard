@@ -164,9 +164,9 @@ export const calculateProjectListSummaryStats = (projects: Project[]): ProjectLi
  * Get unique values for filter dropdowns
  */
 export const getUniqueFilterValues = (projects: Project[]) => {
-  const clients = [...new Set(projects.map(p => p.client))].sort();
-  const locations = [...new Set(projects.map(p => p.location))].sort();
-  const statuses = [...new Set(projects.map(p => p.status))].sort();
+  const clients = Array.from(new Set(projects.map(p => p.client))).sort();
+  const locations = Array.from(new Set(projects.map(p => p.location))).sort();
+  const statuses = Array.from(new Set(projects.map(p => p.status))).sort();
 
   return {
     clients,

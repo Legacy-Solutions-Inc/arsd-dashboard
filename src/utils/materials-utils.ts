@@ -340,9 +340,9 @@ export const calculatePercentReceived = (material: Material | null): number => {
  * Get unique filter values for dropdowns
  */
 export const getUniqueFilterValues = (materials: Material[]) => {
-  const types = [...new Set(materials.map(m => m.type))].filter(Boolean).sort();
-  const statuses = [...new Set(materials.map(m => getMaterialStatus(m)))].sort();
-  const units = [...new Set(materials.map(m => m.unit))].filter(Boolean).sort();
+  const types = Array.from(new Set(materials.map(m => m.type))).filter(Boolean).sort();
+  const statuses = Array.from(new Set(materials.map(m => getMaterialStatus(m)))).sort();
+  const units = Array.from(new Set(materials.map(m => m.unit))).filter(Boolean).sort();
 
   return {
     types,
