@@ -85,7 +85,7 @@ export const calculateProjectStats = (
   const actualProgress = roundToTwoDecimals(calculatePercentage(swaCostTotal, contractAmount));
 
   // Calculate slippage
-  const slippage = roundToTwoDecimals(targetProgress - actualProgress);
+  const slippage = roundToTwoDecimals(actualProgress - targetProgress);
 
   // Financial values
   const balance = parseNumericValue(projectCost.balance);
@@ -119,7 +119,7 @@ export const calculateLeaderboardStats = (
   const contractAmount = parseNumericValue(latestDetail?.contract_amount);
   const targetTotal = parseNumericValue(latestCost?.target_cost_total);
   const swaTotal = parseNumericValue(latestCost?.swa_cost_total);
-  const targetPercentage = parseNumericValue(latestCost?.target_percentage);
+  const targetPercentage = ((latestDetail?.direct_contract_amount/latestDetail?.contract_amount));
 
   // Use target_percentage from sheet if available, otherwise calculate from target_cost_total
   // But cap target progress at 100% if it exceeds contract amount (data validation)
@@ -138,33 +138,7 @@ export const calculateLeaderboardStats = (
     ? roundToTwoDecimals(calculatePercentage(swaTotal, contractAmount))
     : 0;
 
-  const slippage = roundToTwoDecimals(targetProgress - actualProgress);
-
-  // Debug logging for all calculations
-  console.log(`[${new Date().toISOString()}] Leaderboard Stats Calculation:`, {
-    rawData: {
-      contractAmount: latestDetail?.contract_amount,
-      targetTotal: latestCost?.target_cost_total,
-      swaTotal: latestCost?.swa_cost_total,
-      targetPercentage: latestCost?.target_percentage
-    },
-    parsedData: {
-      contractAmount,
-      targetTotal,
-      swaTotal,
-      targetPercentage
-    },
-    calculated: {
-      targetProgress,
-      actualProgress,
-      slippage
-    },
-    dataQuality: {
-      targetExceedsContract: targetTotal > contractAmount,
-      extremeSlippage: Math.abs(slippage) > 50,
-      lowActualProgress: actualProgress < 30
-    }
-  });
+  const slippage = roundToTwoDecimals(actualProgress - targetProgress);
 
   return {
     targetProgress,
