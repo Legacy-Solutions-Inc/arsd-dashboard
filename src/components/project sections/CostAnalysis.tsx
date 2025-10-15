@@ -2,222 +2,197 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer
+  BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, ComposedChart
 } from 'recharts';
 import { useState, useMemo } from 'react';
+import { Calendar, BarChart3 } from 'lucide-react';
+import { 
+  processCostAnalysisData,
+  calculateCostAnalysisPagination,
+  formatCurrency,
+  formatCurrencyM,
+  formatHours,
+  formatDateLabel,
+  calculateProgressAnalysis,
+  calculateCostSummaryStats,
+  CHART_COLORS,
+  CHART_HEIGHT,
+  CHART_HEIGHT_DAILY,
+  CHART_MARGIN,
+  COST_ITEMS_MARGIN,
+  ITEMS_PER_PAGE
+} from "@/utils/cost-analysis-utils";
 
-export interface CostMonth {
-  month: string;
-  target: number;
-  swa: number;
-  billed: number;
-  direct: number;
-}
-
-// Database cost data interface
-export interface DatabaseCostMonth {
-  month: string;
-  target_cost?: number;
-  swa_cost?: number;
-  billed_cost?: number;
-  direct_cost?: number;
-}
-
-export interface ManHoursData {
-  date: string;
-  actual_man_hours: number;
-  projected_man_hours: number;
-}
+// Interfaces and utility functions are now imported from utils file
 
 export interface CostAnalysisProps {
-  costData: CostMonth[] | DatabaseCostMonth[];
+  costData: any[];
   costItemsData?: any[];
-  manHoursData?: ManHoursData[];
+  manHoursData?: any[];
   projectData: {
     actualProgress: number;
     targetProgress: number;
     savings: number;
   };
+  projectStats?: {
+    contractAmount: number;
+    targetCostTotal: number;
+    directCostTotal: number;
+    swaCostTotal: number;
+  };
 }
 
-// Constants
-const ITEMS_PER_PAGE = 3;
-const CHART_HEIGHT = 250;
-const CHART_MARGIN = { top: 15, right: 20, left: 0, bottom: 5 };
-const COST_ITEMS_MARGIN = { top: 15, right: 20, left: 40, bottom: 5 };
-
-// Chart colors
-const CHART_COLORS = {
-  target: '#dc2626',
-  swa: '#ec4899',
-  billed: '#6b7280',
-  direct: '#16a34a',
-  actual: '#ef4444',
-  projected: '#3b82f6',
-  cost: '#8b5cf6'
-} as const;
-
-// Utility functions
-const formatCurrency = (value: number): string => `₱${value.toLocaleString()}`;
-const formatCurrencyM = (value: number): string => `₱${(value / 1000000).toFixed(1)}M`;
-const formatHours = (value: number): string => `${value}h`;
-
-const sortDataChronologically = <T extends { month: string }>(data: T[]): T[] => {
-  return data.sort((a, b) => {
-    if (!a.month && !b.month) return 0;
-    if (!a.month) return 1;
-    if (!b.month) return -1;
-    
-    const dateA = new Date(a.month);
-    const dateB = new Date(b.month);
-    
-    if (!isNaN(dateA.getTime()) && !isNaN(dateB.getTime())) {
-      return dateA.getTime() - dateB.getTime();
-    }
-    
-    return a.month.localeCompare(b.month);
-  });
-};
-
-const processCostItems = (items: any[]) => {
-  // Normalize common type variants to canonical buckets
-  const normalizeType = (raw: any): string => {
-    const s = (raw || '').toString().toLowerCase().trim();
-    if (s.includes('target')) return 'Target';
-    if (s.includes('equipment')) return 'Equipment';
-    if (s.includes('labor') || s.includes('labour')) return 'Labor';
-    if (s.includes('materials') || s.includes('matl')) return 'Materials';
-    return raw || 'Other';
-  };
-
-  const typeBreakdown = items.reduce((acc: Record<string, number>, item: any) => {
-    const type = normalizeType(item.type);
-    const raw = item.cost ?? 0;
-    const num = typeof raw === 'number' 
-      ? raw 
-      : parseFloat(String(raw).replace(/[^0-9.-]/g, ''));
-    const cost = isNaN(num) ? 0 : num;
-    acc[type] = (acc[type] || 0) + cost;
-    return acc;
-  }, {} as Record<string, number>);
-
-  // Only keep the four primary categories (in this exact order)
-  const preferredOrder = ['Target', 'Equipment', 'Labor', 'Materials'] as const;
-  return preferredOrder.map(key => ({ type: key, cost: typeBreakdown[key] || 0 }));
-};
-
-export function CostAnalysis({ costData, costItemsData = [], manHoursData = [], projectData }: CostAnalysisProps) {
+export function CostAnalysis({ costData, costItemsData = [], manHoursData = [], projectData, projectStats }: CostAnalysisProps) {
   const [currentPage, setCurrentPage] = useState(1);
-  // Data processing with useMemo for performance
-  const processedData = useMemo(() => {
-    // Normalize cost data to handle both formats
-    const normalizedCostData = costData.map((item: any) => ({
-      id: `${item.month || item.month_name || item.period || ''}`,
-      month: item.month || item.month_name || item.period || '',
-      target: Number(item.target || item.target_cost || 0),
-      swa: Number(item.swa || item.swa_cost || 0),
-      billed: Number(item.billed || item.billed_cost || 0),
-      direct: Number(item.direct || item.direct_cost || 0),
-    })).filter(item => item.month);
+  const [manHoursView, setManHoursView] = useState<'monthly' | 'daily'>('monthly');
 
-    // Aggregate rows with the same month/date by summing each cost bucket
-    const monthToTotals = new Map<string, { id: string; month: string; target: number; swa: number; billed: number; direct: number }>();
-    for (const row of normalizedCostData) {
-      const key = row.month;
-      const existing = monthToTotals.get(key);
-      if (existing) {
-        existing.target += row.target;
-        existing.swa += row.swa;
-        existing.billed += row.billed;
-        existing.direct += row.direct;
-      } else {
-        monthToTotals.set(key, { ...row });
-      }
-    }
+  // Process all cost analysis data using utility functions
+  const {
+    sortedCostData,
+    costItemsBreakdown,
+    costItemsStackedData,
+    processedManHoursData,
+    dailyManHoursData
+  } = useMemo(() => {
+    return processCostAnalysisData(costData, costItemsData, manHoursData, projectStats);
+  }, [costData, costItemsData, manHoursData, projectStats]);
 
-    const aggregatedCostData = Array.from(monthToTotals.values());
-
-    // Sort aggregated data chronologically
-    const sortedCostData = sortDataChronologically(aggregatedCostData);
-
-    // Process cost items
-    const costItemsBreakdown = processCostItems(costItemsData);
-
-    // Process man hours data
-    const processedManHoursData = manHoursData.map((item: any) => ({
-      date: item.date || item.period || 'Unknown',
-      actual: parseFloat(item.actual_man_hours) || 0,
-      projected: parseFloat(item.projected_man_hours) || 0,
-    })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
-    return {
-      sortedCostData,
-      costItemsBreakdown,
-      processedManHoursData
-    };
-  }, [costData, costItemsData, manHoursData]);
-
-  // Pagination logic
+  // Calculate pagination using utility function
   const paginationData = useMemo(() => {
-    const { sortedCostData } = processedData;
-    const totalPages = Math.ceil(sortedCostData.length / ITEMS_PER_PAGE);
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const endIndex = startIndex + ITEMS_PER_PAGE;
-    const paginatedCostData = sortedCostData.slice(startIndex, endIndex);
-
-  return {
-    totalPages,
-    startIndex,
-    endIndex,
-    paginatedCostData
-  };
-}, [processedData, currentPage]);
+    return calculateCostAnalysisPagination(sortedCostData, currentPage, ITEMS_PER_PAGE);
+  }, [sortedCostData, currentPage]);
 
 // Subcomponents
-const CostItemsChart = ({ data }: { data: any[] }) => (
+const CostItemsChart = ({ data }: { data: any }) => (
   <div className="bg-white rounded-lg p-3 lg:p-4 shadow-sm border">
     <h3 className="font-semibold text-sm lg:text-base mb-2 text-arsd-red">Cost Items Breakdown</h3>
     <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
-      <BarChart data={data} margin={COST_ITEMS_MARGIN}>
-        <XAxis dataKey="type" tick={{ fontSize: 10 }} />
+      <BarChart 
+        data={[
+          {
+            name: 'Target vs Combined Costs',
+            target: data.target,
+            equipment: data.equipment,
+            labor: data.labor,
+            materials: data.materials
+          }
+        ]} 
+        margin={COST_ITEMS_MARGIN}
+      >
+        <XAxis dataKey="name" tick={{ fontSize: 10 }} />
         <YAxis
           tick={{ fontSize: 10 }}
           tickFormatter={formatCurrencyM}
         />
-        <Tooltip formatter={(value) => formatCurrency(value as number)} />
-        <Bar dataKey="cost" name="Cost" fill={CHART_COLORS.cost} />
+        <Tooltip 
+          formatter={(value, name) => [formatCurrency(value as number), name]}
+          labelFormatter={() => 'Cost Comparison'}
+        />
+        <Legend />
+        <Bar dataKey="target" name="Target Cost" stackId="target" fill={CHART_COLORS.target} />
+        <Bar dataKey="equipment" name="Equipment" stackId="combined" fill={CHART_COLORS.equipment} />
+        <Bar dataKey="labor" name="Labor" stackId="combined" fill={CHART_COLORS.labor} />
+        <Bar dataKey="materials" name="Materials" stackId="combined" fill={CHART_COLORS.materials} />
       </BarChart>
     </ResponsiveContainer>
   </div>
 );
 
-const ManHoursChart = ({ data }: { data: any[] }) => (
-  <div className="bg-white rounded-lg p-3 lg:p-4 shadow-sm border">
-    <h3 className="font-semibold text-sm lg:text-base mb-2 text-arsd-red">Man Hours Tracking</h3>
-    <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
-      <BarChart data={data} margin={CHART_MARGIN}>
-        <XAxis
-          dataKey="date"
-          tick={{ fontSize: 10 }}
-          angle={-45}
-          textAnchor="end"
-          height={60}
-        />
-        <YAxis
-          tick={{ fontSize: 10 }}
-          tickFormatter={formatHours}
-        />
-        <Tooltip
-          formatter={(value, name) => [`${value} hours`, name]}
-          labelFormatter={(label) => `Date: ${label}`}
-        />
-        <Legend />
-        <Bar dataKey="actual" name="Actual Hours" fill={CHART_COLORS.actual} />
-        <Bar dataKey="projected" name="Projected Hours" fill={CHART_COLORS.projected} />
-      </BarChart>
-    </ResponsiveContainer>
-  </div>
-);
+const ManHoursChart = ({ 
+  monthlyData, 
+  dailyData, 
+  view, 
+  onViewChange 
+}: { 
+  monthlyData: any[]; 
+  dailyData: any[]; 
+  view: 'monthly' | 'daily'; 
+  onViewChange: (view: 'monthly' | 'daily') => void;
+}) => {
+  // Format date for better display
+  const formatDateLabel = (dateStr: string, isMonthly: boolean = false) => {
+    try {
+      if (isMonthly) {
+        const date = new Date(dateStr + '-01'); // Add day to make valid date
+        return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+      } else {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      }
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const currentData = view === 'monthly' ? monthlyData : dailyData;
+  const isMonthly = view === 'monthly';
+
+  return (
+    <div className="bg-white rounded-lg p-3 lg:p-4 shadow-sm border">
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="font-semibold text-sm lg:text-base text-arsd-red">
+          Man Hours Tracking ({isMonthly ? 'Monthly' : 'Daily'})
+        </h3>
+        <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+          <Button
+            variant={view === 'monthly' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => onViewChange('monthly')}
+            className="h-7 px-2 text-xs"
+          >
+            <BarChart3 className="h-3 w-3 mr-1" />
+            Monthly
+          </Button>
+          <Button
+            variant={view === 'daily' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => onViewChange('daily')}
+            className="h-7 px-2 text-xs"
+          >
+            <Calendar className="h-3 w-3 mr-1" />
+            Daily
+          </Button>
+        </div>
+      </div>
+      <ResponsiveContainer width="100%" height={isMonthly ? CHART_HEIGHT : CHART_HEIGHT_DAILY}>
+        <BarChart data={currentData} margin={{ top: 15, right: 20, left: 0, bottom: isMonthly ? 40 : 40 }}>
+          <XAxis
+            dataKey="date"
+            tick={{ fontSize: isMonthly ? 10 : 9 }}
+            angle={-45}
+            textAnchor="end"
+            height={isMonthly ? 80 : 120}
+            interval={isMonthly ? 0 : Math.max(1, Math.floor(currentData.length / 15))}
+            tickFormatter={(value) => formatDateLabel(value, isMonthly)}
+          />
+          <YAxis
+            tick={{ fontSize: 10 }}
+            tickFormatter={formatHours}
+          />
+          <Tooltip
+            formatter={(value, name) => [`${Math.round(Number(value))} hours`, name]}
+            labelFormatter={(label) => `Period: ${formatDateLabel(label, isMonthly)}`}
+          />
+          <Legend />
+          <Bar 
+            dataKey="actual" 
+            name="Actual Hours" 
+            fill={CHART_COLORS.actual} 
+            maxBarSize={isMonthly ? 60 : 40}
+            radius={[2, 2, 0, 0]}
+          />
+          <Bar 
+            dataKey="projected" 
+            name="Projected Hours" 
+            fill={CHART_COLORS.projected} 
+            maxBarSize={isMonthly ? 60 : 40}
+            radius={[2, 2, 0, 0]}
+          />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+};
 
 const MonthlyCostChart = ({ data }: { data: any[] }) => (
   <div className="bg-white rounded-lg p-3 lg:p-4 shadow-sm border">
@@ -361,9 +336,14 @@ const ProgressAnalysis = ({
   projectData: any, 
   manHoursData: any[] 
 }) => {
-  const totalActualHours = manHoursData.reduce((sum, item) => sum + item.actual, 0);
-  const totalProjectedHours = manHoursData.reduce((sum, item) => sum + item.projected, 0);
-  const efficiency = totalProjectedHours > 0 ? (totalActualHours / totalProjectedHours) * 100 : 0;
+  const {
+    totalActualHours,
+    totalProjectedHours,
+    efficiency,
+    progressVariance,
+    budgetUtilization,
+    costEfficiency
+  } = calculateProgressAnalysis(projectData, manHoursData);
 
   return (
     <div>
@@ -374,15 +354,15 @@ const ProgressAnalysis = ({
           <ul className="list-disc ml-4 lg:ml-5 text-xs lg:text-sm text-red-700 space-y-1">
             <li>Current progress: {projectData.actualProgress.toFixed(1)}%</li>
             <li>Target progress: {projectData.targetProgress.toFixed(1)}%</li>
-            <li>Variance: {(projectData.actualProgress - projectData.targetProgress).toFixed(1)}%</li>
+            <li>Variance: {progressVariance.toFixed(1)}%</li>
           </ul>
         </div>
         <div className="bg-blue-50 border-l-4 border-blue-400 rounded-lg p-3 lg:p-4">
           <div className="font-bold text-blue-600 mb-2 text-sm lg:text-base">Cost Performance</div>
           <ul className="list-disc ml-4 lg:ml-5 text-xs lg:text-sm text-blue-700 space-y-1">
             <li>Projected savings: {formatCurrency(projectData.savings)}</li>
-            <li>Cost efficiency: {projectData.savings > 0 ? 'Above target' : 'Below target'}</li>
-            <li>Budget utilization: {((projectData.actualProgress / 100) * 100).toFixed(1)}%</li>
+            <li>Cost efficiency: {costEfficiency}</li>
+            <li>Budget utilization: {budgetUtilization.toFixed(1)}%</li>
           </ul>
         </div>
         {manHoursData.length > 0 && (
@@ -400,7 +380,7 @@ const ProgressAnalysis = ({
   );
 };
 
-  const { sortedCostData, costItemsBreakdown, processedManHoursData } = processedData;
+  // Data is already processed above
 
   return (
     <Card className="border-l-4 border-l-arsd-red mt-4 lg:mt-6">
@@ -417,12 +397,17 @@ const ProgressAnalysis = ({
         {/* Charts Section - Side by Side */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 mb-6 lg:mb-8">
           {/* Cost Items Breakdown */}
-          {costItemsBreakdown.length > 0 && (
-            <CostItemsChart data={costItemsBreakdown} />
+          {costItemsStackedData && (
+            <CostItemsChart data={costItemsStackedData} />
           )}
           {/* Man Hours Tracking */}
-          {processedManHoursData.length > 0 && (
-            <ManHoursChart data={processedManHoursData} />
+          {(processedManHoursData.length > 0 || dailyManHoursData.length > 0) && (
+            <ManHoursChart 
+              monthlyData={processedManHoursData} 
+              dailyData={dailyManHoursData}
+              view={manHoursView}
+              onViewChange={setManHoursView}
+            />
           )}
         </div>
 
