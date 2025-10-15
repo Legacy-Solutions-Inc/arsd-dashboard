@@ -1,5 +1,13 @@
+import { useMemo } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ProgressPhotosSlider } from "../uploads/ProgressPhotosSlider";
+import { 
+  processProjectOverviewData,
+  validateProjectData,
+  calculateProjectHealthScore,
+  getStatusBadgeColor,
+  getProgressBarColor
+} from "@/utils/project-overview-utils";
 
 interface ProjectOverviewProps {
   projectData: {
@@ -33,6 +41,26 @@ interface ProjectOverviewProps {
 
 export function ProjectOverview({ projectData, costData }: ProjectOverviewProps) {
   const arsdRed = '#B91C1C';
+  
+  // Process project data using utility functions
+  const {
+    formattedData,
+    statusInfo,
+    dateInfo,
+    financialInfo
+  } = useMemo(() => {
+    return processProjectOverviewData(projectData);
+  }, [projectData]);
+
+  // Validate project data
+  const { isValid: isDataValid, missingFields } = useMemo(() => {
+    return validateProjectData(projectData);
+  }, [projectData]);
+
+  // Calculate project health score
+  const healthScore = useMemo(() => {
+    return calculateProjectHealthScore(projectData);
+  }, [projectData]);
   return (
     <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 lg:gap-6">
       {/* Project Information on the left */}
@@ -47,71 +75,71 @@ export function ProjectOverview({ projectData, costData }: ProjectOverviewProps)
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4">
             <div>
               <div className="text-xs text-gray-500">Project ID</div>
-              <div className="font-semibold text-arsd-red text-sm">{projectData.projectId}</div>
+              <div className="font-semibold text-arsd-red text-sm">{formattedData.projectId}</div>
             </div>
             <div>
               <div className="text-xs text-gray-500">Project Name</div>
-              <div className="font-semibold text-gray-900 text-sm">{projectData.projectName}</div>
+              <div className="font-semibold text-gray-900 text-sm">{formattedData.projectName}</div>
             </div>
             <div>
               <div className="text-xs text-gray-500">Client</div>
-              <div className="font-semibold text-gray-900 text-sm">{projectData.client}</div>
+              <div className="font-semibold text-gray-900 text-sm">{formattedData.client}</div>
             </div>
             <div>
               <div className="text-xs text-gray-500">Contractor License</div>
-              <div className="font-semibold text-gray-900 text-sm">{projectData.contractor}</div>
+              <div className="font-semibold text-gray-900 text-sm">{formattedData.contractor}</div>
             </div>
             <div>
               <div className="text-xs text-gray-500">Project Location</div>
-              <div className="font-semibold text-gray-900 text-sm">{projectData.location}</div>
+              <div className="font-semibold text-gray-900 text-sm">{formattedData.location}</div>
             </div>
             <div>
               <div className="text-xs text-gray-500">Contract Amount</div>
-              <div className="font-semibold text-gray-900 text-sm">₱{projectData.contractAmount?.toLocaleString() || 'N/A'}</div>
+              <div className="font-semibold text-gray-900 text-sm">{formattedData.contractAmount}</div>
             </div>
             <div>
               <div className="text-xs text-gray-500">Direct Contract Amount</div>
-              <div className="font-semibold text-gray-900 text-sm">₱{projectData.directContractAmount?.toLocaleString() || 'N/A'}</div>
+              <div className="font-semibold text-gray-900 text-sm">{formattedData.directContractAmount}</div>
             </div>
             <div>
               <div className="text-xs text-gray-500">Planned Start Date</div>
-              <div className="font-semibold text-gray-900 text-sm">{projectData.plannedStartDate || 'N/A'}</div>
+              <div className="font-semibold text-gray-900 text-sm">{formattedData.plannedStartDate}</div>
             </div>
             <div>
               <div className="text-xs text-gray-500">Planned End Date</div>
-              <div className="font-semibold text-gray-900 text-sm">{projectData.plannedEndDate || 'N/A'}</div>
+              <div className="font-semibold text-gray-900 text-sm">{formattedData.plannedEndDate}</div>
             </div>
             <div>
               <div className="text-xs text-gray-500">Actual Start Date</div>
-              <div className="font-semibold text-gray-900 text-sm">{projectData.actualStartDate || 'N/A'}</div>
+              <div className="font-semibold text-gray-900 text-sm">{formattedData.actualStartDate}</div>
             </div>
             <div>
               <div className="text-xs text-gray-500">Actual End Date</div>
-              <div className="font-semibold text-gray-900 text-sm">{projectData.actualEndDate || 'N/A'}</div>
+              <div className="font-semibold text-gray-900 text-sm">{formattedData.actualEndDate}</div>
             </div>
             <div>
               <div className="text-xs text-gray-500">Calendar Days</div>
-              <div className="font-semibold text-gray-900 text-sm">{projectData.calendarDays || 'N/A'}</div>
+              <div className="font-semibold text-gray-900 text-sm">{formattedData.calendarDays}</div>
             </div>
             <div>
               <div className="text-xs text-gray-500">Working Days</div>
-              <div className="font-semibold text-gray-900 text-sm">{projectData.workingDays || 'N/A'}</div>
+              <div className="font-semibold text-gray-900 text-sm">{formattedData.workingDays}</div>
             </div>
             <div>
               <div className="text-xs text-gray-500">PM Name</div>
-              <div className="font-semibold text-gray-900 text-sm">{projectData.pmName}</div>
+              <div className="font-semibold text-gray-900 text-sm">{formattedData.pmName}</div>
             </div>
             <div>
               <div className="text-xs text-gray-500">Site Engineer</div>
-              <div className="font-semibold text-gray-900 text-sm">{projectData.siteEngineer}</div>
+              <div className="font-semibold text-gray-900 text-sm">{formattedData.siteEngineer}</div>
             </div>
             <div>
               <div className="text-xs text-gray-500">Priority Level</div>
-              <div className="font-semibold text-gray-900 text-sm">{projectData.priorityLevel || 'N/A'}</div>
+              <div className="font-semibold text-gray-900 text-sm">{formattedData.priorityLevel}</div>
             </div>
             <div>
               <div className="text-xs text-gray-500">Remarks</div>
-              <div className="font-semibold text-gray-900 text-sm">{projectData.remarks || 'N/A'}</div>
+              <div className="font-semibold text-gray-900 text-sm">{formattedData.remarks}</div>
             </div>
           </div>
         </CardContent>
