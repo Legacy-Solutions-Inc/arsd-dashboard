@@ -113,24 +113,28 @@ export default function LeaderboardPage() {
             const { targetProgress: targetPct, actualProgress: actualPct, slippage } = calculateLeaderboardStats(latestCost, latestDetail);
             
 
-            const result = {
+            // Only include performance leaderboard rows for projects that are IN PROGRESS
+            const includePerformance = p.status === 'in_progress';
+            const result = includePerformance ? {
               project: p,
               targetProgress: targetPct,
               actualProgress: actualPct,
               slippage,
               asOf: (latestCost as any)?.created_at || (latestDetail as any)?.created_at || null,
-            };
+            } : null;
 
             // Savings leaderboard
             const contractAmount = parseNumericValue((latestDetail as any)?.contract_amount);
             const savingsAmt = parseNumericValue((latestCost as any)?.direct_cost_savings);
             const savingsPct = contractAmount > 0 ? roundToTwoDecimals((savingsAmt / contractAmount) * 100) : 0;
-            const savingsResult = {
+            // Only include savings leaderboard rows for projects that are COMPLETED
+            const includeSavings = p.status === 'completed';
+            const savingsResult = includeSavings ? {
               project: p,
               savingsAmount: savingsAmt,
               savingsPctOfContract: savingsPct,
               asOf: (latestCost as any)?.created_at || null,
-            };
+            } : null;
 
             // Site engineer aggregation
             const preferredName = p.project_manager?.display_name?.trim() || (latestDetail as any)?.site_engineer_name?.trim();

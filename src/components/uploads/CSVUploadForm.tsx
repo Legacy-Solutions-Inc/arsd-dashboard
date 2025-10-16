@@ -7,7 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Upload, FileText, X, CheckCircle, AlertCircle } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Upload, FileText, X, CheckCircle, AlertCircle, AlertTriangle } from 'lucide-react';
+import { UniversalLoading } from '@/components/ui/universal-loading';
 import { AccomplishmentReportsService } from '@/services/accomplishment-reports/accomplishment-reports.service';
 import { getWeekEndingDate, formatFileSize } from '@/types/accomplishment-reports';
 import { STORAGE_CONFIG } from '@/config/storage.config';
@@ -26,6 +28,7 @@ export default function CSVUploadForm({ project, onUploadSuccess, onCancel }: CS
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const service = new AccomplishmentReportsService();
 
@@ -81,6 +84,7 @@ export default function CSVUploadForm({ project, onUploadSuccess, onCancel }: CS
     try {
       setUploading(true);
       setError(null);
+      setShowConfirmDialog(false);
 
       const supabase = createClient();
       
@@ -161,9 +165,38 @@ export default function CSVUploadForm({ project, onUploadSuccess, onCancel }: CS
     }
   };
 
+  const handleUploadClick = () => {
+    if (!file) return;
+    setShowConfirmDialog(true);
+  };
+
+  const handleConfirmUpload = () => {
+    handleUpload();
+  };
+
+  const handleCancelConfirm = () => {
+    setShowConfirmDialog(false);
+  };
+
   return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
+    <>
+      {/* Loading Overlay */}
+      {uploading && (
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 p-8 max-w-md mx-4">
+            <UniversalLoading
+              type="report"
+              message="Uploading Report"
+              subtitle="Processing your accomplishment report and saving to database..."
+              size="md"
+              showProgress={false}
+            />
+          </div>
+        </div>
+      )}
+
+      <Card className="w-full max-w-2xl mx-auto">
+        <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Upload className="h-5 w-5" />
           Upload Accomplishment Report
@@ -266,7 +299,7 @@ export default function CSVUploadForm({ project, onUploadSuccess, onCancel }: CS
             Cancel
           </Button>
           <Button
-            onClick={handleUpload}
+            onClick={handleUploadClick}
             disabled={!file || uploading}
             className="min-w-[100px]"
           >
@@ -284,6 +317,59 @@ export default function CSVUploadForm({ project, onUploadSuccess, onCancel }: CS
           </Button>
         </div>
       </CardContent>
-    </Card>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              Confirm Upload
+            </DialogTitle>
+            <DialogDescription>
+              Before proceeding with the upload, please ensure you have:
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <Alert>
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                <strong>Important:</strong> Make sure to check all the data and refresh the data before uploading the accomplishment report.
+              </AlertDescription>
+            </Alert>
+            
+            {file && (
+              <div className="bg-gray-50 p-3 rounded-lg">
+                <p className="text-sm font-medium text-gray-900">File to upload:</p>
+                <p className="text-sm text-gray-600">{file.name}</p>
+                <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCancelConfirm}
+              disabled={uploading}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleConfirmUpload}
+              disabled={uploading}
+              className="bg-arsd-red hover:bg-arsd-red/80"
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              Confirm Upload
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      </Card>
+    </>
   );
 }

@@ -127,6 +127,41 @@ export function useWeeklyUploadStatus() {
     fetchStatus();
   }, [fetchStatus]);
 
+  // Listen for report status changes to refresh data
+  useEffect(() => {
+    const handleReportApproved = () => {
+      console.log('🔄 Weekly status: Report approved event received, refreshing...');
+      fetchStatus();
+    };
+
+    const handleReportRejected = () => {
+      console.log('🔄 Weekly status: Report rejected event received, refreshing...');
+      fetchStatus();
+    };
+
+    const handleReportResubmitted = () => {
+      console.log('🔄 Weekly status: Report resubmitted event received, refreshing...');
+      fetchStatus();
+    };
+
+    const handleReportUploaded = () => {
+      console.log('🔄 Weekly status: Report uploaded event received, refreshing...');
+      fetchStatus();
+    };
+
+    window.addEventListener('projectReportApproved', handleReportApproved);
+    window.addEventListener('projectReportRejected', handleReportRejected);
+    window.addEventListener('projectReportResubmitted', handleReportResubmitted);
+    window.addEventListener('accomplishmentReportUploaded', handleReportUploaded);
+
+    return () => {
+      window.removeEventListener('projectReportApproved', handleReportApproved);
+      window.removeEventListener('projectReportRejected', handleReportRejected);
+      window.removeEventListener('projectReportResubmitted', handleReportResubmitted);
+      window.removeEventListener('accomplishmentReportUploaded', handleReportUploaded);
+    };
+  }, [fetchStatus]);
+
   const refetch = useCallback(() => {
     fetchStatus();
   }, [fetchStatus]);

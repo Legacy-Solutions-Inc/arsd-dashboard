@@ -499,6 +499,11 @@ export default function AssignedProjectsList({ itemsPerPage = 6 }: AssignedProje
                               Resubmit Report
                             </Button>
                           </div>
+                        ) : reportStatus === 'approved' ? (
+                          <Button variant="outline" size="lg" disabled className="glass-button bg-green-100/50 text-green-700 border-green-300/50 cursor-not-allowed">
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                            Report Approved
+                          </Button>
                         ) : (
                           <Button variant="outline" size="lg" disabled className="glass-button bg-gray-100/50 text-glass-muted border-gray-300/50 cursor-not-allowed">
                             <FileText className="h-4 w-4 mr-2" />

@@ -126,14 +126,31 @@ export class AccomplishmentReportsService extends BaseService {
         .from('accomplishment_reports')
         .select('id, project_id, week_ending_date, status, upload_date, file_name, file_size, file_url, notes')
         .in('project_id', projectIds)
-        .order('week_ending_date', { ascending: false });
+        .order('upload_date', { ascending: false }); // Order by upload_date to get the latest report first
 
       if (reportsError) throw reportsError;
 
       // Combine data - determine current week's status per project
       const result = projects.map(project => {
-        // Current week's report for this project (controls Upload button)
-        const reportForCurrentWeek = reports.find(r => r.project_id === project.id && r.week_ending_date === currentWeekEnding);
+        // Get ALL reports for current week for this project, then pick the latest one
+        const reportsForCurrentWeek = reports.filter(r => r.project_id === project.id && r.week_ending_date === currentWeekEnding);
+        
+        // Debug logging to help troubleshoot status issues
+        if (reportsForCurrentWeek.length > 1) {
+          console.log(`🔍 Multiple reports found for project ${project.project_name} (${project.id}) for week ${currentWeekEnding}:`, 
+            reportsForCurrentWeek.map(r => ({ id: r.id, status: r.status, upload_date: r.upload_date })));
+        }
+        
+        // Get the LATEST report (most recent upload_date) for current week
+        // This ensures we get the most recent resubmission, not the original rejected one
+        const reportForCurrentWeek = reportsForCurrentWeek.length > 0 
+          ? reportsForCurrentWeek[0] // Since we ordered by upload_date desc, first one is latest
+          : undefined;
+          
+        // Debug logging for the selected report
+        if (reportForCurrentWeek) {
+          console.log(`✅ Selected report for ${project.project_name}: Status=${reportForCurrentWeek.status}, UploadDate=${reportForCurrentWeek.upload_date}`);
+        }
 
         return {
           project_id: project.id,
