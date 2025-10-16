@@ -54,6 +54,7 @@ export interface ProjectStats {
   targetCostTotal: number;
   directCostTotal: number;
   swaCostTotal: number;
+  billedCostTotal: number;
   targetProgress: number;
   actualProgress: number;
   slippage: number;
@@ -77,6 +78,7 @@ export const calculateProjectStats = (
   const targetCostTotal = parseNumericValue(projectCost.target_cost_total);
   const directCostTotal = parseNumericValue(projectCost.direct_cost_total);
   const swaCostTotal = parseNumericValue(projectCost.swa_cost_total);
+  const billedCostTotal = parseNumericValue(projectCost.billed_cost_total);
 
   // Calculate target progress - prefer target_percentage from sheet, fallback to calculation
   const targetProgress = (parseNumericValue(projectDetails.direct_contract_amount) / contractAmount) * 100;
@@ -97,6 +99,7 @@ export const calculateProjectStats = (
     targetCostTotal,
     directCostTotal,
     swaCostTotal,
+    billedCostTotal,
     targetProgress,
     actualProgress,
     slippage,

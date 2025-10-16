@@ -39,6 +39,7 @@ export interface CostAnalysisProps {
     targetCostTotal: number;
     directCostTotal: number;
     swaCostTotal: number;
+    billedCostTotal?: number;
   };
 }
 
@@ -63,40 +64,94 @@ export function CostAnalysis({ costData, costItemsData = [], manHoursData = [], 
   }, [sortedCostData, currentPage]);
 
 // Subcomponents
-const CostItemsChart = ({ data }: { data: any }) => (
-  <div className="bg-white rounded-lg p-3 lg:p-4 shadow-sm border">
-    <h3 className="font-semibold text-sm lg:text-base mb-2 text-arsd-red">Cost Items Breakdown</h3>
-    <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
-      <BarChart 
-        data={[
-          {
-            name: 'Target vs Combined Costs',
-            target: data.target,
-            equipment: data.equipment,
-            labor: data.labor,
-            materials: data.materials
-          }
-        ]} 
-        margin={COST_ITEMS_MARGIN}
-      >
-        <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-        <YAxis
-          tick={{ fontSize: 10 }}
-          tickFormatter={formatCurrencyM}
-        />
-        <Tooltip 
-          formatter={(value, name) => [formatCurrency(value as number), name]}
-          labelFormatter={() => 'Cost Comparison'}
-        />
-        <Legend />
-        <Bar dataKey="target" name="Target Cost" stackId="target" fill={CHART_COLORS.target} />
-        <Bar dataKey="equipment" name="Equipment" stackId="combined" fill={CHART_COLORS.equipment} />
-        <Bar dataKey="labor" name="Labor" stackId="combined" fill={CHART_COLORS.labor} />
-        <Bar dataKey="materials" name="Materials" stackId="combined" fill={CHART_COLORS.materials} />
-      </BarChart>
-    </ResponsiveContainer>
-  </div>
-);
+const CostItemsChart = ({ data }: { data: any }) => {
+  // Custom tooltip formatter to improve display
+  const customTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      const combinedCost = (data.equipment || 0) + (data.labor || 0) + (data.materials || 0);
+      
+      return (
+        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
+          <p className="font-semibold text-sm mb-2">{label}</p>
+          <div className="space-y-1">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-red-600"></div>
+                <span className="text-sm">Target Cost:</span>
+              </div>
+              <span className="font-medium text-sm">{formatCurrency(data.target || 0)}</span>
+            </div>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-pink-500"></div>
+                <span className="text-sm">SWA Cost:</span>
+              </div>
+              <span className="font-medium text-sm">{formatCurrency(data.swa || 0)}</span>
+            </div>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-gray-600"></div>
+                <span className="text-sm">Billed Cost:</span>
+              </div>
+              <span className="font-medium text-sm">{formatCurrency(data.billed || 0)}</span>
+            </div>
+            <div className="border-t pt-1 mt-2">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+                  <span className="text-sm">Combined Direct Costs:</span>
+                </div>
+                <span className="font-medium text-sm">{formatCurrency(combinedCost)}</span>
+              </div>
+              <div className="ml-5 text-xs text-gray-600 mt-1">
+                <div>• Equipment: {formatCurrency(data.equipment || 0)}</div>
+                <div>• Labor: {formatCurrency(data.labor || 0)}</div>
+                <div>• Materials: {formatCurrency(data.materials || 0)}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  return (
+    <div className="bg-white rounded-lg p-3 lg:p-4 shadow-sm border">
+      <h3 className="font-semibold text-sm lg:text-base mb-2 text-arsd-red">Cost Items Breakdown</h3>
+      <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
+        <BarChart 
+          data={[
+            {
+              name: 'Cost Comparison',
+              target: data.target,
+              swa: data.swa,
+              billed: data.billed,
+              equipment: data.equipment,
+              labor: data.labor,
+              materials: data.materials
+            }
+          ]} 
+          margin={COST_ITEMS_MARGIN}
+        >
+          <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+          <YAxis
+            tick={{ fontSize: 10 }}
+            tickFormatter={formatCurrencyM}
+          />
+          <Tooltip content={customTooltip} />
+          <Legend />
+          <Bar dataKey="target" name="Target Cost" stackId="target" fill={CHART_COLORS.target} />
+          <Bar dataKey="swa" name="SWA Cost" stackId="swa" fill={CHART_COLORS.swa} />
+          <Bar dataKey="billed" name="Billed Cost" stackId="billed" fill={CHART_COLORS.billed} />
+          <Bar dataKey="equipment" name="Equipment" stackId="combined" fill={CHART_COLORS.equipment} />
+          <Bar dataKey="labor" name="Labor" stackId="combined" fill={CHART_COLORS.labor} />
+          <Bar dataKey="materials" name="Materials" stackId="combined" fill={CHART_COLORS.materials} />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+};
 
 const ManHoursChart = ({ 
   monthlyData, 
@@ -324,10 +379,30 @@ const MonthlyCostBreakdown = ({
   );
 };
 
-const CostItemsSummary = ({ data }: { data: any[] }) => (
+const CostItemsSummary = ({ data, projectStats }: { data: any[], projectStats?: any }) => (
   <div>
     <h3 className="font-semibold text-sm lg:text-base mb-3 text-arsd-red">Cost Items Summary</h3>
     <div className="space-y-3">
+      {/* SWA Cost and Billed Cost Section */}
+      <div className="bg-pink-50 border-l-4 border-pink-400 rounded-lg p-3 lg:p-4">
+        <div className="font-bold text-pink-600 mb-2 text-sm lg:text-base">Project Costs</div>
+        <div className="space-y-2">
+        <div className="flex justify-between items-center text-xs lg:text-sm">
+            <span className="text-pink-700">Target Cost</span>
+            <span className="font-semibold text-pink-800">{formatCurrency(projectStats?.targetCostTotal || 0)}</span>
+          </div>
+          <div className="flex justify-between items-center text-xs lg:text-sm">
+            <span className="text-pink-700">SWA Cost</span>
+            <span className="font-semibold text-pink-800">{formatCurrency(projectStats?.swaCostTotal || 0)}</span>
+          </div>
+          <div className="flex justify-between items-center text-xs lg:text-sm">
+            <span className="text-pink-700">Billed Cost</span>
+            <span className="font-semibold text-pink-800">{formatCurrency(projectStats?.billedCostTotal || 0)}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Cost Items Breakdown Section */}
       {data.length > 0 && (
         <div className="bg-purple-50 border-l-4 border-purple-400 rounded-lg p-3 lg:p-4">
           <div className="font-bold text-purple-600 mb-2 text-sm lg:text-base">Cost Items Breakdown</div>
@@ -368,9 +443,9 @@ const ProgressAnalysis = ({
         <div className="bg-red-50 border-l-4 border-red-400 rounded-lg p-3 lg:p-4">
           <div className="font-bold text-red-600 mb-2 text-sm lg:text-base">Project Progress</div>
           <ul className="list-disc ml-4 lg:ml-5 text-xs lg:text-sm text-red-700 space-y-1">
-            <li>Current progress: {projectData.actualProgress.toFixed(1)}%</li>
-            <li>Target progress: {projectData.targetProgress.toFixed(1)}%</li>
-            <li>Variance: {progressVariance.toFixed(1)}%</li>
+            <li>Current progress: {projectData.actualProgress.toFixed(2)}%</li>
+            <li>Target progress: {projectData.targetProgress.toFixed(2)}%</li>
+            <li>Variance: {progressVariance.toFixed(2)}%</li>
           </ul>
         </div>
         <div className="bg-blue-50 border-l-4 border-blue-400 rounded-lg p-3 lg:p-4">
@@ -378,7 +453,7 @@ const ProgressAnalysis = ({
           <ul className="list-disc ml-4 lg:ml-5 text-xs lg:text-sm text-blue-700 space-y-1">
             <li>Projected savings: {formatCurrency(projectData.savings)}</li>
             <li>Cost efficiency: {costEfficiency}</li>
-            <li>Budget utilization: {budgetUtilization.toFixed(1)}%</li>
+            <li>Budget utilization: {budgetUtilization.toFixed(2)}%</li>
           </ul>
         </div>
         {manHoursData.length > 0 && (
@@ -386,8 +461,8 @@ const ProgressAnalysis = ({
             <div className="font-bold text-green-600 mb-2 text-sm lg:text-base">Man Hours Summary</div>
             <ul className="list-disc ml-4 lg:ml-5 text-xs lg:text-sm text-green-700 space-y-1">
               <li>Total actual hours: {totalActualHours.toFixed(1)}h</li>
-              <li>Total projected hours: {totalProjectedHours.toFixed(1)}h</li>
-              <li>Efficiency: {efficiency.toFixed(1)}%</li>
+              <li>Total projected hours: {totalProjectedHours.toFixed(2)}h</li>
+              <li>Efficiency: {efficiency.toFixed(2)}%</li>
             </ul>
           </div>
         )}
@@ -434,7 +509,7 @@ const ProgressAnalysis = ({
             paginationData={paginationData}
             onPageChange={setCurrentPage}
           />
-          <CostItemsSummary data={costItemsBreakdown} />
+          <CostItemsSummary data={costItemsBreakdown} projectStats={projectStats} />
           <ProgressAnalysis 
             projectData={projectData} 
             manHoursData={processedManHoursData} 
