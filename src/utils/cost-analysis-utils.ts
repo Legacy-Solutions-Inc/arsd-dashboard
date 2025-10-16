@@ -31,6 +31,8 @@ export interface CostItem {
 
 export interface CostItemsStackedData {
   target: number;
+  swa: number;
+  billed: number;
   equipment: number;
   labor: number;
   materials: number;
@@ -50,6 +52,7 @@ export interface ProjectStats {
   targetCostTotal: number;
   directCostTotal: number;
   swaCostTotal: number;
+  billedCostTotal?: number;
 }
 
 export interface PaginationData {
@@ -165,22 +168,16 @@ export const processCostItemsForStackedChart = (
   const materialsCost = processedItems.find(item => item.type === 'Materials')?.cost || 0;
   const combinedCost = equipmentCost + laborCost + materialsCost;
   
-  // Use projectStats.targetCostTotal if available, otherwise fall back to cost_items Target
+  // Use projectStats for target, SWA, and billed costs if available
   const targetCost = projectStats?.targetCostTotal || processedItems.find(item => item.type === 'Target')?.cost || 0;
-  
-  // Debug logging to verify data sources
-  console.log('Cost Items Stacked Chart Debug:', {
-    projectStatsTargetCost: projectStats?.targetCostTotal,
-    costItemsTargetCost: processedItems.find(item => item.type === 'Target')?.cost,
-    finalTargetCost: targetCost,
-    equipmentCost,
-    laborCost,
-    materialsCost,
-    combinedCost
-  });
+  const swaCost = projectStats?.swaCostTotal || 0;
+  const billedCost = projectStats?.billedCostTotal || 0;
+
   
   return {
     target: targetCost,
+    swa: swaCost,
+    billed: billedCost,
     equipment: equipmentCost,
     labor: laborCost,
     materials: materialsCost,
