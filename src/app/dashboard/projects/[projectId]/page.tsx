@@ -429,7 +429,8 @@ const ProjectTabs = ({
                 contractAmount: stats.contractAmount,
                 targetCostTotal: stats.latestProjectDetails.direct_contract_amount,
                 directCostTotal: stats.directCostTotal,
-                swaCostTotal: stats.swaCostTotal
+                swaCostTotal: stats.swaCostTotal,
+                billedCostTotal: stats.billedCostTotal
               }}
             />
           </TabsContent>
