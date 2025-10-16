@@ -62,6 +62,8 @@ export default function ReportsManagement() {
   const [isApproving, setIsApproving] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
   const [isResubmitting, setIsResubmitting] = useState(false);
+  const [isApprovalConfirmOpen, setIsApprovalConfirmOpen] = useState(false);
+  const [approvingReport, setApprovingReport] = useState<AccomplishmentReport | null>(null);
   const itemsPerPage = 5;
   
   const { reports, loading, error, refetch } = useAllAccomplishmentReports(filters);
@@ -165,6 +167,28 @@ export default function ReportsManagement() {
     }
   };
 
+  const handleApproveClick = (report: AccomplishmentReport) => {
+    setApprovingReport(report);
+    setIsApprovalConfirmOpen(true);
+  };
+
+  const handleConfirmApproval = async () => {
+    if (!approvingReport) return;
+    try {
+      await handleStatusUpdate(approvingReport.id, 'approved');
+      setIsApprovalConfirmOpen(false);
+      setApprovingReport(null);
+    } catch (error) {
+      // Error is already handled in handleStatusUpdate
+      // Keep dialog open to show error state
+    }
+  };
+
+  const handleCancelApproval = () => {
+    setIsApprovalConfirmOpen(false);
+    setApprovingReport(null);
+  };
+
   const handleViewRejectionDetails = (report: AccomplishmentReport) => {
     setSelectedRejectedReport(report);
     setRejectionNotes(report.notes || '');
@@ -209,6 +233,31 @@ export default function ReportsManagement() {
     });
   };
 
+  // Show loading state while initial data is being fetched
+  if (loading) {
+    return (
+      <div className="space-y-8">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-glass-subtle rounded-xl flex items-center justify-center">
+            <BarChart3 className="h-6 w-6 text-arsd-red" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-glass-primary text-arsd-red">Accomplishment Reports</h2>
+            <p className="text-glass-secondary">View and manage all uploaded accomplishment reports</p>
+          </div>
+        </div>
+        <div className="flex items-center justify-center py-12">
+          <UniversalLoading
+            type="report"
+            message="Loading Reports"
+            subtitle="Fetching accomplishment reports from database..."
+            size="lg"
+            showProgress={false}
+          />
+        </div>
+      </div>
+    );
+  }
 
   if (error) {
     return (
@@ -515,7 +564,7 @@ export default function ReportsManagement() {
                               <>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
-                                  onClick={() => handleStatusUpdate(report.id, 'approved')}
+                                  onClick={() => handleApproveClick(report)}
                                   disabled={updatingStatus === report.id || statusLoading || isApproving}
                                   className="flex items-center gap-2 text-green-700"
                                 >
@@ -757,6 +806,81 @@ export default function ReportsManagement() {
                 <>
                   <AlertCircle className="h-4 w-4 mr-2" />
                   Reject
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Approval Confirmation Modal */}
+      <Dialog open={isApprovalConfirmOpen} onOpenChange={setIsApprovalConfirmOpen}>
+        <DialogContent className="glass-elevated max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-green-700 flex items-center gap-2 text-xl">
+              <AlertTriangle className="h-5 w-5" />
+              Confirm Approval
+            </DialogTitle>
+            <DialogDescription className="text-glass-secondary">
+              Before approving this report, please ensure you have reviewed all data thoroughly.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {isApproving ? (
+              <div className="flex items-center justify-center py-8">
+                <UniversalLoading
+                  type="report"
+                  message="Approving Report..."
+                  subtitle="Please wait while we process your approval"
+                  size="md"
+                  showProgress={false}
+                />
+              </div>
+            ) : (
+              <>
+                <Alert>
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    <strong>Important:</strong> Make sure to check all the data and refresh the data before approving the accomplishment report.
+                  </AlertDescription>
+                </Alert>
+                
+                {approvingReport && (
+                  <div className="bg-green-50/50 border border-green-200/50 rounded-lg p-3">
+                    <p className="text-sm font-medium text-green-900">Report to approve:</p>
+                    <p className="text-sm text-green-700">{approvingReport.project_name}</p>
+                    <p className="text-xs text-green-600">{approvingReport.file_name}</p>
+                    <p className="text-xs text-green-600">Week ending: {formatDate(approvingReport.week_ending_date)}</p>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4">
+            <Button
+              variant="outline"
+              onClick={handleCancelApproval}
+              disabled={isApproving}
+              className="glass-button disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleConfirmApproval}
+              disabled={isApproving}
+              className="bg-arsd-red hover:bg-arsd-red/80 text-white disabled:opacity-75 disabled:cursor-not-allowed"
+            >
+              {isApproving ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                  Approving...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Confirm Approval
                 </>
               )}
             </Button>
