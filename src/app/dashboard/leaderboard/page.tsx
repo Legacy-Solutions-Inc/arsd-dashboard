@@ -300,7 +300,7 @@ export default function LeaderboardPage() {
                       <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white font-bold ${idx === 0 ? 'bg-amber-500' : idx === 1 ? 'bg-amber-400' : idx === 2 ? 'bg-amber-300 text-amber-900' : 'bg-emerald-500'}`}>{idx + 1}</div>
                       <div className="flex-1">
                         <div className="font-semibold text-gray-900 text-sm sm:text-base">{r.project.project_name}</div>
-                        <div className="text-xs text-gray-500 truncate">{r.project.project_id} • {r.project.client}</div>
+                        <div className="text-xs text-gray-500 truncate">{r.project.parsed_project_id || r.project.project_id} • {r.project.client}</div>
                       </div>
                       <div className="text-right">
                         <div className="text-xs sm:text-sm font-semibold text-emerald-700 flex items-center gap-1 justify-end"><ArrowDown className="h-4 w-4" />{r.slippage.toFixed(2)}%</div>
@@ -338,7 +338,7 @@ export default function LeaderboardPage() {
                       <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white font-bold ${idx === 0 ? 'bg-yellow-500' : idx === 1 ? 'bg-yellow-400' : idx === 2 ? 'bg-yellow-300 text-amber-900' : 'bg-amber-500'}`}>{idx + 1}</div>
                       <div className="flex-1">
                         <div className="font-semibold text-gray-900 text-sm sm:text-base">{s.project.project_name}</div>
-                        <div className="text-xs text-gray-500 truncate">{s.project.project_id} • {s.project.client}</div>
+                        <div className="text-xs text-gray-500 truncate">{s.project.parsed_project_id || s.project.project_id} • {s.project.client}</div>
                       </div>
                       <div className="text-right">
                         <div className="text-xs sm:text-sm font-semibold text-amber-700">₱{s.savingsAmount.toLocaleString()}</div>
@@ -419,7 +419,7 @@ export default function LeaderboardPage() {
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold ${idx === 0 ? 'bg-amber-500' : idx === 1 ? 'bg-amber-400' : idx === 2 ? 'bg-amber-300 text-amber-900' : 'bg-emerald-500'}`}>{idx + 1}</div>
                     <div className="flex-1">
                       <div className="font-semibold text-gray-900 text-sm">{r.project.project_name}</div>
-                      <div className="text-xs text-gray-500">{r.project.project_id} • {r.project.client}</div>
+                      <div className="text-xs text-gray-500">{r.project.parsed_project_id || r.project.project_id} • {r.project.client}</div>
                     </div>
                     <div className="text-right">
                       <div className="text-sm font-semibold text-emerald-700 flex items-center gap-1 justify-end"><ArrowDown className="h-4 w-4" />{r.slippage.toFixed(2)}%</div>
@@ -433,7 +433,7 @@ export default function LeaderboardPage() {
                     <div className="w-8 h-8 rounded-full bg-rose-500 text-white font-bold flex items-center justify-center">{idx + 1}</div>
                     <div className="flex-1">
                       <div className="font-semibold text-gray-900 text-sm">{r.project.project_name}</div>
-                      <div className="text-xs text-gray-500">{r.project.project_id} • {r.project.client}</div>
+                      <div className="text-xs text-gray-500">{r.project.parsed_project_id || r.project.project_id} • {r.project.client}</div>
                     </div>
                     <div className="text-right">
                       <div className="text-sm font-semibold text-rose-700 flex items-center gap-1 justify-end"><ArrowUp className="h-4 w-4" />{r.slippage.toFixed(2)}%</div>
