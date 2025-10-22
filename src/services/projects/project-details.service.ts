@@ -22,16 +22,75 @@ export class ProjectDetailsService {
    * @returns Latest accomplishment report ID or null
    */
   private async getLatestAccomplishmentReportId(projectId: string): Promise<string | null> {
+    // 1) Prefer the latest APPROVED + successfully PARSED report
+    const { data: approvedParsed, error: approvedParsedError } = await this.supabase
+      .from('accomplishment_reports')
+      .select('id, week_ending_date, created_at')
+      .eq('project_id', projectId)
+      .eq('status', 'approved')
+      .eq('parsed_status', 'success')
+      .order('week_ending_date', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (approvedParsed && approvedParsed.id) {
+      return approvedParsed.id;
+    }
+
+    if (approvedParsedError) {
+      console.warn('Fallback: approved+parsed lookup failed:', approvedParsedError.message);
+    }
+
+    // 2) Fallback to the latest successfully PARSED report (regardless of current status field)
+    const { data: anyParsed, error: anyParsedError } = await this.supabase
+      .from('accomplishment_reports')
+      .select('id, week_ending_date, created_at')
+      .eq('project_id', projectId)
+      .eq('parsed_status', 'success')
+      .order('week_ending_date', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (anyParsed && anyParsed.id) {
+      return anyParsed.id;
+    }
+
+    if (anyParsedError) {
+      console.warn('Fallback: parsed-only lookup failed:', anyParsedError.message);
+    }
+
+    // 3) Fallback to latest APPROVED (may not be parsed yet, likely produces empty data)
+    const { data: approvedOnly, error: approvedOnlyError } = await this.supabase
+      .from('accomplishment_reports')
+      .select('id, week_ending_date, created_at')
+      .eq('project_id', projectId)
+      .eq('status', 'approved')
+      .order('week_ending_date', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (approvedOnly && approvedOnly.id) {
+      return approvedOnly.id;
+    }
+
+    if (approvedOnlyError) {
+      console.warn('Fallback: approved-only lookup failed:', approvedOnlyError.message);
+    }
+
+    // 4) Last resort: whatever the truly latest report is
     const { data: latestReport, error } = await this.supabase
       .from('accomplishment_reports')
       .select('id')
       .eq('project_id', projectId)
       .order('created_at', { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
     if (error) {
-      console.error('Error fetching latest accomplishment report:', error);
+      console.error('Error fetching latest accomplishment report (last resort):', error);
       return null;
     }
 

@@ -270,7 +270,7 @@ export class AccomplishmentReportsService extends BaseService {
         throw updateError;
       }
 
-      // If approved, update project's latest accomplishment date and trigger auto-parsing
+      // Update project flags based on status change
       if (status === 'approved') {
         try {
           // Update project's latest accomplishment date
@@ -315,6 +315,14 @@ export class AccomplishmentReportsService extends BaseService {
           }
         } catch (parseError) {
           console.error('Error during auto-parsing:', parseError);
+        }
+      } else if (status === 'rejected') {
+        // When rejecting, check if this was the latest approved report
+        // If so, we need to update project flags to reflect the new latest approved report
+        try {
+          await this.updateProjectFlagsAfterRejection(reportData.project_id);
+        } catch (error) {
+          console.error('Error updating project flags after rejection:', error);
         }
       }
 
@@ -396,6 +404,63 @@ export class AccomplishmentReportsService extends BaseService {
     } catch (error) {
       console.error('Upload file error:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Update project flags after a report is rejected
+   * This ensures the project reflects the current latest approved and parsed report
+   */
+  private async updateProjectFlagsAfterRejection(projectId: string): Promise<void> {
+    const supabase = createClient();
+    
+    // Find the latest approved and successfully parsed report
+    const { data: latestApprovedParsed, error: latestError } = await supabase
+      .from('accomplishment_reports')
+      .select('id, week_ending_date, created_at')
+      .eq('project_id', projectId)
+      .eq('status', 'approved')
+      .eq('parsed_status', 'success')
+      .order('week_ending_date', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (latestError) {
+      console.error('Error finding latest approved parsed report:', latestError);
+      return;
+    }
+
+    if (latestApprovedParsed) {
+      // Update project with the latest approved parsed report info
+      const { error: updateError } = await supabase
+        .from('projects')
+        .update({
+          latest_accomplishment_update: latestApprovedParsed.week_ending_date,
+          has_parsed_data: true
+        })
+        .eq('id', projectId);
+
+      if (updateError) {
+        console.error('Error updating project flags:', updateError);
+      } else {
+        console.log(`Updated project ${projectId} flags after rejection`);
+      }
+    } else {
+      // No approved parsed reports found, clear the flags
+      const { error: updateError } = await supabase
+        .from('projects')
+        .update({
+          latest_accomplishment_update: null,
+          has_parsed_data: false
+        })
+        .eq('id', projectId);
+
+      if (updateError) {
+        console.error('Error clearing project flags:', updateError);
+      } else {
+        console.log(`Cleared project ${projectId} flags - no approved parsed reports found`);
+      }
     }
   }
 
