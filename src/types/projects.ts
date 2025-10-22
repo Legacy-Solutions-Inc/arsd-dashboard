@@ -3,7 +3,6 @@ export type ProjectStatus = 'in_planning' | 'in_progress' | 'completed';
 export interface Project {
   id: string;
   project_id: string;           // System generated (e.g., PRJ-2024-0001)
-  parsed_project_id?: string;   // Parsed project_id from accomplishment reports (e.g., BCDDB-2025-001)
   project_name: string;
   client: string;
   location: string;
@@ -37,7 +36,6 @@ export interface CreateProjectData {
   client: string;
   location: string;
   status?: ProjectStatus;
-  project_id?: string;
   project_manager_id?: string | undefined;
   project_inspector_id?: string | undefined;
 }

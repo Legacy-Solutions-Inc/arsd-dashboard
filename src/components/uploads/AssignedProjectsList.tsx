@@ -459,6 +459,12 @@ export default function AssignedProjectsList({ itemsPerPage = 6 }: AssignedProje
                 <div className="flex items-center justify-between">
                   <div className="space-y-2">
                     <div className="text-sm text-glass-secondary">
+                      <span className="font-semibold text-glass-primary">Project ID:</span> 
+                      <span className="ml-2 font-mono bg-arsd-red/10 px-2 py-1 rounded-lg text-arsd-red">
+                        {project.project_id}
+                      </span>
+                    </div>
+                    <div className="text-sm text-glass-secondary">
                       <span className="font-semibold text-glass-primary">Status:</span> 
                       <span className="ml-2 capitalize">{project.status}</span>
                     </div>

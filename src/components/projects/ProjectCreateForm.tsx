@@ -209,7 +209,7 @@ export default function ProjectCreateForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="project_inspector_id">Project Manager</Label>
+            <Label htmlFor="project_inspector_id">Project Inspector</Label>
             <Select
               value={formData.project_inspector_id}
               onValueChange={(value) => handleSelectChange('project_inspector_id', value)}

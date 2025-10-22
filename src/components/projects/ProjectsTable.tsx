@@ -255,7 +255,7 @@ export function ProjectsTable({
               <TableRow key={project.id} className={`glass-table-row ${index % 2 === 0 ? 'bg-white/5' : 'bg-white/2'}`}>
                 <TableCell className="glass-table-cell">
                   <div className="font-mono text-glass-accent font-medium bg-arsd-red/10 px-3 py-1 rounded-lg inline-block">
-                    {project.parsed_project_id || project.project_id}
+                    {project.project_id}
                   </div>
                 </TableCell>
                 

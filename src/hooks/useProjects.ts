@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Project, ProjectFilters } from '@/types/projects';
 import { ProjectService } from '@/services/projects/project.service';
-import { ProjectDetailsService } from '@/services/projects/project-details.service';
 import { useRBAC } from './useRBAC';
 
 export function useProjects(filters?: ProjectFilters) {
@@ -13,7 +12,6 @@ export function useProjects(filters?: ProjectFilters) {
   const { user } = useRBAC();
 
   const projectService = new ProjectService();
-  const projectDetailsService = new ProjectDetailsService();
 
   const loadProjects = useCallback(async () => {
     try {
@@ -27,28 +25,7 @@ export function useProjects(filters?: ProjectFilters) {
       }
       
       const data = await projectService.getProjects(appliedFilters);
-      
-      // Fetch latest parsed project_id for each project
-      const projectsWithParsedIds = await Promise.all(
-        data.map(async (project) => {
-          try {
-            const projectDetails = await projectDetailsService.getProjectDetails(project.id);
-            const latestProjectDetails = projectDetails?.project_details?.[0];
-            return {
-              ...project,
-              parsed_project_id: latestProjectDetails?.project_id || project.project_id
-            };
-          } catch (error) {
-            console.error(`Failed to fetch parsed project_id for project ${project.id}:`, error);
-            return {
-              ...project,
-              parsed_project_id: project.project_id
-            };
-          }
-        })
-      );
-      
-      setProjects(projectsWithParsedIds);
+      setProjects(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load projects');
     } finally {

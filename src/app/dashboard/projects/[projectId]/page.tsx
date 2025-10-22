@@ -8,11 +8,18 @@ import { CostAnalysis } from "../../../../components/project sections/CostAnalys
 import { Materials } from "../../../../components/project sections/Materials";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProjectDetailsService, type ProjectDetails } from "@/services/projects/project-details.service";
+import { GlassCard, GlassCardContent } from "@/components/ui/glass-card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, ArrowLeft, Loader2, DollarSign, TrendingUp, Target, AlertTriangle, CheckCircle, Clock, BarChart3, Wallet, PiggyBank, Download, Share2, Edit3, Eye } from "lucide-react";
 import { ProjectLoading, InlineLoading } from "@/components/ui/universal-loading";
 import { Button } from "@/components/ui/button";
 import { calculateProjectStats, formatTargetPercentage, parseNumericValue, formatCurrency } from "@/utils/project-calculations";
-import { projects } from "../../data/projectsData";
+
+// Constants
+const CARD_STYLES = "border-l-4 border-l-arsd-red bg-white rounded shadow p-3";
+const STAT_CARD_GRID = "grid grid-cols-2 md:grid-cols-6 gap-3 mb-4";
+
+// Utility functions (imported from centralized utils)
 
 // Data processing functions
 const calculateProjectStatsData = (project: ProjectDetails) => {
@@ -135,7 +142,7 @@ const ProjectHeader = ({
           </div>
         </div>
         <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-md font-mono">
-          ID: {projectId || 'N/A'}
+          ID: {projectId}
         </div>
       </div>
     </div>
@@ -368,7 +375,7 @@ const ProjectTabs = ({
             <ProjectOverview
               projectData={{
                 id: project.id,
-                projectId: stats.latestProjectDetails.project_id || project.project_id,
+                projectId: project.project_id,
                 projectName: stats.latestProjectDetails.project_name || 'N/A',
                 client: stats.latestProjectDetails.client || 'N/A',
                 contractor: stats.latestProjectDetails.contractor_license || 'N/A',
@@ -486,7 +493,7 @@ export default function ProjectProfilePage() {
       <div className="container mx-auto px-4 py-4 space-y-4">
         <ProjectHeader 
           projectName={project.project_name} 
-          projectId={stats.latestProjectDetails.project_id || project.id} 
+          projectId={project.project_id} 
           onBack={() => router.back()} 
         />
         <ProjectStatsGrid stats={stats} />
