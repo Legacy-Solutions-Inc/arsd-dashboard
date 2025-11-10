@@ -337,7 +337,7 @@ export class AccomplishmentReportParser {
         utilization_percentage: this.parseNumber(this.getCellValueByIndex(row, COLUMNS.utilization_percentage)),
         total_pos: this.parseNumber(this.getCellValueByIndex(row, COLUMNS.total_pos)),
         created_at: new Date().toISOString(),
-        target_percentage: this.parseNumber(this.getCellValueByIndex(row, COLUMNS.target_percentage)),
+        target_percentage: this.parsePercentageToFraction(this.getCellValueByIndex(row, COLUMNS.target_percentage)),
       });
     }
 
@@ -441,6 +441,12 @@ export class AccomplishmentReportParser {
       const projectId = this.getCellValueByIndex(row, COLUMNS.project_id);
       if (!projectId) continue;
 
+      const type = this.getCellValueByIndex(row, COLUMNS.type);
+      const cost = this.parseNumber(this.getCellValueByIndex(row, COLUMNS.cost));
+
+      // Only include rows that have both type and cost (item_no/description may be blank)
+      if (!type || type.trim() === '' || cost === undefined) continue;
+
       costItems.push({
         id: '',
         accomplishment_report_id: accomplishmentReportId || '',
@@ -448,8 +454,8 @@ export class AccomplishmentReportParser {
         item_no: this.getCellValueByIndex(row, COLUMNS.item_no),
         description: this.getCellValueByIndex(row, COLUMNS.description),
         date: this.getDateValueByIndex(row, COLUMNS.date),
-        type: this.getCellValueByIndex(row, COLUMNS.type),
-        cost: this.parseNumber(this.getCellValueByIndex(row, COLUMNS.cost)),
+        type,
+        cost,
         wbs: this.getCellValueByIndex(row, COLUMNS.wbs),
         created_at: new Date().toISOString()
       });
@@ -484,6 +490,12 @@ export class AccomplishmentReportParser {
       const projectId = this.getCellValueByIndex(row, COLUMNS.project_id);
       if (!projectId) continue;
 
+      const type = this.getCellValueByIndex(row, COLUMNS.type);
+      const cost = this.parseNumber(this.getCellValueByIndex(row, COLUMNS.cost));
+
+      // Only include rows that have both type and cost
+      if (!type || type.trim() === '' || cost === undefined) continue;
+
       costItemsSecondary.push({
         id: '',
         accomplishment_report_id: accomplishmentReportId || '',
@@ -491,8 +503,8 @@ export class AccomplishmentReportParser {
         item_no: this.getCellValueByIndex(row, COLUMNS.item_no),
         description: this.getCellValueByIndex(row, COLUMNS.description),
         date: this.getDateValueByIndex(row, COLUMNS.date),
-        type: this.getCellValueByIndex(row, COLUMNS.type),
-        cost: this.parseNumber(this.getCellValueByIndex(row, COLUMNS.cost)),
+        type,
+        cost,
         created_at: new Date().toISOString()
       });
     }
@@ -770,6 +782,22 @@ export class AccomplishmentReportParser {
     const sanitized = value.toString().replace(/[^0-9.-]/g, '');
     const parsed = parseFloat(sanitized);
     return isNaN(parsed) ? undefined : parsed;
+  }
+
+  /**
+   * Helper method to parse a percentage value into a fraction with up to 5 decimals.
+   * Examples:
+   *  - "85.21%" -> 0.8521
+   *  - 85.21    -> 0.8521
+   *  - 0.852134 -> 0.85213 (rounded to 5 decimals)
+   */
+  private parsePercentageToFraction(value: string): number | undefined {
+    const numeric = this.parseNumber(value);
+    if (numeric === undefined) return undefined;
+
+    const fraction = numeric > 1 ? numeric / 100 : numeric;
+    // Round to 5 decimal places
+    return Math.round(fraction * 1e5) / 1e5;
   }
 
 

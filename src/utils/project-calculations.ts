@@ -80,8 +80,8 @@ export const calculateProjectStats = (
   const swaCostTotal = parseNumericValue(projectCost.swa_cost_total);
   const billedCostTotal = parseNumericValue(projectCost.billed_cost_total);
 
-  // Calculate target progress - prefer target_percentage from sheet, fallback to calculation
-  const targetProgress = (parseNumericValue(projectDetails.direct_contract_amount) / contractAmount) * 100;
+  // Calculate target progress using formula: (contract amount * target_percentage) * 100
+  const targetProgress = roundToTwoDecimals(parseNumericValue(projectCost.target_percentage) * 100);
 
   // Calculate actual progress using SWA cost total
   const actualProgress = roundToTwoDecimals(calculatePercentage(swaCostTotal, contractAmount));
@@ -122,12 +122,12 @@ export const calculateLeaderboardStats = (
   const contractAmount = parseNumericValue(latestDetail?.contract_amount);
   const targetTotal = parseNumericValue(latestCost?.target_cost_total);
   const swaTotal = parseNumericValue(latestCost?.swa_cost_total);
-  const targetPercentage = ((latestDetail?.direct_contract_amount/latestDetail?.contract_amount));
+  const targetPercentage = parseNumericValue(latestCost?.target_percentage);
 
   // Use target_percentage from sheet if available, otherwise calculate from target_cost_total
   // But cap target progress at 100% if it exceeds contract amount (data validation)
   let targetProgress = targetPercentage > 0 
-    ? roundToTwoDecimals(targetPercentage * 100)
+    ? roundToTwoDecimals(parseNumericValue(latestCost?.target_percentage) * 100)
     : (contractAmount > 0 ? roundToTwoDecimals(calculatePercentage(targetTotal, contractAmount)) : 0);
   
   // Data validation: Cap target progress at 100% if it exceeds contract amount
