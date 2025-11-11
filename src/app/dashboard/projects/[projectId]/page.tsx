@@ -299,7 +299,7 @@ const ProjectStatsGrid = ({ stats }: { stats: ReturnType<typeof calculateProject
           />
           <StatCard 
             label="Target Cost Total" 
-            value={parseNumericValue(stats.latestProjectDetails.direct_contract_amount)} 
+            value={stats.latestProjectCost.target_cost_total} 
             isCurrency 
             icon={Target}
             isPositive={true}
@@ -315,7 +315,7 @@ const ProjectStatsGrid = ({ stats }: { stats: ReturnType<typeof calculateProject
           />
           <StatCard 
             label="Collectible" 
-            value={stats.collectible} 
+            value={stats.latestProjectCost.collectibles} 
             isCurrency 
             icon={Wallet}
             isPositive={stats.collectible > 0}
@@ -323,7 +323,7 @@ const ProjectStatsGrid = ({ stats }: { stats: ReturnType<typeof calculateProject
           />
           <StatCard 
             label="Balance" 
-            value={stats.balance} 
+            value={stats.latestProjectCost.balance} 
             isCurrency 
             icon={BarChart3}
             isPositive={stats.balance > 0}
@@ -331,7 +331,7 @@ const ProjectStatsGrid = ({ stats }: { stats: ReturnType<typeof calculateProject
           />
           <StatCard 
             label="Savings" 
-            value={stats.savings} 
+            value={stats.latestProjectCost.direct_cost_savings} 
             isCurrency 
             icon={PiggyBank}
             isPositive={stats.savings > 0}
