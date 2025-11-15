@@ -12,7 +12,6 @@ import { AlertCircle, ArrowLeft, Loader2, DollarSign, TrendingUp, Target, AlertT
 import { ProjectLoading, InlineLoading } from "@/components/ui/universal-loading";
 import { Button } from "@/components/ui/button";
 import { calculateProjectStats, formatTargetPercentage, parseNumericValue, formatCurrency } from "@/utils/project-calculations";
-import { projects } from "../../data/projectsData";
 
 // Data processing functions
 const calculateProjectStatsData = (project: ProjectDetails) => {
@@ -292,7 +291,7 @@ const ProjectStatsGrid = ({ stats }: { stats: ReturnType<typeof calculateProject
           />
           <StatCard 
             label="Slippage" 
-            value={stats.slippage} 
+            value={Number((stats.actualProgress - formatTargetPercentage(stats.targetProgress)).toFixed(2))} 
             isPercentage={true}
             icon={AlertTriangle}
             isPositive={stats.slippage <= 0}
@@ -420,7 +419,7 @@ const ProjectTabs = ({
               }}
               projectStats={{
                 contractAmount: stats.contractAmount,
-                targetCostTotal: stats.latestProjectDetails.direct_contract_amount,
+                targetCostTotal: stats.targetCostTotal,
                 directCostTotal: stats.directCostTotal,
                 swaCostTotal: stats.swaCostTotal,
                 billedCostTotal: stats.billedCostTotal
