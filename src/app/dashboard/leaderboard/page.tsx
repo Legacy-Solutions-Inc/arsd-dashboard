@@ -7,13 +7,13 @@ import { useRouter } from 'next/navigation';
 import { Project } from '@/types/projects';
 import { ProjectDetailsService } from '@/services/projects/project-details.service';
 import { ArrowDown, ArrowUp, AlertTriangle, CheckCircle2, Medal, Trophy, Percent, PiggyBank, User as UserIcon, List } from 'lucide-react';
-import { calculateLeaderboardStats, parseNumericValue, roundToTwoDecimals } from '@/utils/project-calculations';
+import { calculateLeaderboardStats, parseNumericValue, roundToTwoDecimals, formatTargetPercentage } from '@/utils/project-calculations';
 
 type LeaderboardRow = {
   project: Project;
   targetProgress: number;
   actualProgress: number;
-  slippage: number; // target - actual; lower is better
+  slippage: number; // actual - target (computed locally in leaderboard); negative means behind target, positive means ahead
   asOf?: string | null;
 };
 
@@ -73,9 +73,14 @@ export default function LeaderboardPage() {
         // Determine sinceDate based on selected period
         let sinceDate: Date | null = null;
         if (period === 'week') {
+          // Last 7 days from now
           sinceDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
         } else if (period === 'month') {
+          // Last 30 days from now
           sinceDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        } else if (period === 'overall') {
+          // No date filter - use the most recent data available
+          sinceDate = null;
         }
 
         // Batch process projects in chunks to avoid overwhelming the API
@@ -96,22 +101,45 @@ export default function LeaderboardPage() {
             const details = await detailsService.getProjectDetails(p.id);
             if (!details) return null;
 
-            // Choose the most recent rows within the selected period (arrays are already sorted DESC)
+            // Choose the most recent rows within the selected period
+            // Arrays are already sorted DESC (newest first), so arr[0] is the most recent
             const chooseWithin = (arr: any[] | undefined | null) => {
               if (!arr || arr.length === 0) return null;
-              if (!sinceDate) return arr[0];
-              return arr.find((x: any) => new Date(x.created_at) >= sinceDate) || null;
+              
+              // For 'overall' period, always return the most recent entry (no date filtering)
+              if (!sinceDate) {
+                return arr[0];
+              }
+              
+              // For 'week' and 'month' periods, find the most recent entry within the date range
+              // Since array is DESC sorted, find() returns the first (most recent) match
+              for (const item of arr) {
+                const itemDate = new Date(item.created_at);
+                if (itemDate >= sinceDate) {
+                  return item;
+                }
+              }
+              
+              // No entry found within the date range
+              return null;
             };
             const latestCost = chooseWithin(details.project_costs);
             const latestDetail = chooseWithin(details.project_details);
+            
+            // Both cost and detail data must be available within the selected period
+            // For 'overall': uses most recent available data (no date filtering)
+            // For 'week'/'month': uses most recent data within the date range
             if (!latestCost || !latestDetail) {
               // No data in selected window; skip from this period view
               return null;
             }
 
-            // Use centralized calculation function
-            const { targetProgress: targetPct, actualProgress: actualPct, slippage } = calculateLeaderboardStats(latestCost, latestDetail);
+            // Get target and actual progress from calculation function
+            const { targetProgress: targetPct, actualProgress: actualPct } = calculateLeaderboardStats(latestCost, latestDetail);
             
+            // Compute slippage locally: actual - target (negative means behind target, positive means ahead)
+            const adjustedTargetPct = targetPct === 1.00 ? targetPct * 100 : targetPct;
+            const slippage = roundToTwoDecimals(actualPct - adjustedTargetPct);
 
             // Only include performance leaderboard rows for projects that are IN PROGRESS
             const includePerformance = p.status === 'in_progress';
@@ -136,14 +164,14 @@ export default function LeaderboardPage() {
               asOf: (latestCost as any)?.created_at || null,
             } : null;
 
-            // Site engineer aggregation
+            // Site engineer aggregation - use locally computed slippage
             const preferredName = p.project_manager?.display_name?.trim() || (latestDetail as any)?.site_engineer_name?.trim();
             const preferredEmail = p.project_manager?.email || undefined;
             const engineerResult = preferredName ? {
               key: preferredEmail ? `${preferredName}__${preferredEmail}` : preferredName,
               name: preferredName,
               email: preferredEmail,
-              slippage,
+              slippage, // Use locally computed slippage
             } : null;
 
             return { result, savingsResult, engineerResult };
@@ -182,11 +210,17 @@ export default function LeaderboardPage() {
         const savingsSorted = fetchedSavings.sort((a, b) => b.savingsAmount - a.savingsAmount);
         setSavingsAll(savingsSorted);
         setSavings(savingsSorted.slice(0, 10));
-        // Build engineer leaderboard (lower avg slippage is better)
+        // Build engineer leaderboard - compute average slippage locally
+        // Average slippage = sum of all slippages / number of projects
         const engineerRows: EngineerRow[] = Array.from(engineerToStats.entries()).map(([key, s]) => {
-          const avgSlippage = s.slippages && s.slippages.length > 0 
-            ? roundToTwoDecimals(s.slippages.reduce((sum: number, slip: number) => sum + slip, 0) / s.slippages.length)
-            : roundToTwoDecimals(s.totalSlip / Math.max(1, s.count));
+          // Compute average slippage from individual slippage values
+          let avgSlippage = 0;
+          if (s.slippages && s.slippages.length > 0) {
+            const sum = s.slippages.reduce((sum: number, slip: number) => sum + slip, 0);
+            avgSlippage = roundToTwoDecimals(sum / s.slippages.length);
+          } else if (s.count > 0) {
+            avgSlippage = roundToTwoDecimals(s.totalSlip / s.count);
+          }
           
           // Debug logging for engineer slippage
           if (key.includes('Rafael III Prudente')) {
@@ -196,7 +230,9 @@ export default function LeaderboardPage() {
               avgSlippage,
               projectsCount: s.count,
               totalSlip: s.totalSlip,
-              calculation: s.slippages ? `${s.slippages.join(' + ')} / ${s.slippages.length} = ${avgSlippage}%` : `${s.totalSlip} / ${s.count} = ${avgSlippage}%`
+              calculation: s.slippages && s.slippages.length > 0 
+                ? `${s.slippages.join(' + ')} / ${s.slippages.length} = ${avgSlippage}%` 
+                : `${s.totalSlip} / ${s.count} = ${avgSlippage}%`
             });
           }
           
@@ -299,12 +335,12 @@ export default function LeaderboardPage() {
                     <div key={r.project.id} className="px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-3">
                       <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white font-bold ${idx === 0 ? 'bg-amber-500' : idx === 1 ? 'bg-amber-400' : idx === 2 ? 'bg-amber-300 text-amber-900' : 'bg-emerald-500'}`}>{idx + 1}</div>
                       <div className="flex-1">
-                        <div className="font-semibold text-gray-900 text-sm sm:text-base">{r.project.project_name}</div>
+                        <div className="font-semibold text-gray-900 text-xs sm:text-sm">{r.project.project_name}</div>
                         <div className="text-xs text-gray-500 truncate">{r.project.parsed_project_id || r.project.project_id} • {r.project.client}</div>
                       </div>
                       <div className="text-right">
                         <div className="text-xs sm:text-sm font-semibold text-emerald-700 flex items-center gap-1 justify-end"><ArrowDown className="h-4 w-4" />{r.slippage.toFixed(2)}%</div>
-                        <div className="text-[10px] sm:text-[11px] text-gray-500">Target {r.targetProgress.toFixed(2)}% vs Actual {r.actualProgress.toFixed(2)}%</div>
+                        <div className="text-[10px] sm:text-[11px] text-gray-500">Target {formatTargetPercentage(r.targetProgress).toFixed(2)}% vs Actual {r.actualProgress.toFixed(2)}%</div>
                       </div>
                     </div>
                   ))
@@ -337,7 +373,7 @@ export default function LeaderboardPage() {
                     <div key={s.project.id} className="px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-3">
                       <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white font-bold ${idx === 0 ? 'bg-yellow-500' : idx === 1 ? 'bg-yellow-400' : idx === 2 ? 'bg-yellow-300 text-amber-900' : 'bg-amber-500'}`}>{idx + 1}</div>
                       <div className="flex-1">
-                        <div className="font-semibold text-gray-900 text-sm sm:text-base">{s.project.project_name}</div>
+                        <div className="font-semibold text-gray-900 text-xs sm:text-sm">{s.project.project_name}</div>
                         <div className="text-xs text-gray-500 truncate">{s.project.parsed_project_id || s.project.project_id} • {s.project.client}</div>
                       </div>
                       <div className="text-right">
@@ -375,7 +411,7 @@ export default function LeaderboardPage() {
                     <div key={e.name} className="px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-3">
                       <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white font-bold ${idx === 0 ? 'bg-blue-500' : idx === 1 ? 'bg-blue-400' : idx === 2 ? 'bg-blue-300 text-blue-900' : 'bg-cyan-500'}`}>{idx + 1}</div>
                       <div className="flex-1">
-                        <div className="font-semibold text-gray-900 text-sm sm:text-base">{e.name}</div>
+                        <div className="font-semibold text-gray-900 text-xs sm:text-sm">{e.name}</div>
                         <div className="text-xs text-gray-500 truncate">{e.projectsCount} project{e.projectsCount !== 1 ? 's' : ''}{e.email ? ` • ${e.email}` : ''}</div>
                       </div>
                       <div className="text-right">
@@ -423,7 +459,7 @@ export default function LeaderboardPage() {
                     </div>
                     <div className="text-right">
                       <div className="text-sm font-semibold text-emerald-700 flex items-center gap-1 justify-end"><ArrowDown className="h-4 w-4" />{r.slippage.toFixed(2)}%</div>
-                      <div className="text-[11px] text-gray-500">Target {r.targetProgress.toFixed(1)}% vs Actual {r.actualProgress.toFixed(1)}%</div>
+                      <div className="text-[11px] text-gray-500">Target {formatTargetPercentage(r.targetProgress).toFixed(1)}% vs Actual {r.actualProgress.toFixed(1)}%</div>
                     </div>
                   </div>
                 ))
@@ -437,7 +473,7 @@ export default function LeaderboardPage() {
                     </div>
                     <div className="text-right">
                       <div className="text-sm font-semibold text-rose-700 flex items-center gap-1 justify-end"><ArrowUp className="h-4 w-4" />{r.slippage.toFixed(2)}%</div>
-                      <div className="text-[11px] text-gray-500">Target {r.targetProgress.toFixed(1)}% vs Actual {r.actualProgress.toFixed(1)}%</div>
+                      <div className="text-[11px] text-gray-500">Target {formatTargetPercentage(r.targetProgress).toFixed(1)}% vs Actual {r.actualProgress.toFixed(1)}%</div>
                     </div>
                   </div>
                 ))
