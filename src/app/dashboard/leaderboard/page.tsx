@@ -243,7 +243,22 @@ export default function LeaderboardPage() {
             projectsCount: s.count,
           };
         });
-        engineerRows.sort((a, b) => a.avgSlippage - b.avgSlippage || b.projectsCount - a.projectsCount || a.name.localeCompare(b.name));
+        // Sort engineers by avgSlippage - higher (less negative) is better for slippage
+        // So we sort in descending order: -7.96% comes before -17.88%
+        // Secondary sort: more projects is better, then alphabetically by name
+        engineerRows.sort((a, b) => {
+          // Primary: higher slippage (less negative) is better (descending order)
+          // This puts -7.96% before -17.88% since -7.96 > -17.88
+          if (a.avgSlippage !== b.avgSlippage) {
+            return b.avgSlippage - a.avgSlippage;
+          }
+          // Secondary: more projects is better (descending order)
+          if (b.projectsCount !== a.projectsCount) {
+            return b.projectsCount - a.projectsCount;
+          }
+          // Tertiary: alphabetical by name
+          return a.name.localeCompare(b.name);
+        });
         setEngineersAll(engineerRows);
         setEngineers(engineerRows.slice(0, 10));
       } finally {
