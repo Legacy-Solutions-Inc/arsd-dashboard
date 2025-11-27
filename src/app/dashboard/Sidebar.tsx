@@ -15,7 +15,8 @@ import {
   Sparkles,
   Menu,
   X,
-  User
+  User,
+  Package
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -42,6 +43,11 @@ const navigationItems: Array<{
     href: "/dashboard/uploads", 
     icon: <Upload className="h-5 w-5" />,
     permission: 'manage_uploads' as const
+  },
+  { 
+    name: "Warehouse Management", 
+    href: "/dashboard/warehouse", 
+    icon: <Package className="h-5 w-5" />,
   },
   { 
     name: "User Management", 
@@ -121,7 +127,7 @@ export default function Sidebar() {
                       href={item.href}
                       onClick={() => setIsMobileMenuOpen(false)}
                       className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3 rounded-xl font-medium transition-all duration-300 text-sm sm:text-base group ${
-                        pathname === item.href
+                        pathname === item.href || (item.href !== '/dashboard' && pathname?.startsWith(item.href))
                           ? "glass-elevated text-glass-primary bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-white/30 shadow-lg"
                           : "text-glass-secondary hover:glass-subtle hover:text-glass-primary hover:scale-105"
                       }`}
@@ -139,7 +145,7 @@ export default function Sidebar() {
                     href={item.href}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3 rounded-xl font-medium transition-all duration-300 text-sm sm:text-base group ${
-                      pathname === item.href
+                      pathname === item.href || (item.href !== '/dashboard' && pathname?.startsWith(item.href))
                         ? "glass-elevated text-glass-primary bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-white/30 shadow-lg"
                         : "text-glass-secondary hover:glass-subtle hover:text-glass-primary hover:scale-105"
                     }`}
