@@ -24,8 +24,8 @@ export const roundToTwoDecimals = (value: number): number => {
   return Math.round(value * 100) / 100;
 };
 
-export const formatCurrency = (value: number | string): string => {
-  const numValue = typeof value === 'string' ? parseFloat(value) : value;
+export const formatCurrency = (value: number | string | null | undefined): string => {
+  const numValue = parseNumericValue(value);
   return `₱${numValue.toLocaleString()}`;
 };
 
