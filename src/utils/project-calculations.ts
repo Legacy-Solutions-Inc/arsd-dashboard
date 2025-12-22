@@ -4,7 +4,7 @@
  */
 
 // Utility functions
-export const parseNumericValue = (value: string | number | undefined, defaultValue: number = 0): number => {
+export const parseNumericValue = (value: string | number | null | undefined, defaultValue: number = 0): number => {
   if (value === null || value === undefined) return defaultValue;
   if (typeof value === 'number') return isNaN(value) ? defaultValue : value;
   if (typeof value === 'string') {
