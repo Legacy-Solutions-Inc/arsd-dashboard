@@ -5,7 +5,7 @@ import { AlertBadge } from './AlertBadge';
 
 interface StockItem {
   wbs: string;
-  itemName: string;
+  itemDescription: string;
   ipowQty: number;
   delivered: number;
   utilized: number;
@@ -31,7 +31,7 @@ export function MobileItemCard({ item }: MobileItemCardProps) {
           <div className="flex-1 min-w-0">
             <div className="text-xs font-mono text-arsd-secondary mb-1">{item.wbs}</div>
             <h3 className="font-semibold text-arsd-primary text-sm sm:text-base">
-              {item.itemName}
+              {item.itemDescription}
             </h3>
           </div>
           <div className="flex flex-wrap gap-1 ml-2">
