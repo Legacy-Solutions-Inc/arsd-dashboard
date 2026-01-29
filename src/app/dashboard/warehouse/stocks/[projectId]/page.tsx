@@ -5,24 +5,25 @@ import { useParams, useRouter } from 'next/navigation';
 import { MobileItemCard } from '@/components/warehouse/MobileItemCard';
 import { ARSDTable } from '@/components/warehouse/ARSDTable';
 import { AlertBadge } from '@/components/warehouse/AlertBadge';
-import { projects, ipowItems, deliveryReceipts, releaseForms } from '@/data/warehouseMock';
+import { projects, ipowItems } from '@/data/warehouseMock';
+import { useWarehouseStore } from '@/contexts/WarehouseStoreContext';
 import { ArrowLeft, Search, Download, Filter } from 'lucide-react';
 
 interface StockItem {
   wbs: string;
-  itemName: string;
+  itemDescription: string;
   ipowQty: number;
   delivered: number;
   utilized: number;
   runningBalance: number;
   totalCost: number;
-  runningTotal: number;
   variance: number;
 }
 
 export default function StockMonitoringPage() {
   const params = useParams();
   const router = useRouter();
+  const { deliveryReceipts, releaseForms } = useWarehouseStore();
   const projectId = params?.projectId as string;
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProjectId, setSelectedProjectId] = useState(projectId || '');
@@ -56,22 +57,20 @@ export default function StockMonitoringPage() {
 
       const runningBalance = delivered - utilized;
       const totalCost = ipowItem.cost;
-      const runningTotal = delivered
       const variance = delivered - ipowItem.ipowQty;
 
       return {
         wbs: ipowItem.wbs,
-        itemName: ipowItem.description,
+        itemDescription: ipowItem.description,
         ipowQty: ipowItem.ipowQty,
         delivered,
         utilized,
         runningBalance,
         totalCost,
-        runningTotal,
         variance
       };
     });
-  }, [projectId]);
+  }, [projectId, deliveryReceipts, releaseForms]);
 
   // Filter stock items based on search
   const filteredItems = useMemo(() => {
@@ -79,7 +78,7 @@ export default function StockMonitoringPage() {
     const query = searchQuery.toLowerCase();
     return stockItems.filter(item =>
       item.wbs.toLowerCase().includes(query) ||
-      item.itemName.toLowerCase().includes(query)
+      item.itemDescription.toLowerCase().includes(query)
     );
   }, [stockItems, searchQuery]);
 
@@ -136,7 +135,7 @@ export default function StockMonitoringPage() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search by WBS or item name..."
+                  placeholder="    Search by WBS or item name..."
                   className="mobile-form-input w-full pl-10"
                 />
               </div>
@@ -187,15 +186,14 @@ export default function StockMonitoringPage() {
             <thead className="glass-table-header">
               <tr>
                 <th className="glass-table-header-cell">WBS</th>
-                <th className="glass-table-header-cell">Item Name</th>
-                <th className="glass-table-header-cell text-right">IPOW Qty</th>
-                <th className="glass-table-header-cell text-right">Total Cost</th>
-                <th className="glass-table-header-cell text-right">Delivered</th>
-                <th className="glass-table-header-cell text-right">Utilized</th>
-                <th className="glass-table-header-cell text-right">Running Balance</th>
-                <th className="glass-table-header-cell text-right">Running Total</th>
-                <th className="glass-table-header-cell text-right">Variance</th>
-                <th className="glass-table-header-cell">Alerts</th>
+                <th className="glass-table-header-cell">Item Description</th>
+                <th className="glass-table-header-cell text-center whitespace-nowrap">IPOW Qty</th>
+                <th className="glass-table-header-cell text-center whitespace-nowrap">Total Cost</th>
+                <th className="glass-table-header-cell text-center whitespace-nowrap">Delivered</th>
+                <th className="glass-table-header-cell text-center whitespace-nowrap">Utilized</th>
+                <th className="glass-table-header-cell text-center whitespace-nowrap">Running Balance</th>
+                <th className="glass-table-header-cell text-center whitespace-nowrap">Variance</th>
+                <th className="glass-table-header-cell text-center">Alerts</th>
               </tr>
             </thead>
             <tbody>
@@ -208,20 +206,19 @@ export default function StockMonitoringPage() {
                   return (
                     <tr key={index} className="glass-table-row">
                       <td className="glass-table-cell font-mono text-xs">{item.wbs}</td>
-                      <td className="glass-table-cell font-medium">{item.itemName}</td>
-                      <td className="glass-table-cell text-right">{item.ipowQty.toLocaleString()}</td>
-                      <td className="glass-table-cell text-right">₱{item.totalCost.toLocaleString()}</td>
-                      <td className="glass-table-cell text-right">{item.delivered.toLocaleString()}</td>
-                      <td className="glass-table-cell text-right">{item.utilized.toLocaleString()}</td>
-                      <td className={`glass-table-cell text-right font-bold ${isLowStock ? 'text-red-600' : ''}`}>
+                      <td className="glass-table-cell text-center font-medium">{item.itemDescription}</td>
+                      <td className="glass-table-cell text-center whitespace-nowrap">{item.ipowQty.toLocaleString()}</td>
+                      <td className="glass-table-cell text-center whitespace-nowrap">₱{item.totalCost.toLocaleString()}</td>
+                      <td className="glass-table-cell text-center whitespace-nowrap">{item.delivered.toLocaleString()}</td>
+                      <td className="glass-table-cell text-center whitespace-nowrap">{item.utilized.toLocaleString()}</td>
+                      <td className={`glass-table-cell text-center whitespace-nowrap font-bold ${isLowStock ? 'text-red-600' : ''}`}>
                         {item.runningBalance.toLocaleString()}
                       </td>
-                      <td className="glass-table-cell text-right">{item.runningTotal.toLocaleString()}</td>
-                      <td className={`glass-table-cell text-right ${item.variance > 0 ? 'text-orange-600' : item.variance < 0 ? 'text-blue-600' : ''}`}>
+                      <td className={`glass-table-cell text-center whitespace-nowrap ${item.variance > 0 ? 'text-orange-600' : item.variance < 0 ? 'text-blue-600' : ''}`}>
                         {item.variance > 0 ? '+' : ''}{item.variance.toLocaleString()}
                       </td>
-                      <td className="glass-table-cell">
-                        <div className="flex flex-wrap gap-1">
+                      <td className="glass-table-cell text-center">
+                        <div className="flex flex-wrap gap-1 justify-center">
                           {isLowStock && <AlertBadge type="low_stock" />}
                           {isOverIPOWDelivered && <AlertBadge type="over_ipow_delivered" />}
                           {isOverIPOWUtilized && <AlertBadge type="over_ipow_utilized" />}
@@ -232,7 +229,7 @@ export default function StockMonitoringPage() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={10} className="glass-table-cell text-center py-12">
+                  <td colSpan={9} className="glass-table-cell text-center py-12">
                     <p className="text-gray-600 font-medium">No items found</p>
                     <p className="text-sm text-gray-500 mt-2">
                       {searchQuery ? 'Try adjusting your search' : 'No stock items available for this project'}
