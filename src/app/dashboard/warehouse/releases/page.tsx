@@ -5,17 +5,19 @@ import { useRouter } from 'next/navigation';
 import { ARSDCard } from '@/components/warehouse/ARSDCard';
 import { ARSDTable } from '@/components/warehouse/ARSDTable';
 import { BadgeStatus } from '@/components/warehouse/BadgeStatus';
-import { releaseForms, projects } from '@/data/warehouseMock';
-import { ArrowLeft, Search, Filter, Eye, Plus } from 'lucide-react';
+import { projects, mockUser, canUnlockDRRelease, releaseWarehousemanFallback } from '@/data/warehouseMock';
+import { useWarehouseStore } from '@/contexts/WarehouseStoreContext';
+import { ArrowLeft, Search, Filter, Eye, Plus, Unlock, Lock } from 'lucide-react';
 import { RoleGuard } from '@/components/warehouse/RoleGuard';
-import { mockUser } from '@/data/warehouseMock';
 
 export default function ReleasesListPage() {
   const router = useRouter();
+  const { releaseForms, setReleaseLock } = useWarehouseStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProjectId, setSelectedProjectId] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const canUnlock = canUnlockDRRelease(mockUser);
 
   const filteredReleases = useMemo(() => {
     let filtered = [...releaseForms];
@@ -42,7 +44,7 @@ export default function ReleasesListPage() {
     }
 
     return filtered;
-  }, [searchQuery, selectedProjectId, dateFrom, dateTo]);
+  }, [releaseForms, searchQuery, selectedProjectId, dateFrom, dateTo]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 w-full">
@@ -79,14 +81,13 @@ export default function ReleasesListPage() {
           </div>
         </div>
 
-        {/* Filters */}
-        <div className="glass-card">
+        {/* Filters – sticky on scroll */}
+        <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border border-red-200/30 rounded-xl shadow-lg p-4">
           <div className="space-y-4">
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2">
               <Filter className="h-5 w-5 text-arsd-red" />
               <h2 className="text-lg font-bold text-arsd-primary">Filters</h2>
             </div>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="sm:col-span-2 lg:col-span-2">
                 <div className="relative">
@@ -95,7 +96,7 @@ export default function ReleasesListPage() {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search by Release No, Received By, or Project..."
+                    placeholder="    Search by Release No, Received By, or Project..."
                     className="mobile-form-input w-full pl-10"
                   />
                 </div>
@@ -138,44 +139,61 @@ export default function ReleasesListPage() {
             filteredReleases.map((rel) => {
               const project = projects.find(p => p.id === rel.projectId);
               return (
-                <ARSDCard key={rel.id}>
-                  <div className="space-y-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="text-xs font-mono text-arsd-secondary mb-1">{rel.releaseNo}</div>
-                        <h3 className="font-semibold text-arsd-primary text-sm">
-                          {project?.name || 'Unknown Project'}
-                        </h3>
-                        <p className="text-xs text-gray-600 mt-1">Received by: {rel.receivedBy}</p>
-                      </div>
-                      <BadgeStatus locked={rel.locked} />
+                <ARSDCard key={rel.id} className="p-5">
+                  <div className="space-y-4">
+                    <div className="min-w-0">
+                      <div className="text-xs font-mono text-arsd-secondary mb-1">{rel.releaseNo}</div>
+                      <h3 className="font-semibold text-arsd-primary text-base truncate">
+                        {project?.name || 'Unknown Project'}
+                      </h3>
                     </div>
-
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      <div>
-                        <span className="text-gray-500">Date:</span>
-                        <span className="font-medium ml-1">{rel.date}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Items:</span>
-                        <span className="font-medium ml-1">{rel.items.length}</span>
-                      </div>
+                    <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+                      <dt className="text-gray-500">Received by</dt>
+                      <dd className="font-medium break-words min-w-0">{rel.receivedBy}</dd>
+                      <dt className="text-gray-500">Date</dt>
+                      <dd className="font-medium">{rel.date}</dd>
+                      <dt className="text-gray-500">Items</dt>
+                      <dd className="font-medium">{rel.items.length}</dd>
+                      <dt className="text-gray-500">Warehouseman</dt>
+                      <dd className="font-medium break-words min-w-0">{rel.warehouseman ?? releaseWarehousemanFallback[rel.id] ?? '—'}</dd>
+                      <dt className="text-gray-500">Status</dt>
+                      <dd><BadgeStatus locked={rel.locked} /></dd>
+                      {rel.purpose && (
+                        <>
+                          <dt className="text-gray-500 col-span-2">Purpose</dt>
+                          <dd className="col-span-2 text-gray-600 bg-gray-50 p-2 rounded break-words min-w-0">{rel.purpose}</dd>
+                        </>
+                      )}
+                    </dl>
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      <button
+                        onClick={() => router.push(`/dashboard/warehouse/releases/${rel.id}`)}
+                        className="flex-1 btn-arsd-primary mobile-button mobile-touch-target min-h-[44px] flex items-center justify-center gap-2"
+                      >
+                        <Eye className="h-5 w-5" />
+                        View
+                      </button>
+                      {canUnlock && rel.locked && (
+                        <button
+                          onClick={() => setReleaseLock(rel.id, false)}
+                          className="btn-arsd-outline mobile-button mobile-touch-target min-h-[44px] flex items-center justify-center gap-2 text-amber-700 border-amber-300 hover:bg-amber-50 min-w-[110px]"
+                          title="Unlock (Site Engineer / Project Manager only)"
+                        >
+                          <Unlock className="h-5 w-5" />
+                          Unlock
+                        </button>
+                      )}
+                      {canUnlock && !rel.locked && (
+                        <button
+                          onClick={() => setReleaseLock(rel.id, true)}
+                          className="btn-arsd-outline mobile-button mobile-touch-target min-h-[44px] flex items-center justify-center gap-2 text-green-700 border-green-300 hover:bg-green-50 min-w-[110px]"
+                          title="Lock again (Site Engineer / Project Manager only)"
+                        >
+                          <Lock className="h-5 w-5" />
+                          Lock
+                        </button>
+                      )}
                     </div>
-
-                    {rel.purpose && (
-                      <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded">
-                        <span className="font-medium">Purpose: </span>
-                        {rel.purpose}
-                      </div>
-                    )}
-
-                    <button
-                      onClick={() => router.push(`/dashboard/warehouse/releases/${rel.id}`)}
-                      className="w-full btn-arsd-outline mobile-button flex items-center justify-center gap-2"
-                    >
-                      <Eye className="h-4 w-4" />
-                      View Details
-                    </button>
                   </div>
                 </ARSDCard>
               );
@@ -189,17 +207,18 @@ export default function ReleasesListPage() {
         </div>
 
         {/* Desktop View - Table */}
-        <div className="hidden sm:block">
-          <ARSDTable>
+        <div className="hidden sm:block overflow-x-auto rounded-2xl">
+          <ARSDTable className="min-w-[720px]">
             <thead className="glass-table-header">
-              <tr>
-                <th className="glass-table-header-cell">Release No</th>
-                <th className="glass-table-header-cell">Date</th>
-                <th className="glass-table-header-cell">Project/Site</th>
-                <th className="glass-table-header-cell">Received By</th>
-                <th className="glass-table-header-cell text-right">Items Count</th>
-                <th className="glass-table-header-cell">Status</th>
-                <th className="glass-table-header-cell">Actions</th>
+              <tr className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm">
+                <th className="glass-table-header-cell text-center">Release No</th>
+                <th className="glass-table-header-cell text-center">Date</th>
+                <th className="glass-table-header-cell text-center">Project/Site</th>
+                <th className="glass-table-header-cell text-center">Warehouseman</th>
+                <th className="glass-table-header-cell text-center">Received By</th>
+                <th className="glass-table-header-cell text-center">Items Count</th>
+                <th className="glass-table-header-cell text-center">Status</th>
+                <th className="glass-table-header-cell text-left">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -208,29 +227,52 @@ export default function ReleasesListPage() {
                   const project = projects.find(p => p.id === rel.projectId);
                   return (
                     <tr key={rel.id} className="glass-table-row">
-                      <td className="glass-table-cell font-mono text-xs">{rel.releaseNo}</td>
-                      <td className="glass-table-cell">{rel.date}</td>
-                      <td className="glass-table-cell">{project?.name || 'Unknown'}</td>
-                      <td className="glass-table-cell">{rel.receivedBy}</td>
-                      <td className="glass-table-cell text-right">{rel.items.length}</td>
-                      <td className="glass-table-cell">
+                      <td className="glass-table-cell font-mono text-xs text-center">{rel.releaseNo}</td>
+                      <td className="glass-table-cell text-center">{rel.date}</td>
+                      <td className="glass-table-cell text-center">{project?.name || 'Unknown'}</td>
+                      <td className="glass-table-cell text-center">{rel.warehouseman ?? releaseWarehousemanFallback[rel.id] ?? '—'}</td>
+                      <td className="glass-table-cell text-center">{rel.receivedBy}</td>
+                      <td className="glass-table-cell text-center">{rel.items.length}</td>
+                      <td className="glass-table-cell text-center">
                         <BadgeStatus locked={rel.locked} />
                       </td>
-                      <td className="glass-table-cell">
-                        <button
-                          onClick={() => router.push(`/dashboard/warehouse/releases/${rel.id}`)}
-                          className="btn-arsd-outline text-xs px-3 py-1 flex items-center gap-1"
-                        >
-                          <Eye className="h-3 w-3" />
-                          View
-                        </button>
+                      <td className="glass-table-cell text-left">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <button
+                            onClick={() => router.push(`/dashboard/warehouse/releases/${rel.id}`)}
+                            className="btn-arsd-outline text-xs sm:text-sm px-3 py-2 sm:px-4 sm:py-2 flex items-center gap-1.5 justify-center mobile-touch-target min-h-[44px]"
+                          >
+                            <Eye className="h-4 w-4" />
+                            View
+                          </button>
+                          {canUnlock && rel.locked && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setReleaseLock(rel.id, false); }}
+                              className="btn-arsd-outline text-xs sm:text-sm px-3 py-2 sm:px-4 sm:py-2 flex items-center gap-1.5 text-amber-700 border-amber-300 hover:bg-amber-50 mobile-touch-target min-h-[44px]"
+                              title="Unlock (Site Engineer / Project Manager only)"
+                            >
+                              <Unlock className="h-4 w-4" />
+                              Unlock
+                            </button>
+                          )}
+                          {canUnlock && !rel.locked && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setReleaseLock(rel.id, true); }}
+                              className="btn-arsd-outline text-xs sm:text-sm px-3 py-2 sm:px-4 sm:py-2 flex items-center gap-1.5 text-green-700 border-green-300 hover:bg-green-50 mobile-touch-target min-h-[44px]"
+                              title="Lock again (Site Engineer / Project Manager only)"
+                            >
+                              <Lock className="h-4 w-4" />
+                              Lock
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
                 })
               ) : (
                 <tr>
-                  <td colSpan={7} className="glass-table-cell text-center py-12">
+                  <td colSpan={8} className="glass-table-cell text-center py-12">
                     <p className="text-gray-600 font-medium">No release forms found</p>
                     <p className="text-sm text-gray-500 mt-2">Try adjusting your filters</p>
                   </td>
