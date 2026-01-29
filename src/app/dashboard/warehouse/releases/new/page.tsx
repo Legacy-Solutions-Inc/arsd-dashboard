@@ -6,13 +6,17 @@ import { ItemsRepeater, ItemEntry } from '@/components/warehouse/ItemsRepeater';
 import { FileUploader } from '@/components/warehouse/FileUploader';
 import { StickyBottomBar } from '@/components/warehouse/StickyBottomBar';
 import { ARSDCard } from '@/components/warehouse/ARSDCard';
-import { projects, releaseForms, mockUser } from '@/data/warehouseMock';
+import { projects, mockUser } from '@/data/warehouseMock';
+import { useWarehouseStore } from '@/contexts/WarehouseStoreContext';
 import { ArrowLeft, Package, Upload as UploadIcon, User, FileText } from 'lucide-react';
+import type { ReleaseForm, ReleaseItem } from '@/data/warehouseMock';
 
 export default function CreateReleasePage() {
   const router = useRouter();
+  const { releaseForms, addRelease } = useWarehouseStore();
+  const derivedReleaseNo = `REL-${new Date().getFullYear()}-${String(releaseForms.length + 1).padStart(3, '0')}`;
+
   const [formData, setFormData] = useState({
-    releaseNo: `REL-${new Date().getFullYear()}-${String(releaseForms.length + 1).padStart(3, '0')}`,
     warehouseman: mockUser.name,
     date: new Date().toISOString().split('T')[0],
     projectId: '',
@@ -46,8 +50,24 @@ export default function CreateReleasePage() {
   };
 
   const handleSubmit = () => {
-    // Mock submit - just navigate back
-    alert('Release form submitted successfully! (Mock)');
+    const items: ReleaseItem[] = formData.items.map((it) => ({
+      itemDescription: it.itemDescription,
+      qty: it.qty,
+      unit: it.unit
+    }));
+    const rf: ReleaseForm = {
+      id: `rel-${Date.now()}`,
+      releaseNo: derivedReleaseNo,
+      projectId: formData.projectId,
+      receivedBy: formData.receivedBy,
+      items,
+      date: formData.date,
+      locked: true,
+      warehouseman: formData.warehouseman,
+      purpose: formData.purpose || undefined,
+      attachment: formData.attachment ? formData.attachment.name : undefined
+    };
+    addRelease(rf);
     router.push('/dashboard/warehouse/releases');
   };
 
@@ -108,7 +128,7 @@ export default function CreateReleasePage() {
                   </label>
                   <input
                     type="text"
-                    value={formData.releaseNo}
+                    value={derivedReleaseNo}
                     readOnly
                     className="mobile-form-input w-full bg-gray-50 cursor-not-allowed"
                   />
@@ -231,6 +251,37 @@ export default function CreateReleasePage() {
                 required={false}
               />
             </div>
+
+            {/* Review before submit */}
+            <div className="rounded-xl border border-red-200/30 bg-red-50/10 p-4 sm:p-5">
+              <h3 className="text-sm font-semibold text-arsd-primary mb-3">Review before submit</h3>
+              <dl className="space-y-2 text-sm">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 py-1.5 border-b border-red-200/20">
+                  <dt className="text-gray-600 shrink-0">Release No</dt>
+                  <dd className="font-medium break-words min-w-0">{derivedReleaseNo}</dd>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 py-1.5 border-b border-red-200/20">
+                  <dt className="text-gray-600 shrink-0">Date</dt>
+                  <dd className="font-medium break-words min-w-0">{formData.date}</dd>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 py-1.5 border-b border-red-200/20">
+                  <dt className="text-gray-600 shrink-0">Project</dt>
+                  <dd className="font-medium break-words min-w-0">{projects.find(p => p.id === formData.projectId)?.name || 'N/A'}</dd>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 py-1.5 border-b border-red-200/20">
+                  <dt className="text-gray-600 shrink-0">Warehouseman</dt>
+                  <dd className="font-medium break-words min-w-0">{formData.warehouseman || 'Unknown'}</dd>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 py-1.5 border-b border-red-200/20">
+                  <dt className="text-gray-600 shrink-0">Received By</dt>
+                  <dd className="font-medium break-words min-w-0">{formData.receivedBy || '—'}</dd>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 py-1.5">
+                  <dt className="text-gray-600 shrink-0">Items</dt>
+                  <dd className="font-medium">{formData.items.length}</dd>
+                </div>
+              </dl>
+            </div>
           </div>
         </ARSDCard>
 
@@ -238,7 +289,7 @@ export default function CreateReleasePage() {
         <div className="flex gap-3 sm:gap-4 pt-4">
           <button
             onClick={handleCancel}
-            className="btn-arsd-outline mobile-button flex-1 sm:flex-none sm:min-w-[120px]"
+            className="btn-arsd-outline mobile-button mobile-touch-target min-h-[44px] flex-1 sm:flex-none sm:min-w-[120px] flex items-center justify-center"
           >
             Cancel
           </button>
@@ -246,7 +297,7 @@ export default function CreateReleasePage() {
           <button
             onClick={handleSubmit}
             disabled={!canSubmit()}
-            className="btn-arsd-primary mobile-button flex-1 sm:flex-none sm:min-w-[120px] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-arsd-primary mobile-button mobile-touch-target min-h-[44px] flex-1 sm:flex-none sm:min-w-[120px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
           >
             Submit Release
           </button>
