@@ -6,18 +6,23 @@ import { ItemsRepeater, ItemEntry } from '@/components/warehouse/ItemsRepeater';
 import { FileUploader } from '@/components/warehouse/FileUploader';
 import { StickyBottomBar } from '@/components/warehouse/StickyBottomBar';
 import { ARSDCard } from '@/components/warehouse/ARSDCard';
-import { projects, deliveryReceipts } from '@/data/warehouseMock';
+import { projects, mockUser } from '@/data/warehouseMock';
+import { useWarehouseStore } from '@/contexts/WarehouseStoreContext';
 import { ArrowLeft, FileText, Package, Upload as UploadIcon, CheckCircle, Send } from 'lucide-react';
+import type { DeliveryReceipt, DRItem } from '@/data/warehouseMock';
 
 export default function CreateDRPage() {
   const router = useRouter();
+  const { deliveryReceipts, addDR } = useWarehouseStore();
+  const derivedDrNo = `DR-${new Date().getFullYear()}-${String(deliveryReceipts.length + 1).padStart(3, '0')}`;
+
   const [currentSection, setCurrentSection] = useState(1);
   const [formData, setFormData] = useState({
-    drNo: `DR-${new Date().getFullYear()}-${String(deliveryReceipts.length + 1).padStart(3, '0')}`,
     date: new Date().toISOString().split('T')[0],
     time: new Date().toTimeString().slice(0, 5),
     projectId: '',
     supplier: '',
+    warehouseman: mockUser.name,
     items: [] as ItemEntry[],
     drPhoto: null as File | null,
     poPhoto: null as File | null
@@ -47,8 +52,24 @@ export default function CreateDRPage() {
   };
 
   const handleSubmit = () => {
-    // Mock submit - just navigate back
-    alert('DR submitted successfully! (Mock)');
+    const items: DRItem[] = formData.items.map((it) => ({
+      itemDescription: it.itemDescription,
+      qtyInDR: it.qty,
+      qtyInPO: it.qtyInPO ?? 0,
+      unit: it.unit
+    }));
+    const warehouseman = (formData.warehouseman || mockUser.name || "Unknown").trim() || "Unknown";
+    const dr: DeliveryReceipt = {
+      id: `dr-${Date.now()}`,
+      drNo: derivedDrNo,
+      projectId: formData.projectId,
+      supplier: formData.supplier,
+      items,
+      date: formData.date,
+      locked: true,
+      warehouseman
+    };
+    addDR(dr);
     router.push('/dashboard/warehouse/delivery-receipts');
   };
 
@@ -153,7 +174,7 @@ export default function CreateDRPage() {
                 </label>
                 <input
                   type="text"
-                  value={formData.drNo}
+                  value={derivedDrNo}
                   readOnly
                   className="mobile-form-input w-full bg-gray-50 cursor-not-allowed"
                 />
@@ -216,6 +237,19 @@ export default function CreateDRPage() {
                   required
                 />
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Warehouseman
+                </label>
+                <input
+                  type="text"
+                  value={formData.warehouseman}
+                  readOnly
+                  className="mobile-form-input w-full bg-gray-50 cursor-not-allowed"
+                  placeholder="Warehouseman name"
+                />
+              </div>
             </div>
           </ARSDCard>
         )}
@@ -273,46 +307,57 @@ export default function CreateDRPage() {
         {/* Section 4 - Confirmation */}
         {currentSection === 4 && (
           <ARSDCard>
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 mb-6 pb-4 border-b border-red-200/30">
+            <div className="space-y-6">
+              <div className="flex items-center gap-2 mb-4 pb-4 border-b border-red-200/30">
                 <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                   <CheckCircle className="h-5 w-5 text-green-600" />
                 </div>
                 <h2 className="text-lg sm:text-xl font-bold text-arsd-primary">Review Summary</h2>
               </div>
 
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between py-2 border-b">
-                  <span className="text-gray-600">DR No:</span>
-                  <span className="font-medium">{formData.drNo}</span>
-                </div>
-                <div className="flex justify-between py-2 border-b">
-                  <span className="text-gray-600">Date & Time:</span>
-                  <span className="font-medium">{formData.date} {formData.time}</span>
-                </div>
-                <div className="flex justify-between py-2 border-b">
-                  <span className="text-gray-600">Project:</span>
-                  <span className="font-medium">
-                    {projects.find(p => p.id === formData.projectId)?.name || 'N/A'}
-                  </span>
-                </div>
-                <div className="flex justify-between py-2 border-b">
-                  <span className="text-gray-600">Supplier:</span>
-                  <span className="font-medium">{formData.supplier}</span>
-                </div>
-                <div className="flex justify-between py-2 border-b">
-                  <span className="text-gray-600">Items Count:</span>
-                  <span className="font-medium">{formData.items.length}</span>
-                </div>
-                <div className="flex justify-between py-2 border-b">
-                  <span className="text-gray-600">DR Photo:</span>
-                  <span className="font-medium">{formData.drPhoto ? formData.drPhoto.name : 'Not uploaded'}</span>
-                </div>
-                <div className="flex justify-between py-2">
-                  <span className="text-gray-600">PO Photo:</span>
-                  <span className="font-medium">{formData.poPhoto ? formData.poPhoto.name : 'Not uploaded'}</span>
-                </div>
-              </div>
+              <section>
+                <h3 className="text-sm font-semibold text-arsd-primary mb-3">Details</h3>
+                <dl className="space-y-3 text-sm">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-red-200/20">
+                    <dt className="text-gray-600 shrink-0">DR No</dt>
+                    <dd className="font-medium break-words min-w-0">{derivedDrNo}</dd>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-red-200/20">
+                    <dt className="text-gray-600 shrink-0">Date & Time</dt>
+                    <dd className="font-medium break-words min-w-0">{formData.date} {formData.time}</dd>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-red-200/20">
+                    <dt className="text-gray-600 shrink-0">Project</dt>
+                    <dd className="font-medium break-words min-w-0">{projects.find(p => p.id === formData.projectId)?.name || 'N/A'}</dd>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-red-200/20">
+                    <dt className="text-gray-600 shrink-0">Supplier</dt>
+                    <dd className="font-medium break-words min-w-0">{formData.supplier}</dd>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-red-200/20">
+                    <dt className="text-gray-600 shrink-0">Warehouseman</dt>
+                    <dd className="font-medium break-words min-w-0">{formData.warehouseman || 'Unknown'}</dd>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-red-200/20">
+                    <dt className="text-gray-600 shrink-0">Items Count</dt>
+                    <dd className="font-medium">{formData.items.length}</dd>
+                  </div>
+                </dl>
+              </section>
+
+              <section>
+                <h3 className="text-sm font-semibold text-arsd-primary mb-3">Attachments</h3>
+                <dl className="space-y-3 text-sm">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-red-200/20">
+                    <dt className="text-gray-600 shrink-0">DR Photo</dt>
+                    <dd className="font-medium break-words min-w-0">{formData.drPhoto ? formData.drPhoto.name : 'Not uploaded'}</dd>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2">
+                    <dt className="text-gray-600 shrink-0">PO Photo</dt>
+                    <dd className="font-medium break-words min-w-0">{formData.poPhoto ? formData.poPhoto.name : 'Not uploaded'}</dd>
+                  </div>
+                </dl>
+              </section>
             </div>
           </ARSDCard>
         )}
@@ -322,7 +367,7 @@ export default function CreateDRPage() {
           {currentSection > 1 && (
             <button
               onClick={() => setCurrentSection(prev => prev - 1)}
-              className="btn-arsd-outline mobile-button flex-1 sm:flex-none sm:min-w-[120px]"
+              className="btn-arsd-outline mobile-button mobile-touch-target min-h-[44px] flex-1 sm:flex-none sm:min-w-[120px] flex items-center justify-center"
             >
               Previous
             </button>
@@ -332,14 +377,14 @@ export default function CreateDRPage() {
             <button
               onClick={() => setCurrentSection(prev => prev + 1)}
               disabled={!canProceed()}
-              className="btn-arsd-primary mobile-button flex-1 sm:flex-none sm:min-w-[120px] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-arsd-primary mobile-button mobile-touch-target min-h-[44px] flex-1 sm:flex-none sm:min-w-[120px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
             >
               Next
             </button>
           ) : (
             <button
               onClick={handleSubmit}
-              className="btn-arsd-primary mobile-button flex-1 sm:flex-none sm:min-w-[180px] px-6 py-3 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+              className="btn-arsd-primary mobile-button mobile-touch-target min-h-[44px] flex-1 sm:flex-none sm:min-w-[180px] px-6 py-3 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
             >
               <Send className="h-4 w-4 sm:h-5 sm:w-5" />
               Submit Delivery Receipt
