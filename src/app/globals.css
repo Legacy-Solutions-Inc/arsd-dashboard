@@ -131,11 +131,11 @@
   }
   
   .glass-table-cell {
-    @apply px-3 py-2 text-gray-800;
+    @apply px-3 py-2 sm:py-3 text-gray-800;
   }
   
   .glass-table-header-cell {
-    @apply px-3 py-2 font-semibold text-red-800 text-xs uppercase tracking-wider;
+    @apply px-3 py-2 sm:py-3 font-semibold text-red-800 text-xs uppercase tracking-wider;
   }
   
   /* ARSD Text color utilities */
