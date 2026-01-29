@@ -41,6 +41,7 @@ export interface DeliveryReceipt {
   items: DRItem[];
   date: string;
   locked: boolean;
+  warehouseman: string;
   drPhoto?: string;
   poPhoto?: string;
 }
@@ -59,6 +60,7 @@ export interface ReleaseForm {
   items: ReleaseItem[];
   date: string;
   locked: boolean;
+  warehouseman?: string;
   purpose?: string;
   attachment?: string;
 }
@@ -192,7 +194,8 @@ export const deliveryReceipts: DeliveryReceipt[] = [
       }
     ],
     date: '2024-01-15',
-    locked: true
+    locked: true,
+    warehouseman: 'John Doe'
   },
   {
     id: 'dr-2',
@@ -208,7 +211,8 @@ export const deliveryReceipts: DeliveryReceipt[] = [
       }
     ],
     date: '2024-01-20',
-    locked: true
+    locked: true,
+    warehouseman: 'Alex Cruz'
   },
   {
     id: 'dr-3',
@@ -224,7 +228,8 @@ export const deliveryReceipts: DeliveryReceipt[] = [
       }
     ],
     date: '2024-01-25',
-    locked: false
+    locked: false,
+    warehouseman: 'Maria Santos'
   }
 ];
 
@@ -249,6 +254,7 @@ export const releaseForms: ReleaseForm[] = [
     ],
     date: '2024-01-16',
     locked: true,
+    warehouseman: 'John Doe',
     purpose: 'Foundation works - Column reinforcement'
   },
   {
@@ -265,6 +271,7 @@ export const releaseForms: ReleaseForm[] = [
     ],
     date: '2024-01-21',
     locked: true,
+    warehouseman: 'Alex Cruz',
     purpose: 'Road base preparation'
   },
   {
@@ -281,6 +288,7 @@ export const releaseForms: ReleaseForm[] = [
     ],
     date: '2024-01-26',
     locked: false,
+    warehouseman: 'Maria Santos',
     purpose: 'Beam reinforcement'
   }
 ];
@@ -302,4 +310,16 @@ export function canCreateDRRelease(user: MockUser): boolean {
 export function canViewAllProjects(user: MockUser): boolean {
   return user.role === 'superadmin' || user.role === 'purchasing';
 }
+
+// Helper: only site engineer / project manager (or superadmin) can unlock DR/RF after warehouseman submit
+export function canUnlockDRRelease(user: MockUser): boolean {
+  return ['superadmin', 'site_engineer', 'project_manager'].includes(user.role);
+}
+
+// Fallback warehouseman for mock release forms (used when store has stale data without warehouseman)
+export const releaseWarehousemanFallback: Record<string, string> = {
+  'rel-1': 'John Doe',
+  'rel-2': 'Alex Cruz',
+  'rel-3': 'Maria Santos',
+};
 
