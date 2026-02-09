@@ -1,6 +1,6 @@
 // Mock data for Warehouse Management Module
 
-export type UserRole = 'superadmin' | 'purchasing' | 'warehouseman' | 'site_engineer' | 'project_manager';
+export type UserRole = 'superadmin' | 'purchasing' | 'warehouseman' | 'project_inspector' | 'project_manager';
 
 export interface MockUser {
   id: string;
@@ -311,9 +311,9 @@ export function canViewAllProjects(user: MockUser): boolean {
   return user.role === 'superadmin' || user.role === 'purchasing';
 }
 
-// Helper: only site engineer / project manager (or superadmin) can unlock DR/RF after warehouseman submit
+// Helper: only project inspector (PM) / project manager (site engineer) or superadmin can unlock DR/RF after warehouseman submit
 export function canUnlockDRRelease(user: MockUser): boolean {
-  return ['superadmin', 'site_engineer', 'project_manager'].includes(user.role);
+  return ['superadmin', 'project_inspector', 'project_manager'].includes(user.role);
 }
 
 // Fallback warehouseman for mock release forms (used when store has stale data without warehouseman)

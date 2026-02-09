@@ -4,7 +4,7 @@
  */
 
 // Utility functions
-export const parseNumericValue = (value: string | number | undefined, defaultValue: number = 0): number => {
+export const parseNumericValue = (value: string | number | null | undefined, defaultValue: number = 0): number => {
   if (value === null || value === undefined) return defaultValue;
   if (typeof value === 'number') return isNaN(value) ? defaultValue : value;
   if (typeof value === 'string') {
@@ -24,8 +24,8 @@ export const roundToTwoDecimals = (value: number): number => {
   return Math.round(value * 100) / 100;
 };
 
-export const formatCurrency = (value: number | string): string => {
-  const numValue = typeof value === 'string' ? parseFloat(value) : value;
+export const formatCurrency = (value: number | string | null | undefined): string => {
+  const numValue = parseNumericValue(value, 0);
   return `₱${numValue.toLocaleString()}`;
 };
 

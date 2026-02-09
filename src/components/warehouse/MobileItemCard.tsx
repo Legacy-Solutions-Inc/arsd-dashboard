@@ -4,14 +4,13 @@ import React from 'react';
 import { AlertBadge } from './AlertBadge';
 
 interface StockItem {
-  wbs: string;
-  itemDescription: string;
-  ipowQty: number;
+  wbs: string | null;
+  item_description: string;
+  ipow_qty: number;
   delivered: number;
   utilized: number;
-  runningBalance: number;
-  totalCost?: number;
-  runningTotal?: number;
+  running_balance: number;
+  total_cost?: number;
   variance?: number;
 }
 
@@ -20,18 +19,18 @@ interface MobileItemCardProps {
 }
 
 export function MobileItemCard({ item }: MobileItemCardProps) {
-  const isLowStock = item.runningBalance < (item.ipowQty * 0.1);
-  const isOverIPOWDelivered = item.delivered > item.ipowQty;
-  const isOverIPOWUtilized = item.utilized > item.ipowQty;
+  const isLowStock = item.running_balance < (item.ipow_qty * 0.1);
+  const isOverIPOWDelivered = item.delivered > item.ipow_qty;
+  const isOverIPOWUtilized = item.utilized > item.ipow_qty;
 
   return (
     <div className="glass-card">
       <div className="space-y-3">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
-            <div className="text-xs font-mono text-arsd-secondary mb-1">{item.wbs}</div>
+            <div className="text-xs font-mono text-arsd-secondary mb-1">{item.wbs ?? '–'}</div>
             <h3 className="font-semibold text-arsd-primary text-sm sm:text-base">
-              {item.itemDescription}
+              {item.item_description}
             </h3>
           </div>
           <div className="flex flex-wrap gap-1 ml-2">
@@ -44,7 +43,7 @@ export function MobileItemCard({ item }: MobileItemCardProps) {
         <div className="grid grid-cols-2 gap-3 text-xs sm:text-sm">
           <div>
             <div className="text-gray-500 mb-1">IPOW Qty</div>
-            <div className="font-semibold text-gray-800">{item.ipowQty.toLocaleString()}</div>
+            <div className="font-semibold text-gray-800">{item.ipow_qty.toLocaleString()}</div>
           </div>
           <div>
             <div className="text-gray-500 mb-1">Delivered</div>
@@ -57,7 +56,7 @@ export function MobileItemCard({ item }: MobileItemCardProps) {
           <div>
             <div className="text-gray-500 mb-1">Running Balance</div>
             <div className={`font-bold ${isLowStock ? 'text-red-600' : 'text-gray-800'}`}>
-              {item.runningBalance.toLocaleString()}
+              {item.running_balance.toLocaleString()}
             </div>
           </div>
         </div>

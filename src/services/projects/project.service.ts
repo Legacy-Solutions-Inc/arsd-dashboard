@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase';
-import { Project, CreateProjectData, UpdateProjectData, ProjectFilters, ProjectManager, ProjectInspector } from '@/types/projects';
+import { Project, CreateProjectData, UpdateProjectData, ProjectFilters, ProjectManager, ProjectInspector, Warehouseman } from '@/types/projects';
 
 export class ProjectService {
   private supabase = createClient();
@@ -18,6 +18,11 @@ export class ProjectService {
           user_id,
           display_name,
           email
+        ),
+        warehouseman:profiles!warehouseman_id(
+          user_id,
+          display_name,
+          email
         )
       `)
       .order('created_at', { ascending: false });
@@ -33,6 +38,10 @@ export class ProjectService {
 
     if (filters?.project_inspector_id) {
       query = query.eq('project_inspector_id', filters.project_inspector_id);
+    }
+
+    if (filters?.warehouseman_id) {
+      query = query.eq('warehouseman_id', filters.warehouseman_id);
     }
 
     if (filters?.search) {
@@ -62,6 +71,11 @@ export class ProjectService {
           user_id,
           display_name,
           email
+        ),
+        warehouseman:profiles!warehouseman_id(
+          user_id,
+          display_name,
+          email
         )
       `)
       .eq('id', id)
@@ -80,7 +94,7 @@ export class ProjectService {
       throw new Error('User not authenticated');
     }
 
-    const { data, error } = await this.supabase
+    const { data, error} = await this.supabase
       .from('projects')
       .insert({
         ...projectData,
@@ -95,6 +109,11 @@ export class ProjectService {
           email
         ),
         project_inspector:profiles!project_inspector_id(
+          user_id,
+          display_name,
+          email
+        ),
+        warehouseman:profiles!warehouseman_id(
           user_id,
           display_name,
           email
@@ -130,6 +149,11 @@ export class ProjectService {
           email
         ),
         project_inspector:profiles!project_inspector_id(
+          user_id,
+          display_name,
+          email
+        ),
+        warehouseman:profiles!warehouseman_id(
           user_id,
           display_name,
           email
@@ -180,6 +204,21 @@ export class ProjectService {
 
     if (error) {
       throw new Error(`Failed to fetch project inspectors: ${error.message}`);
+    }
+
+    return data || [];
+  }
+
+  async getAvailableWarehousemen(): Promise<Warehouseman[]> {
+    const { data, error } = await this.supabase
+      .from('profiles')
+      .select('user_id, display_name, email')
+      .eq('role', 'warehouseman')
+      .eq('status', 'active')
+      .order('display_name');
+
+    if (error) {
+      throw new Error(`Failed to fetch warehousemen: ${error.message}`);
     }
 
     return data || [];

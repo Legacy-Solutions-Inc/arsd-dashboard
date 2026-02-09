@@ -176,6 +176,27 @@ export function ProjectsTable({
                   </div>
                 )}
 
+                {/* Warehouseman */}
+                {project.warehouseman ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 bg-arsd-red/10 rounded-full flex items-center justify-center">
+                      <User className="h-3 w-3 text-arsd-red" />
+                    </div>
+                    <div>
+                      <div className="font-medium text-glass-primary text-xs">
+                        {project.warehouseman.display_name}
+                      </div>
+                      <div className="text-xs text-glass-muted">
+                        {project.warehouseman.email}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-glass-muted italic bg-gray-100/50 px-2 py-1 rounded-lg text-xs">
+                    No warehouseman assigned
+                  </div>
+                )}
+
                 {/* Client */}
                 <div className="text-glass-secondary text-xs">
                   <span className="font-medium">Client:</span> {project.client}
@@ -243,6 +264,7 @@ export function ProjectsTable({
               <TableHead className="glass-table-header-cell text-arsd-red">Project ID</TableHead>
               <TableHead className="glass-table-header-cell text-arsd-red">Project Name</TableHead>
               <TableHead className="glass-table-header-cell text-arsd-red">Site Engineer</TableHead>
+              <TableHead className="glass-table-header-cell text-arsd-red">Warehouseman</TableHead>
               <TableHead className="glass-table-header-cell text-arsd-red">Client</TableHead>
               <TableHead className="glass-table-header-cell text-arsd-red">Location</TableHead>
               <TableHead className="glass-table-header-cell text-arsd-red">Status</TableHead>
@@ -277,6 +299,26 @@ export function ProjectsTable({
                         </div>
                         <div className="text-xs text-glass-muted">
                           {project.project_manager.email}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <span className="text-glass-muted italic bg-gray-100/50 px-2 py-1 rounded-lg text-xs">Unassigned</span>
+                  )}
+                </TableCell>
+                
+                <TableCell className="glass-table-cell">
+                  {project.warehouseman ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 bg-arsd-red/10 rounded-full flex items-center justify-center">
+                        <User className="h-3 w-3 text-arsd-red" />
+                      </div>
+                      <div>
+                        <div className="font-medium text-glass-primary text-xs">
+                          {project.warehouseman.display_name}
+                        </div>
+                        <div className="text-xs text-glass-muted">
+                          {project.warehouseman.email}
                         </div>
                       </div>
                     </div>

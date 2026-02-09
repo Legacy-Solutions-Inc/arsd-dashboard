@@ -4,12 +4,14 @@ interface ARSDCardProps {
   children: React.ReactNode;
   className?: string;
   onClick?: () => void;
+  variant?: 'default' | 'neutral';
 }
 
-export function ARSDCard({ children, className = '', onClick }: ARSDCardProps) {
+export function ARSDCard({ children, className = '', onClick, variant = 'default' }: ARSDCardProps) {
+  const baseClass = variant === 'neutral' ? 'glass-card-neutral' : 'glass-card';
   return (
     <div
-      className={`glass-card ${className} ${onClick ? 'cursor-pointer' : ''}`}
+      className={`${baseClass} ${className} ${onClick ? 'cursor-pointer' : ''}`}
       onClick={onClick}
     >
       {children}
