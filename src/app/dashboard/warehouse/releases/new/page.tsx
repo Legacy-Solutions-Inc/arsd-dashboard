@@ -1,23 +1,45 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ItemsRepeater, ItemEntry } from '@/components/warehouse/ItemsRepeater';
 import { FileUploader } from '@/components/warehouse/FileUploader';
-import { StickyBottomBar } from '@/components/warehouse/StickyBottomBar';
 import { ARSDCard } from '@/components/warehouse/ARSDCard';
-import { projects, mockUser } from '@/data/warehouseMock';
-import { useWarehouseStore } from '@/contexts/WarehouseStoreContext';
-import { ArrowLeft, Package, Upload as UploadIcon, User, FileText } from 'lucide-react';
-import type { ReleaseForm, ReleaseItem } from '@/data/warehouseMock';
+import { useWarehouseAuth } from '@/hooks/warehouse/useWarehouseAuth';
+import { useWarehouseProjects } from '@/hooks/warehouse/useWarehouseProjects';
+import { ArrowLeft, Package, Upload as UploadIcon, FileText } from 'lucide-react';
 
 export default function CreateReleasePage() {
   const router = useRouter();
-  const { releaseForms, addRelease } = useWarehouseStore();
-  const derivedReleaseNo = `REL-${new Date().getFullYear()}-${String(releaseForms.length + 1).padStart(3, '0')}`;
+  const { user, loading: authLoading } = useWarehouseAuth();
+  const { projects, loading: projectsLoading } = useWarehouseProjects(user);
+  const [nextReleaseNo, setNextReleaseNo] = useState<string | null>(null);
+  const [nextNoLoading, setNextNoLoading] = useState(true);
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const loading = authLoading || projectsLoading || nextNoLoading;
+  const warehouseman = (user?.display_name || 'Unknown').trim() || 'Unknown';
+
+  useEffect(() => {
+    let mounted = true;
+    async function fetchNext() {
+      try {
+        const res = await fetch('/api/warehouse/releases/next');
+        if (!res.ok) throw new Error('Failed to fetch next release number');
+        const { release_no } = await res.json();
+        if (mounted) setNextReleaseNo(release_no);
+      } catch {
+        if (mounted) setNextReleaseNo(`REL-${new Date().getFullYear()}-???`);
+      } finally {
+        if (mounted) setNextNoLoading(false);
+      }
+    }
+    fetchNext();
+    return () => { mounted = false; };
+  }, []);
 
   const [formData, setFormData] = useState({
-    warehouseman: mockUser.name,
     date: new Date().toISOString().split('T')[0],
     projectId: '',
     items: [] as ItemEntry[],
@@ -49,26 +71,37 @@ export default function CreateReleasePage() {
     }));
   };
 
-  const handleSubmit = () => {
-    const items: ReleaseItem[] = formData.items.map((it) => ({
-      itemDescription: it.itemDescription,
-      qty: it.qty,
-      unit: it.unit
-    }));
-    const rf: ReleaseForm = {
-      id: `rel-${Date.now()}`,
-      releaseNo: derivedReleaseNo,
-      projectId: formData.projectId,
-      receivedBy: formData.receivedBy,
-      items,
-      date: formData.date,
-      locked: true,
-      warehouseman: formData.warehouseman,
-      purpose: formData.purpose || undefined,
-      attachment: formData.attachment ? formData.attachment.name : undefined
-    };
-    addRelease(rf);
-    router.push('/dashboard/warehouse/releases');
+  const handleSubmit = async () => {
+    setSubmitError(null);
+    setSubmitLoading(true);
+    try {
+      const items = formData.items.map((it) => ({
+        item_description: it.itemDescription,
+        qty: it.qty,
+        unit: it.unit
+      }));
+      const fd = new FormData();
+      fd.set('project_id', formData.projectId);
+      fd.set('received_by', formData.receivedBy);
+      fd.set('date', formData.date);
+      fd.set('warehouseman', warehouseman);
+      fd.set('items', JSON.stringify(items));
+      if (formData.purpose) fd.set('purpose', formData.purpose);
+      if (formData.attachment) fd.set('attachment', formData.attachment);
+      const res = await fetch('/api/warehouse/releases', {
+        method: 'POST',
+        body: fd
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json?.error || 'Failed to create release');
+      }
+      router.push('/dashboard/warehouse/releases');
+    } catch (e) {
+      setSubmitError(e instanceof Error ? e.message : 'Failed to create release');
+    } finally {
+      setSubmitLoading(false);
+    }
   };
 
   const handleCancel = () => {
@@ -84,6 +117,34 @@ export default function CreateReleasePage() {
            formData.items.every(item => item.itemDescription && item.qty > 0) &&
            formData.receivedBy;
   };
+
+  if (loading && !user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-arsd-red mx-auto mb-4" />
+          <p className="text-gray-600">Loading…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!loading && !user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 flex items-center justify-center">
+        <div className="glass-card text-center max-w-md">
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Sign in required</h2>
+          <p className="text-gray-600 mb-4">You need to sign in to create a release form.</p>
+          <button
+            onClick={() => router.push('/dashboard/warehouse/releases')}
+            className="btn-arsd-primary mobile-button"
+          >
+            Back to list
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 pb-24 w-full">
@@ -128,7 +189,7 @@ export default function CreateReleasePage() {
                   </label>
                   <input
                     type="text"
-                    value={derivedReleaseNo}
+                    value={nextReleaseNo ?? '…'}
                     readOnly
                     className="mobile-form-input w-full bg-gray-50 cursor-not-allowed"
                   />
@@ -140,7 +201,7 @@ export default function CreateReleasePage() {
                   </label>
                   <input
                     type="text"
-                    value={formData.warehouseman}
+                    value={warehouseman}
                     readOnly
                     className="mobile-form-input w-full bg-gray-50 cursor-not-allowed"
                   />
@@ -171,7 +232,7 @@ export default function CreateReleasePage() {
                     >
                       <option value="">Select a project</option>
                       {projects.map(project => (
-                        <option key={project.id} value={project.id}>{project.name}</option>
+                        <option key={project.id} value={project.id}>{project.project_name}</option>
                       ))}
                     </select>
                   </div>
@@ -258,7 +319,7 @@ export default function CreateReleasePage() {
               <dl className="space-y-2 text-sm">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 py-1.5 border-b border-red-200/20">
                   <dt className="text-gray-600 shrink-0">Release No</dt>
-                  <dd className="font-medium break-words min-w-0">{derivedReleaseNo}</dd>
+                  <dd className="font-medium break-words min-w-0">{nextReleaseNo ?? '…'}</dd>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 py-1.5 border-b border-red-200/20">
                   <dt className="text-gray-600 shrink-0">Date</dt>
@@ -266,11 +327,11 @@ export default function CreateReleasePage() {
                 </div>
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 py-1.5 border-b border-red-200/20">
                   <dt className="text-gray-600 shrink-0">Project</dt>
-                  <dd className="font-medium break-words min-w-0">{projects.find(p => p.id === formData.projectId)?.name || 'N/A'}</dd>
+                  <dd className="font-medium break-words min-w-0">{projects.find(p => p.id === formData.projectId)?.project_name || 'N/A'}</dd>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 py-1.5 border-b border-red-200/20">
                   <dt className="text-gray-600 shrink-0">Warehouseman</dt>
-                  <dd className="font-medium break-words min-w-0">{formData.warehouseman || 'Unknown'}</dd>
+                  <dd className="font-medium break-words min-w-0">{warehouseman}</dd>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 py-1.5 border-b border-red-200/20">
                   <dt className="text-gray-600 shrink-0">Received By</dt>
@@ -285,21 +346,35 @@ export default function CreateReleasePage() {
           </div>
         </ARSDCard>
 
+        {submitError && (
+          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+            {submitError}
+          </div>
+        )}
+
         {/* Action Buttons */}
         <div className="flex gap-3 sm:gap-4 pt-4">
           <button
             onClick={handleCancel}
-            className="btn-arsd-outline mobile-button mobile-touch-target min-h-[44px] flex-1 sm:flex-none sm:min-w-[120px] flex items-center justify-center"
+            disabled={submitLoading}
+            className="btn-arsd-outline mobile-button mobile-touch-target min-h-[44px] flex-1 sm:flex-none sm:min-w-[120px] flex items-center justify-center disabled:opacity-50"
           >
             Cancel
           </button>
           <div className="flex-1" />
           <button
             onClick={handleSubmit}
-            disabled={!canSubmit()}
-            className="btn-arsd-primary mobile-button mobile-touch-target min-h-[44px] flex-1 sm:flex-none sm:min-w-[120px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+            disabled={!canSubmit() || submitLoading}
+            className="btn-arsd-primary mobile-button mobile-touch-target min-h-[44px] flex-1 sm:flex-none sm:min-w-[120px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            Submit Release
+            {submitLoading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-2 border-white border-t-transparent" />
+                Submitting…
+              </>
+            ) : (
+              'Submit Release'
+            )}
           </button>
         </div>
       </div>

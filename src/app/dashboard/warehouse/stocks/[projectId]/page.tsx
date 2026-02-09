@@ -1,84 +1,53 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { MobileItemCard } from '@/components/warehouse/MobileItemCard';
 import { ARSDTable } from '@/components/warehouse/ARSDTable';
 import { AlertBadge } from '@/components/warehouse/AlertBadge';
-import { projects, ipowItems } from '@/data/warehouseMock';
-import { useWarehouseStore } from '@/contexts/WarehouseStoreContext';
+import { useWarehouseProjects } from '@/hooks/warehouse/useWarehouseProjects';
+import { useWarehouseAuth } from '@/hooks/warehouse/useWarehouseAuth';
+import { useStocks } from '@/hooks/warehouse/useStocks';
 import { ArrowLeft, Search, Download, Filter } from 'lucide-react';
 
 interface StockItem {
-  wbs: string;
-  itemDescription: string;
-  ipowQty: number;
+  wbs: string | null;
+  item_description: string;
+  ipow_qty: number;
   delivered: number;
   utilized: number;
-  runningBalance: number;
-  totalCost: number;
+  running_balance: number;
+  total_cost: number;
   variance: number;
 }
 
 export default function StockMonitoringPage() {
   const params = useParams();
   const router = useRouter();
-  const { deliveryReceipts, releaseForms } = useWarehouseStore();
   const projectId = params?.projectId as string;
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProjectId, setSelectedProjectId] = useState(projectId || '');
 
+  const { user } = useWarehouseAuth();
+  const { projects } = useWarehouseProjects(user);
+  const { stockItems, loading } = useStocks(projectId);
+
   const project = projects.find(p => p.id === projectId);
 
-  // Calculate stock items from IPOW items, DRs, and Releases
-  const stockItems: StockItem[] = useMemo(() => {
-    const projectIPOWItems = ipowItems.filter(item => item.projectId === projectId);
-    const projectDRs = deliveryReceipts.filter(dr => dr.projectId === projectId);
-    const projectReleases = releaseForms.filter(rel => rel.projectId === projectId);
-
-    return projectIPOWItems.map(ipowItem => {
-      // Calculate delivered from DRs
-      const delivered = projectDRs.reduce((sum, dr) => {
-        const drItem = dr.items.find(item => 
-          item.itemDescription.toLowerCase().includes(ipowItem.description.toLowerCase()) ||
-          ipowItem.description.toLowerCase().includes(item.itemDescription.toLowerCase())
-        );
-        return sum + (drItem?.qtyInDR || 0);
-      }, 0);
-
-      // Calculate utilized from Releases
-      const utilized = projectReleases.reduce((sum, rel) => {
-        const relItem = rel.items.find(item => 
-          item.itemDescription.toLowerCase().includes(ipowItem.description.toLowerCase()) ||
-          ipowItem.description.toLowerCase().includes(item.itemDescription.toLowerCase())
-        );
-        return sum + (relItem?.qty || 0);
-      }, 0);
-
-      const runningBalance = delivered - utilized;
-      const totalCost = ipowItem.cost;
-      const variance = delivered - ipowItem.ipowQty;
-
-      return {
-        wbs: ipowItem.wbs,
-        itemDescription: ipowItem.description,
-        ipowQty: ipowItem.ipowQty,
-        delivered,
-        utilized,
-        runningBalance,
-        totalCost,
-        variance
-      };
-    });
-  }, [projectId, deliveryReceipts, releaseForms]);
+  // Update selected project ID when project param changes
+  useEffect(() => {
+    if (projectId) {
+      setSelectedProjectId(projectId);
+    }
+  }, [projectId]);
 
   // Filter stock items based on search
   const filteredItems = useMemo(() => {
     if (!searchQuery.trim()) return stockItems;
     const query = searchQuery.toLowerCase();
     return stockItems.filter(item =>
-      item.wbs.toLowerCase().includes(query) ||
-      item.itemDescription.toLowerCase().includes(query)
+      (item.wbs ?? '').toLowerCase().includes(query) ||
+      item.item_description.toLowerCase().includes(query)
     );
   }, [stockItems, searchQuery]);
 
@@ -118,7 +87,7 @@ export default function StockMonitoringPage() {
                   <h1 className="responsive-heading font-bold bg-gradient-to-r from-arsd-red to-red-600 bg-clip-text text-transparent">
                     Stock Monitoring Ledger
                   </h1>
-                  <p className="text-gray-600 responsive-text">{project.name}</p>
+                  <p className="text-gray-600 responsive-text">{project.project_name}</p>
                 </div>
               </div>
             </div>
@@ -135,7 +104,7 @@ export default function StockMonitoringPage() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="    Search by WBS or item name..."
+                  placeholder="Search by WBS or item name..."
                   className="mobile-form-input w-full pl-10"
                 />
               </div>
@@ -150,7 +119,7 @@ export default function StockMonitoringPage() {
                 className="mobile-form-input min-w-[150px]"
               >
                 {projects.map(p => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
+                  <option key={p.id} value={p.id}>{p.project_name}</option>
                 ))}
               </select>
               <button
@@ -199,20 +168,20 @@ export default function StockMonitoringPage() {
             <tbody>
               {filteredItems.length > 0 ? (
                 filteredItems.map((item, index) => {
-                  const isLowStock = item.runningBalance < (item.ipowQty * 0.1);
-                  const isOverIPOWDelivered = item.delivered > item.ipowQty;
-                  const isOverIPOWUtilized = item.utilized > item.ipowQty;
+                  const isLowStock = item.running_balance < (item.ipow_qty * 0.1);
+                  const isOverIPOWDelivered = item.delivered > item.ipow_qty;
+                  const isOverIPOWUtilized = item.utilized > item.ipow_qty;
 
                   return (
                     <tr key={index} className="glass-table-row">
-                      <td className="glass-table-cell font-mono text-xs">{item.wbs}</td>
-                      <td className="glass-table-cell text-center font-medium">{item.itemDescription}</td>
-                      <td className="glass-table-cell text-center whitespace-nowrap">{item.ipowQty.toLocaleString()}</td>
-                      <td className="glass-table-cell text-center whitespace-nowrap">₱{item.totalCost.toLocaleString()}</td>
+                      <td className="glass-table-cell font-mono text-xs">{item.wbs ?? '–'}</td>
+                      <td className="glass-table-cell text-center font-medium">{item.item_description}</td>
+                      <td className="glass-table-cell text-center whitespace-nowrap">{item.ipow_qty.toLocaleString()}</td>
+                      <td className="glass-table-cell text-center whitespace-nowrap">₱{item.total_cost.toLocaleString()}</td>
                       <td className="glass-table-cell text-center whitespace-nowrap">{item.delivered.toLocaleString()}</td>
                       <td className="glass-table-cell text-center whitespace-nowrap">{item.utilized.toLocaleString()}</td>
                       <td className={`glass-table-cell text-center whitespace-nowrap font-bold ${isLowStock ? 'text-red-600' : ''}`}>
-                        {item.runningBalance.toLocaleString()}
+                        {item.running_balance.toLocaleString()}
                       </td>
                       <td className={`glass-table-cell text-center whitespace-nowrap ${item.variance > 0 ? 'text-orange-600' : item.variance < 0 ? 'text-blue-600' : ''}`}>
                         {item.variance > 0 ? '+' : ''}{item.variance.toLocaleString()}

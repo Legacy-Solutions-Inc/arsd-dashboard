@@ -1,51 +1,39 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ARSDCard } from '@/components/warehouse/ARSDCard';
 import { ARSDTable } from '@/components/warehouse/ARSDTable';
 import { BadgeStatus } from '@/components/warehouse/BadgeStatus';
-import { projects, mockUser, canUnlockDRRelease } from '@/data/warehouseMock';
-import { useWarehouseStore } from '@/contexts/WarehouseStoreContext';
+import { useWarehouseAuth } from '@/hooks/warehouse/useWarehouseAuth';
+import { useWarehouseProjects } from '@/hooks/warehouse/useWarehouseProjects';
+import { useDeliveryReceipts } from '@/hooks/warehouse/useDeliveryReceipts';
 import { ArrowLeft, Search, Filter, Eye, Plus, Unlock, Lock } from 'lucide-react';
-import { RoleGuard } from '@/components/warehouse/RoleGuard';
 
 export default function DeliveryReceiptsListPage() {
   const router = useRouter();
-  const { deliveryReceipts, setDRLock } = useWarehouseStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProjectId, setSelectedProjectId] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-  const canUnlock = canUnlockDRRelease(mockUser);
 
-  const filteredDRs = useMemo(() => {
-    let filtered = [...deliveryReceipts];
+  const { user, canCreate, canUnlock } = useWarehouseAuth();
+  const { projects } = useWarehouseProjects(user);
+  const { deliveryReceipts, loading, updateLock } = useDeliveryReceipts({
+    search: searchQuery || undefined,
+    project_id: selectedProjectId || undefined,
+    date_from: dateFrom || undefined,
+    date_to: dateTo || undefined,
+  });
 
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(dr =>
-        dr.drNo.toLowerCase().includes(query) ||
-        dr.supplier.toLowerCase().includes(query) ||
-        (dr.warehouseman ?? 'unknown').toLowerCase().includes(query) ||
-        projects.find(p => p.id === dr.projectId)?.name.toLowerCase().includes(query)
-      );
+  const handleLockToggle = async (id: string, currentlyLocked: boolean) => {
+    try {
+      await updateLock(id, !currentlyLocked);
+    } catch (error) {
+      console.error('Failed to update lock:', error);
+      alert('Failed to update lock status. Please try again.');
     }
-
-    if (selectedProjectId) {
-      filtered = filtered.filter(dr => dr.projectId === selectedProjectId);
-    }
-
-    if (dateFrom) {
-      filtered = filtered.filter(dr => dr.date >= dateFrom);
-    }
-
-    if (dateTo) {
-      filtered = filtered.filter(dr => dr.date <= dateTo);
-    }
-
-    return filtered;
-  }, [deliveryReceipts, searchQuery, selectedProjectId, dateFrom, dateTo]);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 w-full">
@@ -69,7 +57,7 @@ export default function DeliveryReceiptsListPage() {
                   <p className="text-gray-600 responsive-text">View and manage all delivery receipts</p>
                 </div>
               </div>
-              <RoleGuard allowedRoles={['warehouseman']} currentRole={mockUser.role}>
+              {canCreate && (
                 <button
                   onClick={() => router.push('/dashboard/warehouse/delivery-receipts/new')}
                   className="btn-arsd-primary mobile-button flex items-center gap-2"
@@ -77,7 +65,7 @@ export default function DeliveryReceiptsListPage() {
                   <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
                   <span>Create DR</span>
                 </button>
-              </RoleGuard>
+              )}
             </div>
           </div>
         </div>
@@ -110,7 +98,7 @@ export default function DeliveryReceiptsListPage() {
                 >
                   <option value="">All Projects</option>
                   {projects.map(project => (
-                    <option key={project.id} value={project.id}>{project.name}</option>
+                    <option key={project.id} value={project.id}>{project.project_name}</option>
                   ))}
                 </select>
               </div>
@@ -140,16 +128,21 @@ export default function DeliveryReceiptsListPage() {
 
         {/* Mobile View - Cards */}
         <div className="block sm:hidden space-y-4">
-          {filteredDRs.length > 0 ? (
-            filteredDRs.map((dr) => {
-              const project = projects.find(p => p.id === dr.projectId);
+          {loading ? (
+            <div className="glass-card text-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-arsd-red mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading...</p>
+            </div>
+          ) : deliveryReceipts.length > 0 ? (
+            deliveryReceipts.map((dr) => {
+              const project = projects.find(p => p.id === dr.project_id);
               return (
                 <ARSDCard key={dr.id} className="p-5">
                   <div className="space-y-4">
                     <div className="min-w-0">
-                      <div className="text-xs font-mono text-arsd-secondary mb-1">{dr.drNo}</div>
+                      <div className="text-xs font-mono text-arsd-secondary mb-1">{dr.dr_no}</div>
                       <h3 className="font-semibold text-arsd-primary text-base truncate">
-                        {project?.name || 'Unknown Project'}
+                        {project?.project_name || 'Unknown Project'}
                       </h3>
                     </div>
                     <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
@@ -158,9 +151,9 @@ export default function DeliveryReceiptsListPage() {
                       <dt className="text-gray-500">Date</dt>
                       <dd className="font-medium">{dr.date}</dd>
                       <dt className="text-gray-500">Items</dt>
-                      <dd className="font-medium">{dr.items.length}</dd>
+                      <dd className="font-medium">{dr.items?.length || 0}</dd>
                       <dt className="text-gray-500">Warehouseman</dt>
-                      <dd className="font-medium break-words min-w-0">{dr.warehouseman ?? 'Unknown'}</dd>
+                      <dd className="font-medium break-words min-w-0">{dr.warehouseman}</dd>
                       <dt className="text-gray-500">Status</dt>
                       <dd><BadgeStatus locked={dr.locked} /></dd>
                     </dl>
@@ -174,7 +167,7 @@ export default function DeliveryReceiptsListPage() {
                       </button>
                       {canUnlock && dr.locked && (
                         <button
-                          onClick={() => setDRLock(dr.id, false)}
+                          onClick={() => handleLockToggle(dr.id, dr.locked)}
                           className="btn-arsd-outline mobile-button mobile-touch-target min-h-[44px] flex items-center justify-center gap-2 text-amber-700 border-amber-300 hover:bg-amber-50 min-w-[110px]"
                           title="Unlock (Site Engineer / Project Manager only)"
                         >
@@ -184,7 +177,7 @@ export default function DeliveryReceiptsListPage() {
                       )}
                       {canUnlock && !dr.locked && (
                         <button
-                          onClick={() => setDRLock(dr.id, true)}
+                          onClick={() => handleLockToggle(dr.id, dr.locked)}
                           className="btn-arsd-outline mobile-button mobile-touch-target min-h-[44px] flex items-center justify-center gap-2 text-green-700 border-green-300 hover:bg-green-50 min-w-[110px]"
                           title="Lock again (Site Engineer / Project Manager only)"
                         >
@@ -221,17 +214,24 @@ export default function DeliveryReceiptsListPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredDRs.length > 0 ? (
-                filteredDRs.map((dr) => {
-                  const project = projects.find(p => p.id === dr.projectId);
+              {loading ? (
+                <tr>
+                  <td colSpan={8} className="glass-table-cell text-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-arsd-red mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading...</p>
+                  </td>
+                </tr>
+              ) : deliveryReceipts.length > 0 ? (
+                deliveryReceipts.map((dr) => {
+                  const project = projects.find(p => p.id === dr.project_id);
                   return (
                     <tr key={dr.id} className="glass-table-row">
-                      <td className="glass-table-cell font-mono text-xs text-center">{dr.drNo}</td>
+                      <td className="glass-table-cell font-mono text-xs text-center">{dr.dr_no}</td>
                       <td className="glass-table-cell text-center">{dr.date}</td>
                       <td className="glass-table-cell text-center">{dr.supplier}</td>
-                      <td className="glass-table-cell text-center">{project?.name || 'Unknown'}</td>
-                      <td className="glass-table-cell text-center">{dr.warehouseman ?? 'Unknown'}</td>
-                      <td className="glass-table-cell text-center">{dr.items.length}</td>
+                      <td className="glass-table-cell text-center">{project?.project_name || 'Unknown'}</td>
+                      <td className="glass-table-cell text-center">{dr.warehouseman}</td>
+                      <td className="glass-table-cell text-center">{dr.items?.length || 0}</td>
                       <td className="glass-table-cell text-center">
                         <BadgeStatus locked={dr.locked} />
                       </td>
@@ -246,7 +246,7 @@ export default function DeliveryReceiptsListPage() {
                           </button>
                           {canUnlock && dr.locked && (
                             <button
-                              onClick={(e) => { e.stopPropagation(); setDRLock(dr.id, false); }}
+                              onClick={(e) => { e.stopPropagation(); handleLockToggle(dr.id, dr.locked); }}
                               className="btn-arsd-outline text-xs sm:text-sm px-3 py-2 sm:px-4 sm:py-2 flex items-center gap-1.5 text-amber-700 border-amber-300 hover:bg-amber-50 mobile-touch-target min-h-[44px]"
                               title="Unlock (Site Engineer / Project Manager only)"
                             >
@@ -256,7 +256,7 @@ export default function DeliveryReceiptsListPage() {
                           )}
                           {canUnlock && !dr.locked && (
                             <button
-                              onClick={(e) => { e.stopPropagation(); setDRLock(dr.id, true); }}
+                              onClick={(e) => { e.stopPropagation(); handleLockToggle(dr.id, dr.locked); }}
                               className="btn-arsd-outline text-xs sm:text-sm px-3 py-2 sm:px-4 sm:py-2 flex items-center gap-1.5 text-green-700 border-green-300 hover:bg-green-50 mobile-touch-target min-h-[44px]"
                               title="Lock again (Site Engineer / Project Manager only)"
                             >

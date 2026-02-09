@@ -1,16 +1,41 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { ProjectGrid } from '@/components/warehouse/ProjectGrid';
-import { RoleGuard } from '@/components/warehouse/RoleGuard';
-import { mockUser, getAccessibleProjects, canCreateDRRelease } from '@/data/warehouseMock';
-import { Package, FileText, Plus, List } from 'lucide-react';
+import { useWarehouseAuth } from '@/hooks/warehouse/useWarehouseAuth';
+import { useWarehouseProjects } from '@/hooks/warehouse/useWarehouseProjects';
+import { Package, FileText, Plus, List, Search } from 'lucide-react';
 
 export default function WarehouseDashboardPage() {
   const router = useRouter();
-  const accessibleProjects = getAccessibleProjects(mockUser);
-  const canCreate = canCreateDRRelease(mockUser);
+  const [searchQuery, setSearchQuery] = useState('');
+  const { user, loading: authLoading, canCreate, canViewAll } = useWarehouseAuth();
+  const { projects: accessibleProjects, loading: projectsLoading } = useWarehouseProjects(user);
+
+  const filteredProjects = useMemo(() => {
+    if (!searchQuery.trim()) return accessibleProjects;
+    const q = searchQuery.toLowerCase();
+    return accessibleProjects.filter(
+      (p) =>
+        p.project_name.toLowerCase().includes(q) ||
+        p.location.toLowerCase().includes(q) ||
+        (p.warehouseman?.display_name || '').toLowerCase().includes(q)
+    );
+  }, [accessibleProjects, searchQuery]);
+
+  const loading = authLoading || projectsLoading;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-arsd-red mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading warehouse...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 w-full">
@@ -77,7 +102,7 @@ export default function WarehouseDashboardPage() {
         </div>
 
         {/* Create Buttons - Only for Warehouseman */}
-        <RoleGuard allowedRoles={['warehouseman']} currentRole={mockUser.role}>
+        {canCreate && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <button
               onClick={() => router.push('/dashboard/warehouse/delivery-receipts/new')}
@@ -94,29 +119,47 @@ export default function WarehouseDashboardPage() {
               Create Release Form
             </button>
           </div>
-        </RoleGuard>
+        )}
 
         {/* Project Selector Grid */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <h2 className="responsive-heading font-bold text-arsd-primary">
-              {mockUser.role === 'superadmin' || mockUser.role === 'purchasing'
-                ? 'All Projects'
-                : 'Assigned Projects'}
+              {canViewAll ? 'All Projects' : 'Assigned Projects'}
             </h2>
-            <span className="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-lg">
-              {accessibleProjects.length} project{accessibleProjects.length !== 1 ? 's' : ''}
+            <span className="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-lg self-start sm:self-auto">
+              {filteredProjects.length} project{filteredProjects.length !== 1 ? 's' : ''}
             </span>
           </div>
 
           {accessibleProjects.length > 0 ? (
-            <ProjectGrid projects={accessibleProjects} />
+            <>
+              <div className="relative max-w-xl">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="    Search by project name, location, or warehouseman..."
+                  className="mobile-form-input w-full pl-10 min-w-0"
+                />
+              </div>
+              {filteredProjects.length > 0 ? (
+                <ProjectGrid projects={filteredProjects} />
+              ) : (
+                <div className="glass-card text-center py-12">
+                  <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600 font-medium">No projects match your search</p>
+                  <p className="text-sm text-gray-500 mt-2">Try a different search term</p>
+                </div>
+              )}
+            </>
           ) : (
             <div className="glass-card text-center py-12">
               <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600 font-medium">No projects available</p>
               <p className="text-sm text-gray-500 mt-2">
-                {mockUser.role === 'superadmin' || mockUser.role === 'purchasing'
+                {canViewAll
                   ? 'No projects found in the system'
                   : 'You are not assigned to any projects'}
               </p>

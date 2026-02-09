@@ -1,50 +1,39 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ARSDCard } from '@/components/warehouse/ARSDCard';
 import { ARSDTable } from '@/components/warehouse/ARSDTable';
 import { BadgeStatus } from '@/components/warehouse/BadgeStatus';
-import { projects, mockUser, canUnlockDRRelease, releaseWarehousemanFallback } from '@/data/warehouseMock';
-import { useWarehouseStore } from '@/contexts/WarehouseStoreContext';
+import { useWarehouseAuth } from '@/hooks/warehouse/useWarehouseAuth';
+import { useWarehouseProjects } from '@/hooks/warehouse/useWarehouseProjects';
+import { useReleases } from '@/hooks/warehouse/useReleases';
 import { ArrowLeft, Search, Filter, Eye, Plus, Unlock, Lock } from 'lucide-react';
-import { RoleGuard } from '@/components/warehouse/RoleGuard';
 
 export default function ReleasesListPage() {
   const router = useRouter();
-  const { releaseForms, setReleaseLock } = useWarehouseStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProjectId, setSelectedProjectId] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-  const canUnlock = canUnlockDRRelease(mockUser);
 
-  const filteredReleases = useMemo(() => {
-    let filtered = [...releaseForms];
+  const { user, canCreate, canUnlock } = useWarehouseAuth();
+  const { projects } = useWarehouseProjects(user);
+  const { releases, loading, updateLock } = useReleases({
+    search: searchQuery || undefined,
+    project_id: selectedProjectId || undefined,
+    date_from: dateFrom || undefined,
+    date_to: dateTo || undefined,
+  });
 
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(rel =>
-        rel.releaseNo.toLowerCase().includes(query) ||
-        rel.receivedBy.toLowerCase().includes(query) ||
-        projects.find(p => p.id === rel.projectId)?.name.toLowerCase().includes(query)
-      );
+  const handleLockToggle = async (id: string, currentlyLocked: boolean) => {
+    try {
+      await updateLock(id, !currentlyLocked);
+    } catch (error) {
+      console.error('Failed to update lock:', error);
+      alert('Failed to update lock status. Please try again.');
     }
-
-    if (selectedProjectId) {
-      filtered = filtered.filter(rel => rel.projectId === selectedProjectId);
-    }
-
-    if (dateFrom) {
-      filtered = filtered.filter(rel => rel.date >= dateFrom);
-    }
-
-    if (dateTo) {
-      filtered = filtered.filter(rel => rel.date <= dateTo);
-    }
-
-    return filtered;
-  }, [releaseForms, searchQuery, selectedProjectId, dateFrom, dateTo]);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 w-full">
@@ -68,7 +57,7 @@ export default function ReleasesListPage() {
                   <p className="text-gray-600 responsive-text">View and manage all release forms</p>
                 </div>
               </div>
-              <RoleGuard allowedRoles={['warehouseman']} currentRole={mockUser.role}>
+              {canCreate && (
                 <button
                   onClick={() => router.push('/dashboard/warehouse/releases/new')}
                   className="btn-arsd-primary mobile-button flex items-center gap-2"
@@ -76,7 +65,7 @@ export default function ReleasesListPage() {
                   <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
                   <span>Create Release</span>
                 </button>
-              </RoleGuard>
+              )}
             </div>
           </div>
         </div>
@@ -109,7 +98,7 @@ export default function ReleasesListPage() {
                 >
                   <option value="">All Projects</option>
                   {projects.map(project => (
-                    <option key={project.id} value={project.id}>{project.name}</option>
+                    <option key={project.id} value={project.id}>{project.project_name}</option>
                   ))}
                 </select>
               </div>
@@ -135,27 +124,32 @@ export default function ReleasesListPage() {
 
         {/* Mobile View - Cards */}
         <div className="block sm:hidden space-y-4">
-          {filteredReleases.length > 0 ? (
-            filteredReleases.map((rel) => {
-              const project = projects.find(p => p.id === rel.projectId);
+          {loading ? (
+            <div className="glass-card text-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-arsd-red mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading...</p>
+            </div>
+          ) : releases.length > 0 ? (
+            releases.map((rel) => {
+              const project = projects.find(p => p.id === rel.project_id);
               return (
                 <ARSDCard key={rel.id} className="p-5">
                   <div className="space-y-4">
                     <div className="min-w-0">
-                      <div className="text-xs font-mono text-arsd-secondary mb-1">{rel.releaseNo}</div>
+                      <div className="text-xs font-mono text-arsd-secondary mb-1">{rel.release_no}</div>
                       <h3 className="font-semibold text-arsd-primary text-base truncate">
-                        {project?.name || 'Unknown Project'}
+                        {project?.project_name || 'Unknown Project'}
                       </h3>
                     </div>
                     <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
                       <dt className="text-gray-500">Received by</dt>
-                      <dd className="font-medium break-words min-w-0">{rel.receivedBy}</dd>
+                      <dd className="font-medium break-words min-w-0">{rel.received_by}</dd>
                       <dt className="text-gray-500">Date</dt>
                       <dd className="font-medium">{rel.date}</dd>
                       <dt className="text-gray-500">Items</dt>
-                      <dd className="font-medium">{rel.items.length}</dd>
+                      <dd className="font-medium">{rel.items?.length || 0}</dd>
                       <dt className="text-gray-500">Warehouseman</dt>
-                      <dd className="font-medium break-words min-w-0">{rel.warehouseman ?? releaseWarehousemanFallback[rel.id] ?? '—'}</dd>
+                      <dd className="font-medium break-words min-w-0">{rel.warehouseman || '—'}</dd>
                       <dt className="text-gray-500">Status</dt>
                       <dd><BadgeStatus locked={rel.locked} /></dd>
                       {rel.purpose && (
@@ -175,7 +169,7 @@ export default function ReleasesListPage() {
                       </button>
                       {canUnlock && rel.locked && (
                         <button
-                          onClick={() => setReleaseLock(rel.id, false)}
+                          onClick={() => handleLockToggle(rel.id, rel.locked)}
                           className="btn-arsd-outline mobile-button mobile-touch-target min-h-[44px] flex items-center justify-center gap-2 text-amber-700 border-amber-300 hover:bg-amber-50 min-w-[110px]"
                           title="Unlock (Site Engineer / Project Manager only)"
                         >
@@ -185,7 +179,7 @@ export default function ReleasesListPage() {
                       )}
                       {canUnlock && !rel.locked && (
                         <button
-                          onClick={() => setReleaseLock(rel.id, true)}
+                          onClick={() => handleLockToggle(rel.id, rel.locked)}
                           className="btn-arsd-outline mobile-button mobile-touch-target min-h-[44px] flex items-center justify-center gap-2 text-green-700 border-green-300 hover:bg-green-50 min-w-[110px]"
                           title="Lock again (Site Engineer / Project Manager only)"
                         >
@@ -222,17 +216,24 @@ export default function ReleasesListPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredReleases.length > 0 ? (
-                filteredReleases.map((rel) => {
-                  const project = projects.find(p => p.id === rel.projectId);
+              {loading ? (
+                <tr>
+                  <td colSpan={8} className="glass-table-cell text-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-arsd-red mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading...</p>
+                  </td>
+                </tr>
+              ) : releases.length > 0 ? (
+                releases.map((rel) => {
+                  const project = projects.find(p => p.id === rel.project_id);
                   return (
                     <tr key={rel.id} className="glass-table-row">
-                      <td className="glass-table-cell font-mono text-xs text-center">{rel.releaseNo}</td>
+                      <td className="glass-table-cell font-mono text-xs text-center">{rel.release_no}</td>
                       <td className="glass-table-cell text-center">{rel.date}</td>
-                      <td className="glass-table-cell text-center">{project?.name || 'Unknown'}</td>
-                      <td className="glass-table-cell text-center">{rel.warehouseman ?? releaseWarehousemanFallback[rel.id] ?? '—'}</td>
-                      <td className="glass-table-cell text-center">{rel.receivedBy}</td>
-                      <td className="glass-table-cell text-center">{rel.items.length}</td>
+                      <td className="glass-table-cell text-center">{project?.project_name || 'Unknown'}</td>
+                      <td className="glass-table-cell text-center">{rel.warehouseman || '—'}</td>
+                      <td className="glass-table-cell text-center">{rel.received_by}</td>
+                      <td className="glass-table-cell text-center">{rel.items?.length || 0}</td>
                       <td className="glass-table-cell text-center">
                         <BadgeStatus locked={rel.locked} />
                       </td>
@@ -247,7 +248,7 @@ export default function ReleasesListPage() {
                           </button>
                           {canUnlock && rel.locked && (
                             <button
-                              onClick={(e) => { e.stopPropagation(); setReleaseLock(rel.id, false); }}
+                              onClick={(e) => { e.stopPropagation(); handleLockToggle(rel.id, rel.locked); }}
                               className="btn-arsd-outline text-xs sm:text-sm px-3 py-2 sm:px-4 sm:py-2 flex items-center gap-1.5 text-amber-700 border-amber-300 hover:bg-amber-50 mobile-touch-target min-h-[44px]"
                               title="Unlock (Site Engineer / Project Manager only)"
                             >
@@ -257,7 +258,7 @@ export default function ReleasesListPage() {
                           )}
                           {canUnlock && !rel.locked && (
                             <button
-                              onClick={(e) => { e.stopPropagation(); setReleaseLock(rel.id, true); }}
+                              onClick={(e) => { e.stopPropagation(); handleLockToggle(rel.id, rel.locked); }}
                               className="btn-arsd-outline text-xs sm:text-sm px-3 py-2 sm:px-4 sm:py-2 flex items-center gap-1.5 text-green-700 border-green-300 hover:bg-green-50 mobile-touch-target min-h-[44px]"
                               title="Lock again (Site Engineer / Project Manager only)"
                             >

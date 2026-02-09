@@ -5,7 +5,7 @@ import { useProjects } from '@/hooks/useProjects';
 import { ProjectsTable } from '@/components/projects/ProjectsTable';
 import ProjectCreateForm from '@/components/projects/ProjectCreateForm';
 import ProjectEditForm from '@/components/projects/ProjectEditForm';
-import { Project, ProjectManager, ProjectInspector } from '@/types/projects';
+import { Project, ProjectManager, ProjectInspector, Warehouseman } from '@/types/projects';
 import { ProjectService } from '@/services/projects/project.service';
 import { useRBAC } from '@/hooks/useRBAC';
 import { useRouter } from 'next/navigation';
@@ -22,23 +22,26 @@ export default function DashboardPage() {
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [projectManagers, setProjectManagers] = useState<ProjectManager[]>([]);
   const [projectInspectors, setProjectInspectors] = useState<ProjectInspector[]>([]);
+  const [warehousemen, setWarehousemen] = useState<Warehouseman[]>([]);
   const [loadingManagers, setLoadingManagers] = useState(false);
 
   const projectService = new ProjectService();
 
-  // Load project managers and inspectors when component mounts
+  // Load project managers, inspectors, and warehousemen when component mounts
   useEffect(() => {
     const loadAssignees = async () => {
       try {
         setLoadingManagers(true);
-        const [managers, inspectors] = await Promise.all([
+        const [managers, inspectors, wh] = await Promise.all([
           projectService.getAvailableProjectManagers(),
-          projectService.getAvailableProjectInspectors()
+          projectService.getAvailableProjectInspectors(),
+          projectService.getAvailableWarehousemen()
         ]);
         setProjectManagers(managers);
         setProjectInspectors(inspectors);
+        setWarehousemen(wh);
       } catch (error) {
-        console.error('Failed to load project managers/inspectors:', error);
+        console.error('Failed to load project managers/inspectors/warehousemen:', error);
       } finally {
         setLoadingManagers(false);
       }
@@ -257,6 +260,7 @@ export default function DashboardPage() {
           onSuccess={handleCreateSuccess}
           projectManagers={projectManagers}
           projectInspectors={projectInspectors}
+          projectWarehousemen={warehousemen}
         />
 
         {/* Project Edit Form */}
@@ -267,6 +271,7 @@ export default function DashboardPage() {
           onSuccess={handleEditSuccess}
           projectManagers={projectManagers}
           projectInspectors={projectInspectors}
+          projectWarehousemen={warehousemen}
         />
       </div>
     </div>

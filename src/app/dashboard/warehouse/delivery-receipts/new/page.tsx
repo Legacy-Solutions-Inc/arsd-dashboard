@@ -1,20 +1,43 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ItemsRepeater, ItemEntry } from '@/components/warehouse/ItemsRepeater';
 import { FileUploader } from '@/components/warehouse/FileUploader';
-import { StickyBottomBar } from '@/components/warehouse/StickyBottomBar';
 import { ARSDCard } from '@/components/warehouse/ARSDCard';
-import { projects, mockUser } from '@/data/warehouseMock';
-import { useWarehouseStore } from '@/contexts/WarehouseStoreContext';
+import { useWarehouseAuth } from '@/hooks/warehouse/useWarehouseAuth';
+import { useWarehouseProjects } from '@/hooks/warehouse/useWarehouseProjects';
 import { ArrowLeft, FileText, Package, Upload as UploadIcon, CheckCircle, Send } from 'lucide-react';
-import type { DeliveryReceipt, DRItem } from '@/data/warehouseMock';
 
 export default function CreateDRPage() {
   const router = useRouter();
-  const { deliveryReceipts, addDR } = useWarehouseStore();
-  const derivedDrNo = `DR-${new Date().getFullYear()}-${String(deliveryReceipts.length + 1).padStart(3, '0')}`;
+  const { user, loading: authLoading } = useWarehouseAuth();
+  const { projects, loading: projectsLoading } = useWarehouseProjects(user);
+  const [nextDrNo, setNextDrNo] = useState<string | null>(null);
+  const [nextNoLoading, setNextNoLoading] = useState(true);
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const loading = authLoading || projectsLoading || nextNoLoading;
+  const warehouseman = (user?.display_name || 'Unknown').trim() || 'Unknown';
+
+  useEffect(() => {
+    let mounted = true;
+    async function fetchNext() {
+      try {
+        const res = await fetch('/api/warehouse/delivery-receipts/next');
+        if (!res.ok) throw new Error('Failed to fetch next DR number');
+        const { dr_no } = await res.json();
+        if (mounted) setNextDrNo(dr_no);
+      } catch {
+        if (mounted) setNextDrNo(`DR-${new Date().getFullYear()}-???`);
+      } finally {
+        if (mounted) setNextNoLoading(false);
+      }
+    }
+    fetchNext();
+    return () => { mounted = false; };
+  }, []);
 
   const [currentSection, setCurrentSection] = useState(1);
   const [formData, setFormData] = useState({
@@ -22,11 +45,11 @@ export default function CreateDRPage() {
     time: new Date().toTimeString().slice(0, 5),
     projectId: '',
     supplier: '',
-    warehouseman: mockUser.name,
     items: [] as ItemEntry[],
     drPhoto: null as File | null,
     poPhoto: null as File | null
   });
+
 
   const handleAddItem = () => {
     setFormData(prev => ({
@@ -51,26 +74,39 @@ export default function CreateDRPage() {
     }));
   };
 
-  const handleSubmit = () => {
-    const items: DRItem[] = formData.items.map((it) => ({
-      itemDescription: it.itemDescription,
-      qtyInDR: it.qty,
-      qtyInPO: it.qtyInPO ?? 0,
-      unit: it.unit
-    }));
-    const warehouseman = (formData.warehouseman || mockUser.name || "Unknown").trim() || "Unknown";
-    const dr: DeliveryReceipt = {
-      id: `dr-${Date.now()}`,
-      drNo: derivedDrNo,
-      projectId: formData.projectId,
-      supplier: formData.supplier,
-      items,
-      date: formData.date,
-      locked: true,
-      warehouseman
-    };
-    addDR(dr);
-    router.push('/dashboard/warehouse/delivery-receipts');
+  const handleSubmit = async () => {
+    setSubmitError(null);
+    setSubmitLoading(true);
+    try {
+      const items = formData.items.map((it) => ({
+        item_description: it.itemDescription,
+        qty_in_dr: it.qty,
+        qty_in_po: it.qtyInPO ?? 0,
+        unit: it.unit
+      }));
+      const fd = new FormData();
+      fd.set('project_id', formData.projectId);
+      fd.set('supplier', formData.supplier);
+      fd.set('date', formData.date);
+      fd.set('time', formData.time);
+      fd.set('warehouseman', warehouseman);
+      fd.set('items', JSON.stringify(items));
+      if (formData.drPhoto) fd.set('dr_photo', formData.drPhoto);
+      if (formData.poPhoto) fd.set('po_photo', formData.poPhoto);
+      const res = await fetch('/api/warehouse/delivery-receipts', {
+        method: 'POST',
+        body: fd
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json?.error || 'Failed to create delivery receipt');
+      }
+      router.push('/dashboard/warehouse/delivery-receipts');
+    } catch (e) {
+      setSubmitError(e instanceof Error ? e.message : 'Failed to create delivery receipt');
+    } finally {
+      setSubmitLoading(false);
+    }
   };
 
   const handleCancel = () => {
@@ -81,17 +117,48 @@ export default function CreateDRPage() {
 
   const canProceed = () => {
     if (currentSection === 1) {
-      return formData.date && formData.time && formData.projectId && formData.supplier;
+      return !!formData.date && !!formData.time && !!formData.projectId && !!formData.supplier;
     }
     if (currentSection === 2) {
-      return formData.items.length > 0 && formData.items.every(item => 
-        item.itemDescription && item.qty > 0 && (item.qtyInPO ?? 0) > 0
+      return formData.items.length > 0 && formData.items.every(item =>
+        !!item.itemDescription && item.qty > 0 && (item.qtyInPO ?? 0) > 0
       );
+    }
+    if (currentSection === 3) {
+      return !!formData.drPhoto && !!formData.poPhoto;
     }
     return true;
   };
 
   const totalSections = 4;
+
+  if (loading && !user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-arsd-red mx-auto mb-4" />
+          <p className="text-gray-600">Loading…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!loading && !user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 flex items-center justify-center">
+        <div className="glass-card text-center max-w-md">
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Sign in required</h2>
+          <p className="text-gray-600 mb-4">You need to sign in to create a delivery receipt.</p>
+          <button
+            onClick={() => router.push('/dashboard/warehouse/delivery-receipts')}
+            className="btn-arsd-primary mobile-button"
+          >
+            Back to list
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 pb-24 w-full">
@@ -174,7 +241,7 @@ export default function CreateDRPage() {
                 </label>
                 <input
                   type="text"
-                  value={derivedDrNo}
+                  value={nextDrNo ?? '…'}
                   readOnly
                   className="mobile-form-input w-full bg-gray-50 cursor-not-allowed"
                 />
@@ -219,7 +286,7 @@ export default function CreateDRPage() {
                 >
                   <option value="">Select a project</option>
                   {projects.map(project => (
-                    <option key={project.id} value={project.id}>{project.name}</option>
+                    <option key={project.id} value={project.id}>{project.project_name}</option>
                   ))}
                 </select>
               </div>
@@ -244,7 +311,7 @@ export default function CreateDRPage() {
                 </label>
                 <input
                   type="text"
-                  value={formData.warehouseman}
+                  value={warehouseman}
                   readOnly
                   className="mobile-form-input w-full bg-gray-50 cursor-not-allowed"
                   placeholder="Warehouseman name"
@@ -320,7 +387,7 @@ export default function CreateDRPage() {
                 <dl className="space-y-3 text-sm">
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-red-200/20">
                     <dt className="text-gray-600 shrink-0">DR No</dt>
-                    <dd className="font-medium break-words min-w-0">{derivedDrNo}</dd>
+                    <dd className="font-medium break-words min-w-0">{nextDrNo ?? '…'}</dd>
                   </div>
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-red-200/20">
                     <dt className="text-gray-600 shrink-0">Date & Time</dt>
@@ -328,7 +395,7 @@ export default function CreateDRPage() {
                   </div>
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-red-200/20">
                     <dt className="text-gray-600 shrink-0">Project</dt>
-                    <dd className="font-medium break-words min-w-0">{projects.find(p => p.id === formData.projectId)?.name || 'N/A'}</dd>
+                    <dd className="font-medium break-words min-w-0">{projects.find(p => p.id === formData.projectId)?.project_name || 'N/A'}</dd>
                   </div>
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-red-200/20">
                     <dt className="text-gray-600 shrink-0">Supplier</dt>
@@ -336,7 +403,7 @@ export default function CreateDRPage() {
                   </div>
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-red-200/20">
                     <dt className="text-gray-600 shrink-0">Warehouseman</dt>
-                    <dd className="font-medium break-words min-w-0">{formData.warehouseman || 'Unknown'}</dd>
+                    <dd className="font-medium break-words min-w-0">{warehouseman}</dd>
                   </div>
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-red-200/20">
                     <dt className="text-gray-600 shrink-0">Items Count</dt>
@@ -362,12 +429,19 @@ export default function CreateDRPage() {
           </ARSDCard>
         )}
 
+        {submitError && (
+          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+            {submitError}
+          </div>
+        )}
+
         {/* Navigation Buttons */}
         <div className="flex gap-3 sm:gap-4 pt-4">
           {currentSection > 1 && (
             <button
               onClick={() => setCurrentSection(prev => prev - 1)}
-              className="btn-arsd-outline mobile-button mobile-touch-target min-h-[44px] flex-1 sm:flex-none sm:min-w-[120px] flex items-center justify-center"
+              disabled={submitLoading}
+              className="btn-arsd-outline mobile-button mobile-touch-target min-h-[44px] flex-1 sm:flex-none sm:min-w-[120px] flex items-center justify-center disabled:opacity-50"
             >
               Previous
             </button>
@@ -376,7 +450,7 @@ export default function CreateDRPage() {
           {currentSection < totalSections ? (
             <button
               onClick={() => setCurrentSection(prev => prev + 1)}
-              disabled={!canProceed()}
+              disabled={!canProceed() || submitLoading}
               className="btn-arsd-primary mobile-button mobile-touch-target min-h-[44px] flex-1 sm:flex-none sm:min-w-[120px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
             >
               Next
@@ -384,10 +458,20 @@ export default function CreateDRPage() {
           ) : (
             <button
               onClick={handleSubmit}
-              className="btn-arsd-primary mobile-button mobile-touch-target min-h-[44px] flex-1 sm:flex-none sm:min-w-[180px] px-6 py-3 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+              disabled={submitLoading}
+              className="btn-arsd-primary mobile-button mobile-touch-target min-h-[44px] flex-1 sm:flex-none sm:min-w-[180px] px-6 py-3 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Send className="h-4 w-4 sm:h-5 sm:w-5" />
-              Submit Delivery Receipt
+              {submitLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-2 border-white border-t-transparent" />
+                  Submitting…
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4 sm:h-5 sm:w-5" />
+                  Submit Delivery Receipt
+                </>
+              )}
             </button>
           )}
         </div>
