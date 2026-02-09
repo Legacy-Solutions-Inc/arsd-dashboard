@@ -34,6 +34,8 @@ export interface ProgressPhotoFilters {
   project_id?: string;
   week_ending_date?: string;
   uploaded_by?: string;
+  project_manager_id?: string;
+  project_inspector_id?: string;
 }
 
 export interface WeeklyProgressPhotos {

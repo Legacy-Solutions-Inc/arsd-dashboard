@@ -57,30 +57,26 @@ export function useAllProgressPhotos(filters?: ProgressPhotoFilters) {
       setLoading(true);
       setError(null);
       
-      // Fetch all photos from database
-      const data = await service.getAllProgressPhotos(filters);
+      // Prepare filters based on role
+      const queryFilters: ProgressPhotoFilters = { ...filters };
       
       // ROLE-BASED FILTERING:
       // - Superadmins: See ALL photos (no filtering applied)
       // - HR: See ALL photos (no filtering applied)
       // - Project Inspectors: See ONLY photos for their assigned projects
       // - Project Managers: See ONLY photos for their assigned projects
-      let filteredData = data;
       
       if (user?.role === 'project_inspector' && user?.user_id) {
-        // Filter to only show photos where this inspector is assigned to the project
-        filteredData = data.filter(photo => 
-          photo.project_inspector_id === user.user_id
-        );
+        queryFilters.project_inspector_id = user.user_id;
       } else if (user?.role === 'project_manager' && user?.user_id) {
-        // Filter to only show photos where this manager is assigned to the project
-        filteredData = data.filter(photo => 
-          photo.project_manager_id === user.user_id
-        );
+        queryFilters.project_manager_id = user.user_id;
       }
-      // Note: Superadmins and HR bypass this filter and see all photos
+      // Note: Superadmins and HR bypass these filters and see all photos
       
-      setPhotos(filteredData);
+      // Fetch filtered photos from database
+      const data = await service.getAllProgressPhotos(queryFilters);
+
+      setPhotos(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch progress photos');
     } finally {
