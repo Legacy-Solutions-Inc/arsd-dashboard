@@ -298,8 +298,7 @@ const ProjectStatsGrid = ({ stats }: { stats: ReturnType<typeof calculateProject
           />
           <StatCard 
             label="Target Cost Total" 
-            value={stats.latestProjectCost.target_cost_total} 
-            isCurrency 
+            value={stats.targetProgress === 1 ? stats.contractAmount * stats.targetProgress : stats.contractAmount * (stats.targetProgress / 100)}            isCurrency 
             icon={Target}
             isPositive={true}
             contractAmount={stats.contractAmount}
