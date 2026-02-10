@@ -8,6 +8,7 @@ import { AlertBadge } from '@/components/warehouse/AlertBadge';
 import { useWarehouseProjects } from '@/hooks/warehouse/useWarehouseProjects';
 import { useWarehouseAuth } from '@/hooks/warehouse/useWarehouseAuth';
 import { useStocks } from '@/hooks/warehouse/useStocks';
+import { UniversalLoading } from '@/components/ui/universal-loading';
 import { ArrowLeft, Search, Download, Filter } from 'lucide-react';
 
 interface StockItem {
@@ -52,20 +53,27 @@ export default function StockMonitoringPage() {
     );
   }, [stockItems, searchQuery]);
 
+  if (loading) {
+    return (
+      <UniversalLoading
+        type="data"
+        message="Loading Stock Monitoring"
+        subtitle="Fetching stock ledger for this project..."
+        size="lg"
+        fullScreen
+      />
+    );
+  }
+
   if (!project) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 flex items-center justify-center">
-        <div className="glass-card text-center max-w-md">
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Project Not Found</h2>
-          <p className="text-gray-600 mb-4">The requested project could not be found.</p>
-          <button
-            onClick={() => router.push('/dashboard/warehouse')}
-            className="btn-arsd-primary mobile-button"
-          >
-            Back to Warehouse
-          </button>
-        </div>
-      </div>
+      <UniversalLoading
+        type="data"
+        message="Loading Stock Monitoring"
+        subtitle="Preparing stock ledger for the selected project..."
+        size="lg"
+        fullScreen
+      />
     );
   }
 
@@ -105,7 +113,7 @@ export default function StockMonitoringPage() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search by WBS or item name..."
+                  placeholder="   Search by WBS or item name..."
                   className="mobile-form-input w-full pl-10"
                 />
               </div>
