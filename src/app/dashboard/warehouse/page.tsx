@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ProjectGrid } from '@/components/warehouse/ProjectGrid';
 import { useWarehouseAuth } from '@/hooks/warehouse/useWarehouseAuth';
 import { useWarehouseProjects } from '@/hooks/warehouse/useWarehouseProjects';
+import { UniversalLoading } from '@/components/ui/universal-loading';
 import { Package, FileText, Plus, List, Search } from 'lucide-react';
 
 export default function WarehouseDashboardPage() {
@@ -28,12 +29,13 @@ export default function WarehouseDashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-arsd-red mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading warehouse...</p>
-        </div>
-      </div>
+      <UniversalLoading
+        type="dashboard"
+        message="Loading Warehouse Management"
+        subtitle="Preparing your warehouse projects and permissions..."
+        size="lg"
+        fullScreen
+      />
     );
   }
 
