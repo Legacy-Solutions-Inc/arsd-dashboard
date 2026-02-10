@@ -8,6 +8,7 @@ import { BadgeStatus } from '@/components/warehouse/BadgeStatus';
 import { useWarehouseAuth } from '@/hooks/warehouse/useWarehouseAuth';
 import { useWarehouseProjects } from '@/hooks/warehouse/useWarehouseProjects';
 import { useDeliveryReceipts } from '@/hooks/warehouse/useDeliveryReceipts';
+import { UniversalLoading } from '@/components/ui/universal-loading';
 import { ArrowLeft, Search, Filter, Eye, Plus, Unlock, Lock } from 'lucide-react';
 
 export default function DeliveryReceiptsListPage() {
@@ -129,10 +130,14 @@ export default function DeliveryReceiptsListPage() {
         {/* Mobile View - Cards */}
         <div className="block sm:hidden space-y-4">
           {loading ? (
-            <div className="glass-card text-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-arsd-red mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading...</p>
-            </div>
+            <UniversalLoading
+              type="data"
+              message="Loading Delivery Receipts"
+              subtitle="Fetching delivery receipts from the warehouse..."
+              size="md"
+              fullScreen={false}
+              className="max-w-md mx-auto"
+            />
           ) : deliveryReceipts.length > 0 ? (
             deliveryReceipts.map((dr) => {
               const project = projects.find(p => p.id === dr.project_id);
@@ -217,8 +222,16 @@ export default function DeliveryReceiptsListPage() {
               {loading ? (
                 <tr>
                   <td colSpan={8} className="glass-table-cell text-center py-12">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-arsd-red mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading...</p>
+                    <div className="flex justify-center">
+                      <UniversalLoading
+                        type="data"
+                        message="Loading Delivery Receipts"
+                        subtitle="Fetching delivery receipts from the warehouse..."
+                        size="md"
+                        fullScreen={false}
+                        className="max-w-md"
+                      />
+                    </div>
                   </td>
                 </tr>
               ) : deliveryReceipts.length > 0 ? (
