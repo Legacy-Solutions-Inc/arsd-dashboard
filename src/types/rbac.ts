@@ -1,6 +1,13 @@
 // Role-Based Access Control Types
 
-export type UserRole = 'superadmin' | 'hr' | 'project_manager' | 'project_inspector' | 'warehouseman' | 'pending';
+export type UserRole =
+  | 'superadmin'
+  | 'hr'
+  | 'project_manager'
+  | 'project_inspector'
+  | 'warehouseman'
+  | 'purchasing'
+  | 'pending';
 export type UserStatus = 'active' | 'inactive' | 'pending';
 
 export interface UserWithRole {
@@ -46,6 +53,9 @@ export const ROLE_PERMISSIONS = {
   warehouseman: [
     'view_assigned_projects'
   ],
+  purchasing: [
+    'view_assigned_projects'
+  ],
   pending: []
 } as const;
 
@@ -58,6 +68,7 @@ export const ROLE_HIERARCHY = {
   project_manager: 2,
   project_inspector: 1,
   warehouseman: 1,
+  purchasing: 1,
   pending: 0
 } as const;
 
