@@ -114,6 +114,20 @@ export interface PurchaseOrder {
   created_at: string;
 }
 
+// Parsed IPOW row (before DB insert - no id/timestamps)
+export interface ParsedIPOWRow {
+  wbs: string;
+  item: string;
+  item_description: string;
+  type: string;
+  resource: string;
+  ipow_qty: number;
+  latest_ipow_qty: number;
+  unit: string;
+  cost: number;
+  total_cost: number;
+}
+
 // Combined data structure for parsing
 export interface ParsedAccomplishmentData {
   project_details?: ProjectDetails[];
@@ -124,6 +138,7 @@ export interface ParsedAccomplishmentData {
   monthly_costs?: MonthlyCost[];
   materials?: Material[];
   purchase_orders?: PurchaseOrder[];
+  ipow_items?: ParsedIPOWRow[];
 }
 
 // Input data structure for database insertion

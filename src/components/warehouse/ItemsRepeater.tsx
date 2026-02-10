@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { ARSDCard } from './ARSDCard';
-import { X } from 'lucide-react';
+import { X, List } from 'lucide-react';
+import { IPOWItem } from '@/types/warehouse';
 
 export interface ItemEntry {
   itemDescription: string;
@@ -11,12 +12,16 @@ export interface ItemEntry {
   unit: string;
 }
 
+const DEFAULT_UNITS = ['kg', 'bags', 'cu.m', 'tons', 'pcs', 'sq.m', 'kgs.', 'EA'];
+
 interface ItemsRepeaterProps {
   items: ItemEntry[];
   onAdd: () => void;
   onRemove: (index: number) => void;
   onUpdate: (index: number, field: keyof ItemEntry, value: string | number) => void;
   showPOQty?: boolean;
+  /** When provided, show "Fill from IPOW" dropdown per row to pick description + unit from project IPOW */
+  ipowItems?: IPOWItem[];
 }
 
 function formatQty(n: number): string {
@@ -25,10 +30,16 @@ function formatQty(n: number): string {
   return s.endsWith('.') ? s : s.replace(/\.?0+$/, '') || String(n);
 }
 
-export function ItemsRepeater({ items, onAdd, onRemove, onUpdate, showPOQty = false }: ItemsRepeaterProps) {
+export function ItemsRepeater({ items, onAdd, onRemove, onUpdate, showPOQty = false, ipowItems = [] }: ItemsRepeaterProps) {
   type FocusKey = `${number}-qty` | `${number}-qtyInPO` | null;
   const [focusKey, setFocusKey] = useState<FocusKey>(null);
   const [editStr, setEditStr] = useState('');
+
+  const unitOptions = useMemo(() => {
+    const set = new Set<string>(DEFAULT_UNITS);
+    ipowItems.forEach((i) => i.unit && set.add(i.unit.trim()));
+    return Array.from(set);
+  }, [ipowItems]);
 
   const handleQtyFocus = useCallback((index: number, field: 'qty' | 'qtyInPO') => {
     const key: FocusKey = `${index}-${field}`;
@@ -68,6 +79,34 @@ export function ItemsRepeater({ items, onAdd, onRemove, onUpdate, showPOQty = fa
           </button>
 
           <div className="space-y-3 pr-8">
+            {ipowItems.length > 0 && (
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  <List className="inline h-3.5 w-3.5 mr-1" aria-hidden /> From IPOW
+                </label>
+                <select
+                  className="mobile-form-input w-full text-sm"
+                  value=""
+                  onChange={(e) => {
+                    const idx = e.target.value ? parseInt(e.target.value, 10) : -1;
+                    e.target.value = '';
+                    if (idx >= 0 && ipowItems[idx]) {
+                      const ipow = ipowItems[idx];
+                      onUpdate(index, 'itemDescription', ipow.item_description);
+                      onUpdate(index, 'unit', ipow.unit || 'EA');
+                    }
+                  }}
+                  aria-label="Fill from IPOW list"
+                >
+                  <option value="">Select an item from IPOW...</option>
+                  {ipowItems.map((ipow, i) => (
+                    <option key={ipow.id} value={i}>
+                      {[ipow.wbs, ipow.item_description, ipow.resource, ipow.unit].filter(Boolean).join(' · ')}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 Item Description
@@ -125,12 +164,9 @@ export function ItemsRepeater({ items, onAdd, onRemove, onUpdate, showPOQty = fa
                   onChange={(e) => onUpdate(index, 'unit', e.target.value)}
                   className="mobile-form-input w-full"
                 >
-                  <option value="kg">kg</option>
-                  <option value="bags">bags</option>
-                  <option value="cu.m">cu.m</option>
-                  <option value="tons">tons</option>
-                  <option value="pcs">pcs</option>
-                  <option value="sq.m">sq.m</option>
+                  {unitOptions.map((u) => (
+                    <option key={u} value={u}>{u}</option>
+                  ))}
                 </select>
               </div>
             </div>

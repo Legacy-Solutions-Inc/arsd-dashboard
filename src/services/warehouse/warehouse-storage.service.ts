@@ -62,6 +62,11 @@ export class WarehouseStorageService {
         });
 
       if (error) {
+        console.error('WarehouseStorageService.uploadFile upload error', {
+          bucket: this.bucketName,
+          filePath,
+          message: error.message,
+        });
         return {
           success: false,
           error: error.message,

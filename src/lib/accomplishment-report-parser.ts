@@ -1,6 +1,7 @@
 import * as XLSX from 'xlsx';
 import {
   ParsedAccomplishmentData,
+  ParsedIPOWRow,
   ProjectDetails,
   ProjectCosts,
   ManHours,
@@ -42,6 +43,99 @@ export class AccomplishmentReportParser {
     } else {
       throw new Error('DATA SHEET not found in the Excel file');
     }
+  }
+
+  /**
+   * Find the IPOW table sheet in the workbook
+   */
+  private findIPOWSheetName(): string | null {
+    const ipowSheetName = this.workbook.SheetNames.find(name => {
+      const lower = name.toLowerCase().replace(/\s+/g, ' ').trim();
+      return (
+        lower.includes('ipow table') ||
+        lower.includes('ipow_table')
+      );
+    });
+    return ipowSheetName || null;
+  }
+
+  /**
+   * Parse numeric value from Excel cell (handles comma-separated numbers)
+   */
+  private parseIPOWNumber(value: unknown): number {
+    if (value == null || value === '') return 0;
+    const str = String(value).replace(/,/g, '').trim();
+    if (str === '' || str === '-') return 0;
+    const num = Number(str);
+    return Number.isNaN(num) ? 0 : num;
+  }
+
+  /**
+   * Find the 0-based index of the IPOW header row (row containing "WBS" or "Item").
+   * Returns -1 if not found.
+   */
+  private findIPOWHeaderRowIndex(ipowData: any[][]): number {
+    const maxScan = Math.min(10, ipowData.length);
+    for (let i = 0; i < maxScan; i++) {
+      const row = ipowData[i];
+      if (!row || !Array.isArray(row)) continue;
+      const col0 = String(row[0] ?? '').trim().toUpperCase();
+      const col1 = String(row[1] ?? '').trim().toUpperCase();
+      if (col0 === 'WBS' || col1 === 'ITEM') return i;
+    }
+    return -1;
+  }
+
+  /**
+   * Parse IPOW table sheet
+   * Sheet structure: header row then data rows, columns A-Q
+   * A=WBS, B=ITEM, C=Item Description, D=Type, E=Resource, F=Qty,
+   * G-M=VO1-VO7 (skipped), N=Latest Qty, O=Unit, P=Unit Cost, Q=Total Cost
+   */
+  private parseIPOWTable(ipowData: any[][]): ParsedIPOWRow[] {
+    const headerIndex = this.findIPOWHeaderRowIndex(ipowData);
+    const dataStart = headerIndex >= 0 ? headerIndex + 1 : 2;
+    const rows = ipowData.slice(dataStart);
+    const result: ParsedIPOWRow[] = [];
+
+    for (const row of rows) {
+      const wbs = String(row[0] ?? '').trim();
+      if (!wbs) continue;
+      // Skip if this looks like a repeated header row
+      if (wbs.toUpperCase() === 'WBS') continue;
+
+      const item = String(row[1] ?? '').trim();
+      const item_description = String(row[2] ?? '').trim();
+      const type = String(row[3] ?? '').trim();
+      const resource = String(row[4] ?? '').trim();
+      const ipow_qty = this.parseIPOWNumber(row[5]);
+      const latest_ipow_qty = this.parseIPOWNumber(row[13]);
+      const unit = (String(row[14] ?? '').trim()) || 'EA';
+      const cost = this.parseIPOWNumber(row[15]);
+      const total_cost = this.parseIPOWNumber(row[16]);
+
+      if (!item_description) {
+        console.warn(
+          `Skipping IPOW row with WBS "${wbs}": missing item_description`
+        );
+        continue;
+      }
+
+      result.push({
+        wbs,
+        item,
+        item_description,
+        type,
+        resource,
+        ipow_qty,
+        latest_ipow_qty,
+        unit,
+        cost,
+        total_cost,
+      });
+    }
+
+    return result;
   }
 
   /**
@@ -105,6 +199,22 @@ export class AccomplishmentReportParser {
 
     if (sections.purchaseOrders) {
       parsedData.purchase_orders = this.parsePurchaseOrders(jsonData, sections.purchaseOrders, accomplishmentReportId);
+    }
+
+    // Parse IPOW table sheet if present
+    const ipowSheetName = this.findIPOWSheetName();
+    if (ipowSheetName) {
+      console.log(`Found IPOW sheet: "${ipowSheetName}"`);
+      const ipowSheet = this.workbook.Sheets[ipowSheetName];
+      const ipowData = XLSX.utils.sheet_to_json(ipowSheet, { header: 1, defval: '' }) as any[][];
+      parsedData.ipow_items = this.parseIPOWTable(ipowData);
+      console.log(`Parsed ${parsedData.ipow_items.length} IPOW items`);
+      if (parsedData.ipow_items.length === 0 && ipowData.length > 0) {
+        const headerIdx = this.findIPOWHeaderRowIndex(ipowData);
+        console.warn('IPOW: 0 items parsed. Header row index:', headerIdx, 'First 4 rows:', ipowData.slice(0, 4));
+      }
+    } else {
+      console.log('No IPOW table sheet found in workbook. Sheet names:', this.workbook.SheetNames);
     }
 
     console.log('Parsed data:', parsedData);

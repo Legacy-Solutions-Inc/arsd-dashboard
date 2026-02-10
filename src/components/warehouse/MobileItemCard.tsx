@@ -6,6 +6,7 @@ import { AlertBadge } from './AlertBadge';
 interface StockItem {
   wbs: string | null;
   item_description: string;
+  resource?: string | null;
   ipow_qty: number;
   delivered: number;
   utilized: number;
@@ -32,6 +33,9 @@ export function MobileItemCard({ item }: MobileItemCardProps) {
             <h3 className="font-semibold text-arsd-primary text-sm sm:text-base">
               {item.item_description}
             </h3>
+            {item.resource != null && item.resource !== '' && (
+              <div className="text-xs text-gray-600 mt-1">Resource: {item.resource}</div>
+            )}
           </div>
           <div className="flex flex-wrap gap-1 ml-2">
             {isLowStock && <AlertBadge type="low_stock" />}

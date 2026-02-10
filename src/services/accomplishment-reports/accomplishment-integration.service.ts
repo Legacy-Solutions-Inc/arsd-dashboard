@@ -23,7 +23,7 @@ export class AccomplishmentIntegrationService {
       // Step 1: Parse the Excel file
       console.log('📊 Parsing Excel file...');
       const parser = new AccomplishmentReportParser(file);
-      const parsedData = await parser.parseAccomplishmentReport();
+      const parsedData = await parser.parseAccomplishmentReport(accomplishmentReportId);
       
       console.log('✅ Excel parsing completed:', {
         project_details: parsedData.project_details?.length || 0,
@@ -34,6 +34,7 @@ export class AccomplishmentIntegrationService {
         monthly_costs: parsedData.monthly_costs?.length || 0,
         materials: parsedData.materials?.length || 0,
         purchase_orders: parsedData.purchase_orders?.length || 0,
+        ipow_items: parsedData.ipow_items?.length || 0,
       });
 
       // Step 2: Prepare data for database insertion
