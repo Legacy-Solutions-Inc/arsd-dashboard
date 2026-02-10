@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabase';
+import { createServerSupabaseClient, createServiceSupabaseClient } from '@/lib/supabase';
 import { ReleasesService } from '@/services/warehouse/releases.service';
 import { WarehouseStorageService } from '@/services/warehouse/warehouse-storage.service';
 import { CreateReleaseFormInput } from '@/types/warehouse';
@@ -53,7 +53,8 @@ export async function POST(request: NextRequest) {
     // Create release first to get ID for file upload (use server client for RLS)
     const supabase = await createServerSupabaseClient();
     const service = new ReleasesService(supabase);
-    const storageService = new WarehouseStorageService(supabase);
+    // Use service-role client for storage to avoid storage RLS issues
+    const storageService = new WarehouseStorageService(createServiceSupabaseClient());
 
     const releaseInput: CreateReleaseFormInput = {
       project_id: projectId,
@@ -71,7 +72,9 @@ export async function POST(request: NextRequest) {
 
     if (attachment) {
       const result = await storageService.uploadReleaseAttachment(release.id, attachment);
-      if (result.success) {
+      if (!result.success) {
+        console.error('Failed to upload release attachment', { releaseId: release.id, error: result.error });
+      } else {
         attachmentUrl = result.url;
       }
     }

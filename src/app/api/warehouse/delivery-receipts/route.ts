@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabase';
+import { createServerSupabaseClient, createServiceSupabaseClient } from '@/lib/supabase';
 import { DeliveryReceiptsService } from '@/services/warehouse/delivery-receipts.service';
 import { WarehouseStorageService } from '@/services/warehouse/warehouse-storage.service';
 import { CreateDeliveryReceiptInput } from '@/types/warehouse';
@@ -60,7 +60,9 @@ export async function POST(request: NextRequest) {
 
     // Create DR first to get ID for file uploads (service uses user-scoped client for RLS)
     const service = new DeliveryReceiptsService(supabase);
-    const storageService = new WarehouseStorageService(supabase);
+    // Use service-role client for storage and post-upload updates to avoid storage/RLS issues
+    const serviceSupabase = createServiceSupabaseClient();
+    const storageService = new WarehouseStorageService(serviceSupabase);
 
     // Create placeholder DR
     const drInput: CreateDeliveryReceiptInput = {
@@ -80,14 +82,18 @@ export async function POST(request: NextRequest) {
 
     if (drPhoto) {
       const result = await storageService.uploadDRPhoto(dr.id, drPhoto);
-      if (result.success) {
+      if (!result.success) {
+        console.error('Failed to upload DR photo', { drId: dr.id, error: result.error });
+      } else {
         drPhotoUrl = result.url;
       }
     }
 
     if (poPhoto) {
       const result = await storageService.uploadPOPhoto(dr.id, poPhoto);
-      if (result.success) {
+      if (!result.success) {
+        console.error('Failed to upload PO photo', { drId: dr.id, error: result.error });
+      } else {
         poPhotoUrl = result.url;
       }
     }
@@ -98,10 +104,17 @@ export async function POST(request: NextRequest) {
       if (drPhotoUrl) updateData.dr_photo_url = drPhotoUrl;
       if (poPhotoUrl) updateData.po_photo_url = poPhotoUrl;
 
-      await service.supabase
+      const { error: updateError } = await serviceSupabase
         .from('delivery_receipts')
         .update(updateData)
         .eq('id', dr.id);
+
+      if (updateError) {
+        console.error('Failed to update DR photo URLs', {
+          drId: dr.id,
+          message: updateError.message,
+        });
+      }
     }
 
     // Fetch final DR with items
