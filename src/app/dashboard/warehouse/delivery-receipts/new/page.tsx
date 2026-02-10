@@ -8,6 +8,7 @@ import { ARSDCard } from '@/components/warehouse/ARSDCard';
 import { useWarehouseAuth } from '@/hooks/warehouse/useWarehouseAuth';
 import { useWarehouseProjects } from '@/hooks/warehouse/useWarehouseProjects';
 import { useIPOW } from '@/hooks/warehouse/useIPOW';
+import { UniversalLoading } from '@/components/ui/universal-loading';
 import { ArrowLeft, FileText, Package, Upload as UploadIcon, CheckCircle, Send } from 'lucide-react';
 
 export default function CreateDRPage() {
@@ -127,7 +128,7 @@ export default function CreateDRPage() {
       );
     }
     if (currentSection === 3) {
-      return !!formData.drPhoto && !!formData.poPhoto;
+      return !!formData.drPhoto;
     }
     return true;
   };
@@ -136,12 +137,13 @@ export default function CreateDRPage() {
 
   if (loading && !user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-arsd-red mx-auto mb-4" />
-          <p className="text-gray-600">Loading…</p>
-        </div>
-      </div>
+      <UniversalLoading
+        type="project"
+        message="Loading Delivery Receipt Form"
+        subtitle="Preparing your warehouse projects and next DR number..."
+        size="lg"
+        fullScreen
+      />
     );
   }
 
@@ -365,10 +367,10 @@ export default function CreateDRPage() {
               />
 
               <FileUploader
-                label="PO Photo"
+                label="PO Photo (Optional)"
                 value={formData.poPhoto}
                 onChange={(file) => setFormData(prev => ({ ...prev, poPhoto: file }))}
-                required
+                required={false}
               />
             </div>
           </ARSDCard>
