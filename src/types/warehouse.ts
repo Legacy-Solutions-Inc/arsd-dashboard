@@ -102,10 +102,29 @@ export interface ReleaseFormFilters {
   date_to?: string;
 }
 
+// IPOW (Inventory Plan of Work) item per project
+export interface IPOWItem {
+  id: string;
+  project_id: string;
+  wbs: string;
+  item: string;
+  item_description: string;
+  type: string;
+  resource: string;
+  ipow_qty: number;
+  latest_ipow_qty: number;
+  unit: string;
+  cost: number;
+  total_cost: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
 // Stock item (computed from IPOW + DRs + Releases)
 export interface StockItem {
   wbs: string | null;
   item_description: string;
+  resource: string | null;
   ipow_qty: number;
   delivered: number;
   utilized: number;
