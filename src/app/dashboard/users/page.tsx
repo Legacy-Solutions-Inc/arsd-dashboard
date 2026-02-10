@@ -216,6 +216,7 @@ export default function UserManagementPage() {
       case 'project_manager': return 'bg-yellow-100/50 text-yellow-800 border-yellow-200/50'; // Site Manager color
       case 'project_inspector': return 'bg-green-100/50 text-green-800 border-green-200/50'; // Project Manager color
       case 'warehouseman': return 'bg-amber-100/50 text-amber-800 border-amber-200/50';
+      case 'purchasing': return 'bg-purple-100/50 text-purple-800 border-purple-200/50';
       case 'pending': return 'bg-gray-100/50 text-gray-800 border-gray-200/50';
       default: return 'bg-gray-100/50 text-gray-800 border-gray-200/50';
     }
@@ -225,6 +226,7 @@ export default function UserManagementPage() {
     switch (role) {
       case 'project_inspector': return 'PROJECT MANAGER';
       case 'project_manager': return 'SITE ENGINEER';
+      case 'purchasing': return 'PURCHASING';
       default: return role.replace('_', ' ').toUpperCase();
     }
   };
@@ -393,6 +395,19 @@ export default function UserManagementPage() {
                           <CheckCircle2 className="h-4 w-4 mr-1" />
                         )}
                         {isBulkApproving ? 'Approving...' : 'Approve as Warehouseman'}
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => handleBulkApproveUsers(selectedNewUsers, 'purchasing')}
+                        disabled={isBulkApproving || isBulkRejecting}
+                        className="glass-button bg-gradient-to-r from-purple-500/30 to-purple-600/30 text-white border-purple-500/50 hover:from-purple-500/40 hover:to-purple-600/40"
+                      >
+                        {isBulkApproving ? (
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1" />
+                        ) : (
+                          <CheckCircle2 className="h-4 w-4 mr-1" />
+                        )}
+                        {isBulkApproving ? 'Approving...' : 'Approve as Purchasing'}
                       </Button>
                       <Button
                         size="sm"
@@ -817,6 +832,7 @@ export default function UserManagementPage() {
                         <SelectItem value="project_manager">Site Engineer</SelectItem>
                         <SelectItem value="project_inspector">Project Manager</SelectItem>
                         <SelectItem value="warehouseman">Warehouseman</SelectItem>
+                        <SelectItem value="purchasing">Purchasing</SelectItem>
                         <SelectItem value="pending">Pending</SelectItem>
                       </SelectContent>
                     </Select>
@@ -902,6 +918,8 @@ export default function UserManagementPage() {
                         <SelectItem value="hr">HR</SelectItem>
                         <SelectItem value="project_manager">Site Engineer</SelectItem>
                         <SelectItem value="project_inspector">Project Manager</SelectItem>
+                        <SelectItem value="warehouseman">Warehouseman</SelectItem>
+                        <SelectItem value="purchasing">Purchasing</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

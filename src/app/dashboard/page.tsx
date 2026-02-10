@@ -12,6 +12,7 @@ import { useRouter } from 'next/navigation';
 import { GlassCard, GlassCardContent, GlassCardHeader, GlassCardTitle } from '@/components/ui/glass-card';
 import { TrendingUp, Users, Calendar, BarChart3, Sparkles, Medal } from 'lucide-react';
 import { DashboardLoading, InlineLoading } from '@/components/ui/universal-loading';
+import { useWarehouseAuth } from '@/hooks/warehouse/useWarehouseAuth';
 
 export default function DashboardPage() {
   const { projects, loading, error, refetch } = useProjects();
@@ -24,6 +25,8 @@ export default function DashboardPage() {
   const [projectInspectors, setProjectInspectors] = useState<ProjectInspector[]>([]);
   const [warehousemen, setWarehousemen] = useState<Warehouseman[]>([]);
   const [loadingManagers, setLoadingManagers] = useState(false);
+
+  const { user: warehouseUser, loading: warehouseAuthLoading } = useWarehouseAuth();
 
   const projectService = new ProjectService();
 
@@ -49,6 +52,13 @@ export default function DashboardPage() {
 
     loadAssignees();
   }, []);
+
+  // Redirect warehouseman role directly to warehouse dashboard
+  useEffect(() => {
+    if (!warehouseAuthLoading && warehouseUser?.role === 'warehouseman') {
+      router.replace('/dashboard/warehouse');
+    }
+  }, [warehouseAuthLoading, warehouseUser, router]);
 
   // Listen for project report approval events to refresh projects
   useEffect(() => {

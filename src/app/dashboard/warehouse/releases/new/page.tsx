@@ -7,6 +7,7 @@ import { FileUploader } from '@/components/warehouse/FileUploader';
 import { ARSDCard } from '@/components/warehouse/ARSDCard';
 import { useWarehouseAuth } from '@/hooks/warehouse/useWarehouseAuth';
 import { useWarehouseProjects } from '@/hooks/warehouse/useWarehouseProjects';
+import { useIPOW } from '@/hooks/warehouse/useIPOW';
 import { ArrowLeft, Package, Upload as UploadIcon, FileText } from 'lucide-react';
 
 export default function CreateReleasePage() {
@@ -47,6 +48,8 @@ export default function CreateReleasePage() {
     receivedBy: '',
     attachment: null as File | null
   });
+
+  const { ipowItems } = useIPOW(formData.projectId);
 
   const handleAddItem = () => {
     setFormData(prev => ({
@@ -255,6 +258,7 @@ export default function CreateReleasePage() {
                 onRemove={handleRemoveItem}
                 onUpdate={handleUpdateItem}
                 showPOQty={false}
+                ipowItems={ipowItems}
               />
             </div>
 

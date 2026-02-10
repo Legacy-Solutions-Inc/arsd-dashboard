@@ -13,6 +13,7 @@ import { ArrowLeft, Search, Download, Filter } from 'lucide-react';
 interface StockItem {
   wbs: string | null;
   item_description: string;
+  resource: string | null;
   ipow_qty: number;
   delivered: number;
   utilized: number;
@@ -156,6 +157,7 @@ export default function StockMonitoringPage() {
               <tr>
                 <th className="glass-table-header-cell">WBS</th>
                 <th className="glass-table-header-cell">Item Description</th>
+                <th className="glass-table-header-cell w-0 max-w-[24rem]">Resource</th>
                 <th className="glass-table-header-cell text-center whitespace-nowrap">IPOW Qty</th>
                 <th className="glass-table-header-cell text-center whitespace-nowrap">Total Cost</th>
                 <th className="glass-table-header-cell text-center whitespace-nowrap">Delivered</th>
@@ -174,8 +176,11 @@ export default function StockMonitoringPage() {
 
                   return (
                     <tr key={index} className="glass-table-row">
-                      <td className="glass-table-cell font-mono text-xs">{item.wbs ?? '–'}</td>
-                      <td className="glass-table-cell text-center font-medium">{item.item_description}</td>
+                      <td className="glass-table-cell font-mono text-xs" title={item.wbs ?? undefined}>{item.wbs ?? '–'}</td>
+                      <td className="glass-table-cell text-center font-medium" title={item.item_description}>{item.item_description}</td>
+                      <td className="glass-table-cell text-center max-w-[11rem] truncate" title={item.resource ?? undefined}>
+                        {item.resource ?? '–'}
+                      </td>
                       <td className="glass-table-cell text-center whitespace-nowrap">{item.ipow_qty.toLocaleString()}</td>
                       <td className="glass-table-cell text-center whitespace-nowrap">₱{item.total_cost.toLocaleString()}</td>
                       <td className="glass-table-cell text-center whitespace-nowrap">{item.delivered.toLocaleString()}</td>
@@ -198,7 +203,7 @@ export default function StockMonitoringPage() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={9} className="glass-table-cell text-center py-12">
+                  <td colSpan={10} className="glass-table-cell text-center py-12">
                     <p className="text-gray-600 font-medium">No items found</p>
                     <p className="text-sm text-gray-500 mt-2">
                       {searchQuery ? 'Try adjusting your search' : 'No stock items available for this project'}

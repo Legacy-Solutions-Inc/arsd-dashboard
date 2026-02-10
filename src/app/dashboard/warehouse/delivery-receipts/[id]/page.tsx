@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { ARSDCard } from '@/components/warehouse/ARSDCard';
 import { BadgeStatus } from '@/components/warehouse/BadgeStatus';
@@ -17,6 +18,7 @@ export default function DeliveryReceiptDetailPage() {
   const [dr, setDR] = useState<DeliveryReceipt | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [previewImage, setPreviewImage] = useState<{ url: string; label: string } | null>(null);
 
   useEffect(() => {
     async function fetchDR() {
@@ -151,6 +153,44 @@ export default function DeliveryReceiptDetailPage() {
                 <dt className="text-gray-600 shrink-0">Warehouseman</dt>
                 <dd className="font-medium break-words min-w-0">{dr.warehouseman}</dd>
               </div>
+              {dr.dr_photo_url && (
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-red-200/20">
+                  <dt className="text-gray-600 shrink-0">DR Photo</dt>
+                  <dd className="font-medium break-words min-w-0">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setPreviewImage({
+                          url: dr.dr_photo_url as string,
+                          label: 'Delivery Receipt Photo',
+                        })
+                      }
+                      className="btn-arsd-outline inline-flex items-center gap-2"
+                    >
+                      View DR Photo
+                    </button>
+                  </dd>
+                </div>
+              )}
+              {dr.po_photo_url && (
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-red-200/20">
+                  <dt className="text-gray-600 shrink-0">PO Photo</dt>
+                  <dd className="font-medium break-words min-w-0">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setPreviewImage({
+                          url: dr.po_photo_url as string,
+                          label: 'Purchase Order Photo',
+                        })
+                      }
+                      className="btn-arsd-outline inline-flex items-center gap-2"
+                    >
+                      View PO Photo
+                    </button>
+                  </dd>
+                </div>
+              )}
             </dl>
           </div>
         </ARSDCard>
@@ -181,44 +221,39 @@ export default function DeliveryReceiptDetailPage() {
             </div>
           </div>
         </ARSDCard>
-
-        {/* Photos */}
-        {(dr.dr_photo_url || dr.po_photo_url) && (
-          <ARSDCard>
-            <div className="space-y-4">
-              <h2 className="text-lg font-bold text-arsd-primary mb-4">Attachments</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {dr.dr_photo_url && (
-                  <div>
-                    <p className="text-sm font-medium text-gray-600 mb-2">DR Photo</p>
-                    <a
-                      href={dr.dr_photo_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn-arsd-outline inline-flex items-center gap-2"
-                    >
-                      View DR Photo
-                    </a>
-                  </div>
-                )}
-                {dr.po_photo_url && (
-                  <div>
-                    <p className="text-sm font-medium text-gray-600 mb-2">PO Photo</p>
-                    <a
-                      href={dr.po_photo_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn-arsd-outline inline-flex items-center gap-2"
-                    >
-                      View PO Photo
-                    </a>
-                  </div>
-                )}
-              </div>
-            </div>
-          </ARSDCard>
-        )}
       </div>
+      {previewImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
+          onClick={() => setPreviewImage(null)}
+        >
+          <div
+            className="relative w-full max-w-3xl bg-white/95 rounded-2xl shadow-2xl border border-white/40 p-4 sm:p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-base sm:text-lg font-semibold text-arsd-primary">
+                {previewImage.label}
+              </h2>
+              <button
+                type="button"
+                onClick={() => setPreviewImage(null)}
+                className="text-sm font-medium text-gray-600 hover:text-gray-900"
+              >
+                Close
+              </button>
+            </div>
+            <div className="relative w-full aspect-[4/3] sm:aspect-[16/9] bg-gray-50 rounded-xl overflow-hidden border border-gray-200">
+              <Image
+                src={previewImage.url}
+                alt={previewImage.label}
+                fill
+                className="object-contain"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
