@@ -6,6 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { ARSDCard } from '@/components/warehouse/ARSDCard';
 import { BadgeStatus } from '@/components/warehouse/BadgeStatus';
 import { useWarehouseAuth } from '@/hooks/warehouse/useWarehouseAuth';
+import { UniversalLoading } from '@/components/ui/universal-loading';
 import { DeliveryReceipt } from '@/types/warehouse';
 import { ArrowLeft, Package, FileText, Lock, Unlock } from 'lucide-react';
 
@@ -60,12 +61,13 @@ export default function DeliveryReceiptDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-arsd-red mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading delivery receipt...</p>
-        </div>
-      </div>
+      <UniversalLoading
+        type="data"
+        message="Loading Delivery Receipt"
+        subtitle="Fetching delivery receipt details..."
+        size="lg"
+        fullScreen
+      />
     );
   }
 
