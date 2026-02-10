@@ -10,6 +10,7 @@ import {
   Material,
   PurchaseOrder,
   ParsedAccomplishmentData,
+  ParsedIPOWRow,
   AccomplishmentDataInput,
   AccomplishmentReportWithData
 } from '@/types/accomplishment-report-data';
@@ -112,6 +113,16 @@ export class AccomplishmentDataService extends BaseService {
         } catch (error) {
           console.error('Purchase orders insert failed:', error);
           throw new Error(`Purchase orders insert failed: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
+        }
+      }
+
+      // Insert IPOW items
+      if (data.ipow_items && data.ipow_items.length > 0) {
+        try {
+          await this.insertIPOWItems(supabase, project_id, data.ipow_items);
+        } catch (error) {
+          console.error('IPOW items insert failed:', error);
+          throw new Error(`IPOW items insert failed: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
         }
       }
 
@@ -505,5 +516,44 @@ export class AccomplishmentDataService extends BaseService {
       console.error('Error deleting accomplishment data:', error);
       throw new Error(`Failed to delete accomplishment data: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+  }
+
+  /**
+   * Insert or update IPOW items for a project
+   * Uses upsert to handle re-parsing the same project
+   */
+  private   async insertIPOWItems(
+    supabase: any,
+    projectId: string,
+    ipowRows: ParsedIPOWRow[]
+  ): Promise<void> {
+    console.log(`Inserting ${ipowRows.length} IPOW items for project ${projectId}`);
+
+    const payload = ipowRows.map(row => ({
+      project_id: projectId,
+      wbs: row.wbs,
+      item: row.item || null,
+      item_description: row.item_description,
+      type: row.type || null,
+      resource: row.resource || null,
+      ipow_qty: row.ipow_qty,
+      latest_ipow_qty: row.latest_ipow_qty,
+      unit: row.unit,
+      cost: row.cost,
+      total_cost: row.total_cost,
+    }));
+
+    const { error } = await supabase
+      .from('ipow_items')
+      .upsert(payload, {
+        onConflict: 'project_id,wbs',
+        ignoreDuplicates: false,
+      });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    console.log(`Successfully inserted/updated ${ipowRows.length} IPOW items`);
   }
 }

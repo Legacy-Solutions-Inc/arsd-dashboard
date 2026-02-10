@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Project, ProjectStatus, UpdateProjectData, ProjectManager, ProjectInspector } from '@/types/projects';
+import { Project, ProjectStatus, UpdateProjectData, ProjectManager, ProjectInspector, Warehouseman } from '@/types/projects';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,6 +29,7 @@ interface ProjectEditFormProps {
   onSuccess: () => void;
   projectManagers: ProjectManager[];
   projectInspectors: ProjectInspector[];
+  projectWarehousemen: Warehouseman[];
 }
 
 export default function ProjectEditForm({
@@ -38,14 +39,16 @@ export default function ProjectEditForm({
   onSuccess,
   projectManagers,
   projectInspectors,
+  projectWarehousemen,
 }: ProjectEditFormProps) {
-  const [formData, setFormData] = useState<UpdateProjectData & { project_manager_id: string | null, project_inspector_id: string | null }>({
+  const [formData, setFormData] = useState<UpdateProjectData & { project_manager_id: string | null; project_inspector_id: string | null; warehouseman_id: string | null }>({
     project_name: '',
     client: '',
     location: '',
     status: 'in_planning',
     project_manager_id: 'none',
     project_inspector_id: 'none',
+    warehouseman_id: 'none',
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -60,6 +63,7 @@ export default function ProjectEditForm({
         status: project.status,
         project_manager_id: project.project_manager_id || 'none',
         project_inspector_id: project.project_inspector_id || 'none',
+        warehouseman_id: project.warehouseman_id || 'none',
       });
       setErrors({});
     }
@@ -107,11 +111,12 @@ export default function ProjectEditForm({
 
     setLoading(true);
     try {
-      // Convert 'none' to null for both project_manager_id and project_inspector_id
+      // Convert 'none' to null for project_manager_id, project_inspector_id, and warehouseman_id
       const dataToSubmit = {
         ...formData,
         project_manager_id: formData.project_manager_id === 'none' ? null : formData.project_manager_id,
-        project_inspector_id: formData.project_inspector_id === 'none' ? null : formData.project_inspector_id
+        project_inspector_id: formData.project_inspector_id === 'none' ? null : formData.project_inspector_id,
+        warehouseman_id: formData.warehouseman_id === 'none' ? null : formData.warehouseman_id,
       };
       
       await projectService.updateProject(project.id, dataToSubmit);
@@ -212,7 +217,7 @@ export default function ProjectEditForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="project_inspector_id">Project Inspector</Label>
+            <Label htmlFor="project_inspector_id">Project Manager</Label>
             <Select
               value={formData.project_inspector_id || 'none'}
               onValueChange={(value) => handleSelectChange('project_inspector_id', value)}
@@ -225,6 +230,26 @@ export default function ProjectEditForm({
                 {projectInspectors.map((pi) => (
                   <SelectItem key={pi.user_id} value={pi.user_id}>
                     {pi.display_name} ({pi.email})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="warehouseman_id">Warehouseman</Label>
+            <Select
+              value={formData.warehouseman_id || 'none'}
+              onValueChange={(value) => handleSelectChange('warehouseman_id', value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Assign Warehouseman (Optional)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Unassigned</SelectItem>
+                {projectWarehousemen.map((wh) => (
+                  <SelectItem key={wh.user_id} value={wh.user_id}>
+                    {wh.display_name} ({wh.email})
                   </SelectItem>
                 ))}
               </SelectContent>

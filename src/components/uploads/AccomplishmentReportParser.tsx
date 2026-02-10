@@ -149,7 +149,7 @@ export function AccomplishmentReportParser() {
       { name: 'Monthly Costs', data: data.monthly_costs, count: data.monthly_costs?.length || 0 },
       { name: 'Materials', data: data.materials, count: data.materials?.length || 0 },
       { name: 'Purchase Orders', data: data.purchase_orders, count: data.purchase_orders?.length || 0 },
-    
+      { name: 'IPOW Items', data: data.ipow_items, count: data.ipow_items?.length || 0 },
     ];
 
     return (

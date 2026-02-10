@@ -12,6 +12,8 @@ export interface Project {
   project_manager: ProjectManager | null;
   project_inspector_id: string | null;
   project_inspector: ProjectInspector | null;
+  warehouseman_id: string | null;
+  warehouseman: Warehouseman | null;
   latest_accomplishment_update: string | null; // ISO date string
   has_parsed_data: boolean;     // Whether project has successfully parsed accomplishment data
   created_by: string;
@@ -32,6 +34,12 @@ export interface ProjectInspector {
   email: string;
 }
 
+export interface Warehouseman {
+  user_id: string;
+  display_name: string;
+  email: string;
+}
+
 export interface CreateProjectData {
   project_name: string;
   client: string;
@@ -40,6 +48,7 @@ export interface CreateProjectData {
   project_id?: string;
   project_manager_id?: string | undefined;
   project_inspector_id?: string | undefined;
+  warehouseman_id?: string | undefined;
 }
 
 export interface UpdateProjectData {
@@ -49,12 +58,14 @@ export interface UpdateProjectData {
   status?: ProjectStatus;
   project_manager_id?: string | null;
   project_inspector_id?: string | null;
+  warehouseman_id?: string | null;
 }
 
 export interface ProjectFilters {
   status?: ProjectStatus;
   project_manager_id?: string;
   project_inspector_id?: string;
+  warehouseman_id?: string;
   search?: string;
 }
 

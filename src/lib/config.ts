@@ -11,6 +11,8 @@ export const config = {
       hr: '/dashboard/website-details',
       project_manager: '/dashboard/uploads',
       project_inspector: '/dashboard/uploads',
+      warehouseman: '/dashboard/warehouse',
+      purchasing: '/dashboard/warehouse',
       pending: '/pending-approval',
     },
   },
@@ -28,6 +30,8 @@ export const config = {
     hr: ['manage_website_details'],
     project_manager: ['manage_uploads'],
     project_inspector: ['manage_uploads'],
+    warehouseman: ['view_assigned_projects'],
+    purchasing: ['view_assigned_projects'],
     pending: [],
   },
   routes: {

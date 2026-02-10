@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ProjectStatus, CreateProjectData, ProjectManager, ProjectInspector } from '@/types/projects';
+import { ProjectStatus, CreateProjectData, ProjectManager, ProjectInspector, Warehouseman } from '@/types/projects';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,6 +28,7 @@ interface ProjectCreateFormProps {
   onSuccess: () => void;
   projectManagers: ProjectManager[];
   projectInspectors: ProjectInspector[];
+  projectWarehousemen: Warehouseman[];
 }
 
 export default function ProjectCreateForm({
@@ -36,14 +37,16 @@ export default function ProjectCreateForm({
   onSuccess,
   projectManagers,
   projectInspectors,
+  projectWarehousemen,
 }: ProjectCreateFormProps) {
-  const [formData, setFormData] = useState<CreateProjectData & { project_manager_id: string, project_inspector_id: string }>({
+  const [formData, setFormData] = useState<CreateProjectData & { project_manager_id: string; project_inspector_id: string; warehouseman_id: string }>({
     project_name: '',
     client: '',
     location: '',
     status: 'in_planning',
     project_manager_id: 'none',
     project_inspector_id: 'none',
+    warehouseman_id: 'none',
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -59,6 +62,7 @@ export default function ProjectCreateForm({
         status: 'in_planning',
         project_manager_id: 'none',
         project_inspector_id: 'none',
+        warehouseman_id: 'none',
       });
       setErrors({});
     }
@@ -222,6 +226,26 @@ export default function ProjectCreateForm({
                 {projectInspectors.map((pi) => (
                   <SelectItem key={pi.user_id} value={pi.user_id}>
                     {pi.display_name} ({pi.email})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="warehouseman_id">Warehouseman</Label>
+            <Select
+              value={formData.warehouseman_id}
+              onValueChange={(value) => handleSelectChange('warehouseman_id', value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Assign Warehouseman (Optional)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Unassigned</SelectItem>
+                {projectWarehousemen.map((wh) => (
+                  <SelectItem key={wh.user_id} value={wh.user_id}>
+                    {wh.display_name} ({wh.email})
                   </SelectItem>
                 ))}
               </SelectContent>

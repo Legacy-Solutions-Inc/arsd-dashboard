@@ -1,5 +1,12 @@
 // Dashboard routing utilities for role-based navigation
-export type UserRole = 'superadmin' | 'hr' | 'project_manager' | 'project_inspector' | 'pending';
+export type UserRole =
+  | 'superadmin'
+  | 'hr'
+  | 'project_manager'
+  | 'project_inspector'
+  | 'warehouseman'
+  | 'purchasing'
+  | 'pending';
 
 export function getDefaultDashboardRoute(role: UserRole | undefined): string {
   const roleDefaultRoutes: Record<UserRole, string> = {
@@ -7,6 +14,8 @@ export function getDefaultDashboardRoute(role: UserRole | undefined): string {
     'hr': '/dashboard/website-details',
     'project_manager': '/dashboard/uploads',
     'project_inspector': '/dashboard/uploads',
+    'warehouseman': '/dashboard/warehouse',
+    'purchasing': '/dashboard/warehouse',
     'pending': '/pending-approval',
   };
   
@@ -19,6 +28,8 @@ export function getAccessibleRoutes(role: UserRole | undefined): string[] {
     'hr': ['/dashboard/website-details'],
     'project_manager': ['/dashboard/uploads'],
     'project_inspector': ['/dashboard/uploads'],
+    'warehouseman': ['/dashboard/warehouse'],
+    'purchasing': ['/dashboard/warehouse'],
     'pending': ['/pending-approval'],
   };
   

@@ -25,7 +25,7 @@ export const roundToTwoDecimals = (value: number): number => {
 };
 
 export const formatCurrency = (value: number | string | null | undefined): string => {
-  const numValue = parseNumericValue(value);
+  const numValue = parseNumericValue(value, 0);
   return `₱${numValue.toLocaleString()}`;
 };
 
