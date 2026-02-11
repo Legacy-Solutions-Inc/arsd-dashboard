@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ARSDCard } from '@/components/warehouse/ARSDCard';
 import { ARSDTable } from '@/components/warehouse/ARSDTable';
@@ -26,6 +26,31 @@ export default function DeliveryReceiptsListPage() {
     date_from: dateFrom || undefined,
     date_to: dateTo || undefined,
   });
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedProjectId, dateFrom, dateTo, deliveryReceipts.length]);
+
+  const totalPages = useMemo(
+    () => Math.max(1, Math.ceil(deliveryReceipts.length / pageSize)),
+    [deliveryReceipts.length]
+  );
+
+  const activePage = Math.min(currentPage, totalPages);
+
+  const paginatedReceipts = useMemo(() => {
+    const start = (activePage - 1) * pageSize;
+    return deliveryReceipts.slice(start, start + pageSize);
+  }, [deliveryReceipts, activePage, pageSize]);
+
+  const startIndex = deliveryReceipts.length === 0 ? 0 : (activePage - 1) * pageSize + 1;
+  const endIndex =
+    deliveryReceipts.length === 0
+      ? 0
+      : Math.min((activePage - 1) * pageSize + paginatedReceipts.length, deliveryReceipts.length);
 
   const handleLockToggle = async (id: string, currentlyLocked: boolean) => {
     try {
@@ -139,7 +164,7 @@ export default function DeliveryReceiptsListPage() {
               className="max-w-md mx-auto"
             />
           ) : deliveryReceipts.length > 0 ? (
-            deliveryReceipts.map((dr) => {
+            paginatedReceipts.map((dr) => {
               const project = projects.find(p => p.id === dr.project_id);
               return (
                 <ARSDCard key={dr.id} className="p-5">
@@ -203,6 +228,40 @@ export default function DeliveryReceiptsListPage() {
           )}
         </div>
 
+        {!loading && deliveryReceipts.length > 0 && (
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2">
+            <p className="text-xs text-gray-500">
+              Showing <span className="font-medium">{startIndex}</span>
+              {'–'}
+              <span className="font-medium">{endIndex}</span> of{' '}
+              <span className="font-medium">{deliveryReceipts.length}</span> receipt
+              {deliveryReceipts.length !== 1 ? 's' : ''}
+            </p>
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={activePage === 1}
+                className="btn-arsd-outline mobile-button px-3 py-1.5 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <span className="text-xs text-gray-600">
+                Page <span className="font-medium">{activePage}</span> of{' '}
+                <span className="font-medium">{totalPages}</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={activePage === totalPages}
+                className="btn-arsd-outline mobile-button px-3 py-1.5 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Desktop View - Table */}
         <div className="hidden sm:block overflow-x-auto rounded-2xl">
           <ARSDTable className="min-w-[640px]">
@@ -235,7 +294,7 @@ export default function DeliveryReceiptsListPage() {
                   </td>
                 </tr>
               ) : deliveryReceipts.length > 0 ? (
-                deliveryReceipts.map((dr) => {
+                paginatedReceipts.map((dr) => {
                   const project = projects.find(p => p.id === dr.project_id);
                   return (
                     <tr key={dr.id} className="glass-table-row">
