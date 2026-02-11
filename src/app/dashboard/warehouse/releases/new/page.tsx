@@ -55,7 +55,7 @@ export default function CreateReleasePage() {
   const handleAddItem = () => {
     setFormData(prev => ({
       ...prev,
-      items: [...prev.items, { itemDescription: '', qty: 0, unit: 'kg' }]
+      items: [...prev.items, { itemDescription: '', qty: 0, unit: 'kg', wbs: null }]
     }));
   };
 
@@ -81,6 +81,7 @@ export default function CreateReleasePage() {
     try {
       const items = formData.items.map((it) => ({
         item_description: it.itemDescription,
+        wbs: it.wbs ?? null,
         qty: it.qty,
         unit: it.unit
       }));
