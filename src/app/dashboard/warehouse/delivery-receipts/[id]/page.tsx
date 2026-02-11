@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { ARSDCard } from '@/components/warehouse/ARSDCard';
@@ -8,6 +8,7 @@ import { BadgeStatus } from '@/components/warehouse/BadgeStatus';
 import { useWarehouseAuth } from '@/hooks/warehouse/useWarehouseAuth';
 import { UniversalLoading } from '@/components/ui/universal-loading';
 import { DeliveryReceipt } from '@/types/warehouse';
+import { useIPOW } from '@/hooks/warehouse/useIPOW';
 import { ArrowLeft, Package, FileText, Lock, Unlock } from 'lucide-react';
 
 export default function DeliveryReceiptDetailPage() {
@@ -20,6 +21,37 @@ export default function DeliveryReceiptDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [previewImage, setPreviewImage] = useState<{ url: string; label: string } | null>(null);
+
+  const projectId = dr?.project_id ?? '';
+  const { ipowItems } = useIPOW(projectId);
+
+  const normalizeDescription = (value: string) => value.trim().toLowerCase();
+
+  const resourceIndexByKey = useMemo(() => {
+    const index = new Map<string, string>();
+    ipowItems.forEach((ipow) => {
+      const key = `${ipow.wbs ?? 'null'}|${normalizeDescription(ipow.item_description)}`;
+      if (ipow.resource) {
+        index.set(key, ipow.resource);
+      }
+    });
+    return index;
+  }, [ipowItems]);
+
+  const getItemResource = (item: NonNullable<DeliveryReceipt['items']>[number]): string | null => {
+    if (!ipowItems || ipowItems.length === 0) return null;
+
+    const keyWithWbs = `${item.wbs ?? 'null'}|${normalizeDescription(item.item_description)}`;
+    const byWbs = resourceIndexByKey.get(keyWithWbs);
+    if (byWbs) return byWbs;
+
+    // Fallback: match by description only for older DRs without WBS
+    const normalized = normalizeDescription(item.item_description);
+    const fallbackIpow = ipowItems.find(
+      (ipow) => normalizeDescription(ipow.item_description) === normalized && ipow.resource
+    );
+    return fallbackIpow?.resource ?? null;
+  };
 
   useEffect(() => {
     async function fetchDR() {
@@ -174,21 +206,21 @@ export default function DeliveryReceiptDetailPage() {
                   </dd>
                 </div>
               )}
-              {dr.po_photo_url && (
+              {dr.delivery_proof_url && (
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-red-200/20">
-                  <dt className="text-gray-600 shrink-0">PO Photo</dt>
+                  <dt className="text-gray-600 shrink-0">Delivery Proof</dt>
                   <dd className="font-medium break-words min-w-0">
                     <button
                       type="button"
                       onClick={() =>
                         setPreviewImage({
-                          url: dr.po_photo_url as string,
-                          label: 'Purchase Order Photo',
+                          url: dr.delivery_proof_url as string,
+                          label: 'Delivery Proof',
                         })
                       }
                       className="btn-arsd-outline inline-flex items-center gap-2"
                     >
-                      View PO Photo
+                      View Delivery Proof
                     </button>
                   </dd>
                 </div>
@@ -212,11 +244,21 @@ export default function DeliveryReceiptDetailPage() {
                 <div key={index} className="glass-card p-4">
                   <dl className="grid grid-cols-2 gap-3 text-sm">
                     <dt className="text-gray-600">Description</dt>
-                    <dd className="font-medium break-words">{item.item_description}</dd>
+                    <dd className="font-medium break-words">
+                      {item.item_description}
+                      {(() => {
+                        const resource = getItemResource(item);
+                        return resource ? (
+                          <span className="block text-xs text-gray-500 mt-0.5">
+                            {resource}
+                          </span>
+                        ) : null;
+                      })()}
+                    </dd>
                     <dt className="text-gray-600">Qty in DR</dt>
-                    <dd className="font-medium">{item.qty_in_dr.toLocaleString()} {item.unit}</dd>
-                    <dt className="text-gray-600">Qty in PO</dt>
-                    <dd className="font-medium">{item.qty_in_po.toLocaleString()} {item.unit}</dd>
+                    <dd className="font-medium">
+                      {item.qty_in_dr.toLocaleString()} {item.unit}
+                    </dd>
                   </dl>
                 </div>
               ))}
