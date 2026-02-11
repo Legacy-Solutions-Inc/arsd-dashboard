@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ARSDCard } from '@/components/warehouse/ARSDCard';
 import { ARSDTable } from '@/components/warehouse/ARSDTable';
@@ -26,6 +26,31 @@ export default function ReleasesListPage() {
     date_from: dateFrom || undefined,
     date_to: dateTo || undefined,
   });
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedProjectId, dateFrom, dateTo, releases.length]);
+
+  const totalPages = useMemo(
+    () => Math.max(1, Math.ceil(releases.length / pageSize)),
+    [releases.length]
+  );
+
+  const activePage = Math.min(currentPage, totalPages);
+
+  const paginatedReleases = useMemo(() => {
+    const start = (activePage - 1) * pageSize;
+    return releases.slice(start, start + pageSize);
+  }, [releases, activePage, pageSize]);
+
+  const startIndex = releases.length === 0 ? 0 : (activePage - 1) * pageSize + 1;
+  const endIndex =
+    releases.length === 0
+      ? 0
+      : Math.min((activePage - 1) * pageSize + paginatedReleases.length, releases.length);
 
   const handleLockToggle = async (id: string, currentlyLocked: boolean) => {
     try {
@@ -135,7 +160,7 @@ export default function ReleasesListPage() {
               className="max-w-md mx-auto"
             />
           ) : releases.length > 0 ? (
-            releases.map((rel) => {
+            paginatedReleases.map((rel) => {
               const project = projects.find(p => p.id === rel.project_id);
               return (
                 <ARSDCard key={rel.id} className="p-5">
@@ -205,6 +230,40 @@ export default function ReleasesListPage() {
           )}
         </div>
 
+        {!loading && releases.length > 0 && (
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2">
+            <p className="text-xs text-gray-500">
+              Showing <span className="font-medium">{startIndex}</span>
+              {'–'}
+              <span className="font-medium">{endIndex}</span> of{' '}
+              <span className="font-medium">{releases.length}</span> release
+              {releases.length !== 1 ? 's' : ''}
+            </p>
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={activePage === 1}
+                className="btn-arsd-outline mobile-button px-3 py-1.5 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <span className="text-xs text-gray-600">
+                Page <span className="font-medium">{activePage}</span> of{' '}
+                <span className="font-medium">{totalPages}</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={activePage === totalPages}
+                className="btn-arsd-outline mobile-button px-3 py-1.5 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Desktop View - Table */}
         <div className="hidden sm:block overflow-x-auto rounded-2xl">
           <ARSDTable className="min-w-[720px]">
@@ -237,7 +296,7 @@ export default function ReleasesListPage() {
                   </td>
                 </tr>
               ) : releases.length > 0 ? (
-                releases.map((rel) => {
+                paginatedReleases.map((rel) => {
                   const project = projects.find(p => p.id === rel.project_id);
                   return (
                     <tr key={rel.id} className="glass-table-row">

@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     const warehouseman = formData.get('warehouseman') as string;
     const itemsJson = formData.get('items') as string;
     const drPhoto = formData.get('dr_photo') as File | null;
-    const poPhoto = formData.get('po_photo') as File | null;
+    const deliveryProof = formData.get('delivery_proof') as File | null;
 
     if (!projectId || !supplier || !date || !warehouseman || !itemsJson) {
       return NextResponse.json(
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
 
     // Upload photos if provided
     let drPhotoUrl: string | undefined;
-    let poPhotoUrl: string | undefined;
+    let deliveryProofUrl: string | undefined;
 
     if (drPhoto) {
       const result = await storageService.uploadDRPhoto(dr.id, drPhoto);
@@ -89,20 +89,20 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (poPhoto) {
-      const result = await storageService.uploadPOPhoto(dr.id, poPhoto);
+    if (deliveryProof) {
+      const result = await storageService.uploadDeliveryProofPhoto(dr.id, deliveryProof);
       if (!result.success) {
-        console.error('Failed to upload PO photo', { drId: dr.id, error: result.error });
+        console.error('Failed to upload delivery proof photo', { drId: dr.id, error: result.error });
       } else {
-        poPhotoUrl = result.url;
+        deliveryProofUrl = result.url;
       }
     }
 
     // Update DR with photo URLs if any were uploaded
-    if (drPhotoUrl || poPhotoUrl) {
+    if (drPhotoUrl || deliveryProofUrl) {
       const updateData: any = {};
       if (drPhotoUrl) updateData.dr_photo_url = drPhotoUrl;
-      if (poPhotoUrl) updateData.po_photo_url = poPhotoUrl;
+      if (deliveryProofUrl) updateData.delivery_proof_url = deliveryProofUrl;
 
       const { error: updateError } = await serviceSupabase
         .from('delivery_receipts')

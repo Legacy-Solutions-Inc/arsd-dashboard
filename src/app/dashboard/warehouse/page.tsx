@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ProjectGrid } from '@/components/warehouse/ProjectGrid';
 import { useWarehouseAuth } from '@/hooks/warehouse/useWarehouseAuth';
@@ -13,6 +13,8 @@ export default function WarehouseDashboardPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const { user, loading: authLoading, canCreate, canViewAll } = useWarehouseAuth();
   const { projects: accessibleProjects, loading: projectsLoading } = useWarehouseProjects(user);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 8;
 
   const filteredProjects = useMemo(() => {
     if (!searchQuery.trim()) return accessibleProjects;
@@ -24,6 +26,28 @@ export default function WarehouseDashboardPage() {
         (p.warehouseman?.display_name || '').toLowerCase().includes(q)
     );
   }, [accessibleProjects, searchQuery]);
+
+  useEffect(() => {
+    // Reset to first page when filters or available projects change
+    setCurrentPage(1);
+  }, [searchQuery, accessibleProjects.length]);
+
+  const totalPages = useMemo(
+    () => Math.max(1, Math.ceil(filteredProjects.length / pageSize)),
+    [filteredProjects.length]
+  );
+
+  const activePage = Math.min(currentPage, totalPages);
+
+  const paginatedProjects = useMemo(() => {
+    const start = (activePage - 1) * pageSize;
+    return filteredProjects.slice(start, start + pageSize);
+  }, [filteredProjects, activePage, pageSize]);
+
+  const startIndex = filteredProjects.length === 0 ? 0 : (activePage - 1) * pageSize + 1;
+  const endIndex = filteredProjects.length === 0
+    ? 0
+    : Math.min((activePage - 1) * pageSize + paginatedProjects.length, filteredProjects.length);
 
   const loading = authLoading || projectsLoading;
 
@@ -147,7 +171,42 @@ export default function WarehouseDashboardPage() {
                 />
               </div>
               {filteredProjects.length > 0 ? (
-                <ProjectGrid projects={filteredProjects} />
+                <>
+                  <ProjectGrid projects={paginatedProjects} />
+                  {totalPages > 1 && (
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-4">
+                      <p className="text-xs text-gray-500">
+                        Showing <span className="font-medium">{startIndex}</span>
+                        {'–'}
+                        <span className="font-medium">{endIndex}</span> of{' '}
+                        <span className="font-medium">{filteredProjects.length}</span> project
+                        {filteredProjects.length !== 1 ? 's' : ''}
+                      </p>
+                      <div className="flex items-center gap-2 self-start sm:self-auto">
+                        <button
+                          type="button"
+                          onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                          disabled={activePage === 1}
+                          className="btn-arsd-outline mobile-button px-3 py-1.5 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Previous
+                        </button>
+                        <span className="text-xs text-gray-600">
+                          Page <span className="font-medium">{activePage}</span> of{' '}
+                          <span className="font-medium">{totalPages}</span>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                          disabled={activePage === totalPages}
+                          className="btn-arsd-outline mobile-button px-3 py-1.5 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Next
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
               ) : (
                 <div className="glass-card text-center py-12">
                   <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />

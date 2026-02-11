@@ -28,11 +28,11 @@ export class WarehouseStorageService {
   }
 
   /**
-   * Upload PO photo
+   * Upload delivery proof photo
    */
-  async uploadPOPhoto(deliveryReceiptId: string, file: File): Promise<UploadResult> {
+  async uploadDeliveryProofPhoto(deliveryReceiptId: string, file: File): Promise<UploadResult> {
     const fileExt = file.name.split('.').pop();
-    const fileName = `po_photo.${fileExt}`;
+    const fileName = `delivery_proof.${fileExt}`;
     const filePath = `dr/${deliveryReceiptId}/${fileName}`;
 
     return this.uploadFile(filePath, file);

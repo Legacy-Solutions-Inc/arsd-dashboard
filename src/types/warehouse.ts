@@ -4,6 +4,7 @@ export interface DRItem {
   id: string;
   delivery_receipt_id: string;
   item_description: string;
+  wbs?: string | null;
   qty_in_dr: number;
   qty_in_po: number;
   unit: string;
@@ -20,7 +21,7 @@ export interface DeliveryReceipt {
   locked: boolean;
   warehouseman: string;
   dr_photo_url?: string | null;
-  po_photo_url?: string | null;
+  delivery_proof_url?: string | null;
   created_at: string;
   updated_at: string;
   items?: DRItem[]; // included when fetched with items
@@ -30,6 +31,7 @@ export interface ReleaseItem {
   id: string;
   release_form_id: string;
   item_description: string;
+  wbs?: string | null;
   qty: number;
   unit: string;
   sort_order: number;
@@ -54,6 +56,7 @@ export interface ReleaseForm {
 
 export interface CreateDRItemInput {
   item_description: string;
+  wbs?: string | null;
   qty_in_dr: number;
   qty_in_po: number;
   unit: string;
@@ -67,11 +70,12 @@ export interface CreateDeliveryReceiptInput {
   warehouseman: string;
   items: CreateDRItemInput[];
   dr_photo?: File;
-  po_photo?: File;
+  delivery_proof?: File;
 }
 
 export interface CreateReleaseItemInput {
   item_description: string;
+  wbs?: string | null;
   qty: number;
   unit: string;
 }
@@ -131,4 +135,13 @@ export interface StockItem {
   running_balance: number;
   total_cost: number;
   variance: number;
+  /**
+   * Manually maintained Purchase Order quantity for this item.
+   * Typically edited by Material Control users.
+   */
+  po?: number;
+  /**
+   * Computed as PO - Delivered. May be provided by the backend or derived on the client.
+   */
+  undelivered?: number;
 }

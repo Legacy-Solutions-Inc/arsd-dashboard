@@ -1,6 +1,12 @@
 import { createClient } from '@/lib/supabase';
 
-export type WarehouseRole = 'superadmin' | 'purchasing' | 'warehouseman' | 'project_inspector' | 'project_manager';
+export type WarehouseRole =
+  | 'superadmin'
+  | 'purchasing'
+  | 'warehouseman'
+  | 'project_inspector'
+  | 'project_manager'
+  | 'material_control';
 
 export interface WarehouseUser {
   id: string;
@@ -105,5 +111,5 @@ export function canUnlockDRRelease(user: WarehouseUser): boolean {
  * Can user view all projects?
  */
 export function canViewAllProjects(user: WarehouseUser): boolean {
-  return user.role === 'superadmin' || user.role === 'purchasing';
+  return user.role === 'superadmin' || user.role === 'purchasing' || user.role === 'material_control';
 }

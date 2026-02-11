@@ -13,6 +13,7 @@ export const config = {
       project_inspector: '/dashboard/uploads',
       warehouseman: '/dashboard/warehouse',
       purchasing: '/dashboard/warehouse',
+      material_control: '/dashboard/warehouse',
       pending: '/pending-approval',
     },
   },
@@ -32,6 +33,7 @@ export const config = {
     project_inspector: ['manage_uploads'],
     warehouseman: ['view_assigned_projects'],
     purchasing: ['view_assigned_projects'],
+    material_control: ['view_assigned_projects'],
     pending: [],
   },
   routes: {

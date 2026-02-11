@@ -217,6 +217,7 @@ export default function UserManagementPage() {
       case 'project_inspector': return 'bg-green-100/50 text-green-800 border-green-200/50'; // Project Manager color
       case 'warehouseman': return 'bg-amber-100/50 text-amber-800 border-amber-200/50';
       case 'purchasing': return 'bg-purple-100/50 text-purple-800 border-purple-200/50';
+      case 'material_control': return 'bg-indigo-100/50 text-indigo-800 border-indigo-200/50';
       case 'pending': return 'bg-gray-100/50 text-gray-800 border-gray-200/50';
       default: return 'bg-gray-100/50 text-gray-800 border-gray-200/50';
     }
@@ -227,6 +228,7 @@ export default function UserManagementPage() {
       case 'project_inspector': return 'PROJECT MANAGER';
       case 'project_manager': return 'SITE ENGINEER';
       case 'purchasing': return 'PURCHASING';
+      case 'material_control': return 'MATERIAL CONTROL';
       default: return role.replace('_', ' ').toUpperCase();
     }
   };
@@ -833,6 +835,7 @@ export default function UserManagementPage() {
                         <SelectItem value="project_inspector">Project Manager</SelectItem>
                         <SelectItem value="warehouseman">Warehouseman</SelectItem>
                         <SelectItem value="purchasing">Purchasing</SelectItem>
+                        <SelectItem value="material_control">Material Control</SelectItem>
                         <SelectItem value="pending">Pending</SelectItem>
                       </SelectContent>
                     </Select>
@@ -920,6 +923,7 @@ export default function UserManagementPage() {
                         <SelectItem value="project_inspector">Project Manager</SelectItem>
                         <SelectItem value="warehouseman">Warehouseman</SelectItem>
                         <SelectItem value="purchasing">Purchasing</SelectItem>
+                        <SelectItem value="material_control">Material Control</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

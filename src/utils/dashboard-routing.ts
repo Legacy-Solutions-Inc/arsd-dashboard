@@ -6,6 +6,7 @@ export type UserRole =
   | 'project_inspector'
   | 'warehouseman'
   | 'purchasing'
+  | 'material_control'
   | 'pending';
 
 export function getDefaultDashboardRoute(role: UserRole | undefined): string {
@@ -16,6 +17,7 @@ export function getDefaultDashboardRoute(role: UserRole | undefined): string {
     'project_inspector': '/dashboard/uploads',
     'warehouseman': '/dashboard/warehouse',
     'purchasing': '/dashboard/warehouse',
+    'material_control': '/dashboard/warehouse',
     'pending': '/pending-approval',
   };
   
@@ -30,6 +32,7 @@ export function getAccessibleRoutes(role: UserRole | undefined): string[] {
     'project_inspector': ['/dashboard/uploads'],
     'warehouseman': ['/dashboard/warehouse'],
     'purchasing': ['/dashboard/warehouse'],
+    'material_control': ['/dashboard/warehouse'],
     'pending': ['/pending-approval'],
   };
   

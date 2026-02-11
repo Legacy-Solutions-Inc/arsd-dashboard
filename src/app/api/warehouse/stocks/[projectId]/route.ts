@@ -13,6 +13,10 @@ function matchItem(normKey: string, itemDescription: string | null | undefined):
   return normalizeDescription(itemDescription ?? '') === normKey;
 }
 
+function makeOverrideKey(wbs: string | null, description: string): string {
+  return `${wbs ?? 'null'}|${normalizeDescription(description)}`;
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { projectId: string } }
@@ -25,26 +29,49 @@ export async function GET(
     const drService = new DeliveryReceiptsService(supabase);
     const releaseService = new ReleasesService(supabase);
 
-    const [ipowItems, deliveryReceipts, releaseForms] = await Promise.all([
+    const [ipowItems, deliveryReceipts, releaseForms, poOverridesResult] = await Promise.all([
       ipowService.getByProjectId(projectId),
       drService.list({ project_id: projectId }),
       releaseService.list({ project_id: projectId }),
+      supabase
+        .from('stock_po_overrides')
+        .select('project_id,wbs,item_description,po')
+        .eq('project_id', projectId),
     ]);
+
+    const poOverrides = new Map<string, number>();
+    if (!poOverridesResult.error && poOverridesResult.data) {
+      for (const row of poOverridesResult.data) {
+        const key = makeOverrideKey(row.wbs as string | null, row.item_description as string);
+        poOverrides.set(key, Number(row.po) || 0);
+      }
+    }
 
     // When we have IPOW data, use it as the master list of items (WBS, ipow_qty, total_cost from IPOW)
     if (ipowItems.length > 0) {
       const stockItems: StockItem[] = ipowItems.map((ipow) => {
         const normKey = normalizeDescription(ipow.item_description);
         const delivered = deliveryReceipts.reduce((sum, dr) => {
-          const match = dr.items?.find((item) => matchItem(normKey, item.item_description));
+          const match = dr.items?.find((item) =>
+            (item.wbs && item.wbs === ipow.wbs) ||
+            (!item.wbs && matchItem(normKey, item.item_description))
+          );
           return sum + (match?.qty_in_dr ?? 0);
         }, 0);
         const utilized = releaseForms.reduce((sum, rel) => {
-          const match = rel.items?.find((item) => matchItem(normKey, item.item_description));
+          const match = rel.items?.find((item) =>
+            (item.wbs && item.wbs === ipow.wbs) ||
+            (!item.wbs && matchItem(normKey, item.item_description))
+          );
           return sum + (match?.qty ?? 0);
         }, 0);
         const running_balance = delivered - utilized;
         const variance = running_balance - ipow.latest_ipow_qty;
+
+        const poOverride = poOverrides.get(makeOverrideKey(ipow.wbs, ipow.item_description));
+        const po = poOverride ?? 0;
+        const undelivered = po - delivered;
+
         return {
           wbs: ipow.wbs,
           item_description: ipow.item_description,
@@ -55,6 +82,8 @@ export async function GET(
           running_balance,
           total_cost: ipow.total_cost ?? 0,
           variance: Number.isFinite(variance) ? variance : 0,
+          po,
+          undelivered,
         };
       });
       return NextResponse.json(stockItems);
@@ -91,6 +120,11 @@ export async function GET(
         return sum + (match?.qty ?? 0);
       }, 0);
       const running_balance = delivered - utilized;
+
+      const poOverride = poOverrides.get(makeOverrideKey(null, item_description));
+      const po = poOverride ?? 0;
+      const undelivered = po - delivered;
+
       return {
         wbs: null,
         item_description,
@@ -101,6 +135,8 @@ export async function GET(
         running_balance,
         total_cost: 0,
         variance: 0,
+        po,
+        undelivered,
       };
     });
 

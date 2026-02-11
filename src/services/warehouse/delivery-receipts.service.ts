@@ -73,8 +73,8 @@ export class DeliveryReceiptsService {
    * Create a new delivery receipt with items
    * Note: File URLs should already be uploaded to storage before calling this
    */
-  async create(input: CreateDeliveryReceiptInput & { dr_photo_url?: string; po_photo_url?: string }): Promise<DeliveryReceipt> {
-    const { items, dr_photo_url, po_photo_url, ...drData } = input;
+  async create(input: CreateDeliveryReceiptInput & { dr_photo_url?: string; delivery_proof_url?: string }): Promise<DeliveryReceipt> {
+    const { items, dr_photo_url, delivery_proof_url, ...drData } = input;
 
     // Get next DR number
     const drNo = await this.getNextDrNo();
@@ -91,7 +91,7 @@ export class DeliveryReceiptsService {
         warehouseman: drData.warehouseman,
         locked: true, // Always locked on create per business rules
         dr_photo_url: dr_photo_url || null,
-        po_photo_url: po_photo_url || null,
+        delivery_proof_url: delivery_proof_url || null,
       })
       .select()
       .single();
@@ -104,6 +104,7 @@ export class DeliveryReceiptsService {
     const drItems = items.map((item, index) => ({
       delivery_receipt_id: dr.id,
       item_description: item.item_description,
+      wbs: item.wbs ?? null,
       qty_in_dr: item.qty_in_dr,
       qty_in_po: item.qty_in_po,
       unit: item.unit,

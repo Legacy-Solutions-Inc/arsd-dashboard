@@ -1,6 +1,6 @@
 // Mock data for Warehouse Management Module
 
-export type UserRole = 'superadmin' | 'purchasing' | 'warehouseman' | 'project_inspector' | 'project_manager';
+export type UserRole = 'superadmin' | 'purchasing' | 'warehouseman' | 'project_inspector' | 'project_manager' | 'material_control';
 
 export interface MockUser {
   id: string;
@@ -295,7 +295,7 @@ export const releaseForms: ReleaseForm[] = [
 
 // Helper function to get projects based on user role
 export function getAccessibleProjects(user: MockUser): Project[] {
-  if (user.role === 'superadmin' || user.role === 'purchasing') {
+  if (user.role === 'superadmin' || user.role === 'purchasing' || user.role === 'material_control') {
     return projects;
   }
   return projects.filter(p => user.assignedProjectIds.includes(p.id));
@@ -308,7 +308,7 @@ export function canCreateDRRelease(user: MockUser): boolean {
 
 // Helper function to check if user can view all projects
 export function canViewAllProjects(user: MockUser): boolean {
-  return user.role === 'superadmin' || user.role === 'purchasing';
+  return user.role === 'superadmin' || user.role === 'purchasing' || user.role === 'material_control';
 }
 
 // Helper: only project inspector (PM) / project manager (site engineer) or superadmin can unlock DR/RF after warehouseman submit

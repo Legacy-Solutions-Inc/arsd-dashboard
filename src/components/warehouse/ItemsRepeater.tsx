@@ -10,6 +10,7 @@ export interface ItemEntry {
   qty: number;
   qtyInPO?: number;
   unit: string;
+  wbs?: string | null;
 }
 
 const DEFAULT_UNITS = ['kg', 'bags', 'cu.m', 'tons', 'pcs', 'sq.m', 'kgs.', 'EA'];
@@ -19,8 +20,20 @@ interface ItemsRepeaterProps {
   onAdd: () => void;
   onRemove: (index: number) => void;
   onUpdate: (index: number, field: keyof ItemEntry, value: string | number) => void;
+  /**
+   * When true, show a read-only "Total Qty in PO" column per item.
+   * The value is looked up from PO totals using WBS + description when available,
+   * and falls back to description-only for older items without WBS.
+   */
   showPOQty?: boolean;
-  /** When provided, show "Fill from IPOW" dropdown per row to pick description + unit from project IPOW */
+  /**
+   * Map of `${wbs ?? 'null'}|${normalizedDescription}` -> total PO quantity.
+   * This keeps Total Qty in PO tied to the specific WBS line.
+   */
+  poTotalsByKey?: Record<string, number>;
+  /** Optional legacy map of normalized item description -> total PO quantity for that item */
+  poTotalsByDescription?: Record<string, number>;
+  /** When provided, show \"Fill from IPOW\" dropdown per row to pick description + unit from project IPOW */
   ipowItems?: IPOWItem[];
 }
 
@@ -30,7 +43,24 @@ function formatQty(n: number): string {
   return s.endsWith('.') ? s : s.replace(/\.?0+$/, '') || String(n);
 }
 
-export function ItemsRepeater({ items, onAdd, onRemove, onUpdate, showPOQty = false, ipowItems = [] }: ItemsRepeaterProps) {
+function normalizeDescription(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+function makeKey(wbs: string | null | undefined, description: string): string {
+  return `${wbs ?? 'null'}|${normalizeDescription(description)}`;
+}
+
+export function ItemsRepeater({
+  items,
+  onAdd,
+  onRemove,
+  onUpdate,
+  showPOQty = false,
+  poTotalsByKey = {},
+  poTotalsByDescription = {},
+  ipowItems = [],
+}: ItemsRepeaterProps) {
   type FocusKey = `${number}-qty` | `${number}-qtyInPO` | null;
   const [focusKey, setFocusKey] = useState<FocusKey>(null);
   const [editStr, setEditStr] = useState('');
@@ -64,9 +94,10 @@ export function ItemsRepeater({ items, onAdd, onRemove, onUpdate, showPOQty = fa
     <div className="space-y-4">
       {items.map((item, index) => {
         const isEditingQty = focusKey === `${index}-qty`;
-        const isEditingQtyPO = focusKey === `${index}-qtyInPO`;
         const qtyDisplay = isEditingQty ? editStr : formatQty(item.qty);
-        const qtyPODisplay = isEditingQtyPO ? editStr : formatQty(item.qtyInPO ?? 0);
+        const keyed = poTotalsByKey[makeKey(item.wbs ?? null, item.itemDescription)];
+        const fallbackByDescription = poTotalsByDescription[normalizeDescription(item.itemDescription)];
+        const totalQtyInPO = (keyed ?? fallbackByDescription ?? 0);
 
         return (
         <ARSDCard key={index} className="relative">
@@ -94,6 +125,7 @@ export function ItemsRepeater({ items, onAdd, onRemove, onUpdate, showPOQty = fa
                       const ipow = ipowItems[idx];
                       onUpdate(index, 'itemDescription', ipow.item_description);
                       onUpdate(index, 'unit', ipow.unit || 'EA');
+                      onUpdate(index, 'wbs', ipow.wbs);
                     }
                   }}
                   aria-label="Fill from IPOW list"
@@ -140,18 +172,11 @@ export function ItemsRepeater({ items, onAdd, onRemove, onUpdate, showPOQty = fa
               {showPOQty && (
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Qty in PO
+                    Total Qty in PO
                   </label>
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    value={qtyPODisplay}
-                    onFocus={() => handleQtyFocus(index, 'qtyInPO')}
-                    onBlur={() => handleQtyBlur(index, 'qtyInPO')}
-                    onChange={handleQtyChange}
-                    className="mobile-form-input w-full"
-                    placeholder="0"
-                  />
+                  <div className="mobile-form-input w-full bg-gray-50 cursor-not-allowed text-right">
+                    {formatQty(totalQtyInPO)}
+                  </div>
                 </div>
               )}
 

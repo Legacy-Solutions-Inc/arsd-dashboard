@@ -13,13 +13,16 @@ interface StockItem {
   running_balance: number;
   total_cost?: number;
   variance?: number;
+   po?: number;
+   undelivered?: number;
 }
 
 interface MobileItemCardProps {
   item: StockItem;
+  isWarehouseman?: boolean;
 }
 
-export function MobileItemCard({ item }: MobileItemCardProps) {
+export function MobileItemCard({ item, isWarehouseman = false }: MobileItemCardProps) {
   const isLowStock = item.running_balance < (item.ipow_qty * 0.1);
   const isOverIPOWDelivered = item.delivered > item.ipow_qty;
   const isOverIPOWUtilized = item.utilized > item.ipow_qty;
@@ -45,9 +48,31 @@ export function MobileItemCard({ item }: MobileItemCardProps) {
         </div>
 
         <div className="grid grid-cols-2 gap-3 text-xs sm:text-sm">
+          {!isWarehouseman && (
+            <>
+              <div>
+                <div className="text-gray-500 mb-1">IPOW Qty</div>
+                <div className="font-semibold text-gray-800">{item.ipow_qty.toLocaleString()}</div>
+              </div>
+              <div>
+                <div className="text-gray-500 mb-1">Total Cost</div>
+                <div className="font-semibold text-gray-800">
+                  {item.total_cost != null ? `₱${item.total_cost.toLocaleString()}` : '—'}
+                </div>
+              </div>
+            </>
+          )}
           <div>
-            <div className="text-gray-500 mb-1">IPOW Qty</div>
-            <div className="font-semibold text-gray-800">{item.ipow_qty.toLocaleString()}</div>
+            <div className="text-gray-500 mb-1">PO</div>
+            <div className="font-semibold text-gray-800">
+              {(item.po ?? 0).toLocaleString()}
+            </div>
+          </div>
+          <div>
+            <div className="text-gray-500 mb-1">Undelivered</div>
+            <div className="font-semibold text-gray-800">
+              {(item.undelivered ?? ((item.po ?? 0) - item.delivered)).toLocaleString()}
+            </div>
           </div>
           <div>
             <div className="text-gray-500 mb-1">Delivered</div>

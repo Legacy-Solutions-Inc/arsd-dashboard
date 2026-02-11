@@ -7,6 +7,7 @@ export type UserRole =
   | 'project_inspector'
   | 'warehouseman'
   | 'purchasing'
+  | 'material_control'
   | 'pending';
 export type UserStatus = 'active' | 'inactive' | 'pending';
 
@@ -56,6 +57,9 @@ export const ROLE_PERMISSIONS = {
   purchasing: [
     'view_assigned_projects'
   ],
+  material_control: [
+    'view_assigned_projects'
+  ],
   pending: []
 } as const;
 
@@ -69,6 +73,7 @@ export const ROLE_HIERARCHY = {
   project_inspector: 1,
   warehouseman: 1,
   purchasing: 1,
+  material_control: 1,
   pending: 0
 } as const;
 
