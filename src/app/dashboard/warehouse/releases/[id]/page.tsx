@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ARSDCard } from '@/components/warehouse/ARSDCard';
 import { BadgeStatus } from '@/components/warehouse/BadgeStatus';
 import { useWarehouseAuth } from '@/hooks/warehouse/useWarehouseAuth';
 import { UniversalLoading } from '@/components/ui/universal-loading';
 import { ReleaseForm } from '@/types/warehouse';
+import { useIPOW } from '@/hooks/warehouse/useIPOW';
 import { ArrowLeft, Package, FileText, Lock, Unlock } from 'lucide-react';
 
 export default function ReleaseFormDetailPage() {
@@ -18,6 +19,36 @@ export default function ReleaseFormDetailPage() {
   const [release, setRelease] = useState<ReleaseForm | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+
+  const projectId = release?.project_id ?? '';
+  const { ipowItems } = useIPOW(projectId);
+
+  const normalizeDescription = (value: string) => value.trim().toLowerCase();
+
+  const resourceIndexByKey = useMemo(() => {
+    const index = new Map<string, string>();
+    ipowItems.forEach((ipow) => {
+      const key = `${ipow.wbs ?? 'null'}|${normalizeDescription(ipow.item_description)}`;
+      if (ipow.resource) {
+        index.set(key, ipow.resource);
+      }
+    });
+    return index;
+  }, [ipowItems]);
+
+  const getItemResource = (item: NonNullable<ReleaseForm['items']>[number]): string | null => {
+    if (!ipowItems || ipowItems.length === 0) return null;
+
+    const keyWithWbs = `${item.wbs ?? 'null'}|${normalizeDescription(item.item_description)}`;
+    const byWbs = resourceIndexByKey.get(keyWithWbs);
+    if (byWbs) return byWbs;
+
+    const normalized = normalizeDescription(item.item_description);
+    const fallbackIpow = ipowItems.find(
+      (ipow) => normalizeDescription(ipow.item_description) === normalized && ipow.resource
+    );
+    return fallbackIpow?.resource ?? null;
+  };
 
   useEffect(() => {
     async function fetchRelease() {
@@ -180,9 +211,21 @@ export default function ReleaseFormDetailPage() {
                 <div key={index} className="glass-card p-4">
                   <dl className="grid grid-cols-2 gap-3 text-sm">
                     <dt className="text-gray-600">Description</dt>
-                    <dd className="font-medium break-words">{item.item_description}</dd>
+                    <dd className="font-medium break-words">
+                      {item.item_description}
+                      {(() => {
+                        const resource = getItemResource(item);
+                        return resource ? (
+                          <span className="block text-xs text-gray-500 mt-0.5">
+                            {resource}
+                          </span>
+                        ) : null;
+                      })()}
+                    </dd>
                     <dt className="text-gray-600">Quantity</dt>
-                    <dd className="font-medium">{item.qty.toLocaleString()} {item.unit}</dd>
+                    <dd className="font-medium">
+                      {item.qty.toLocaleString()} {item.unit}
+                    </dd>
                   </dl>
                 </div>
               ))}
