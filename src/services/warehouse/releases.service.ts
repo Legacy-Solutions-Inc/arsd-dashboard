@@ -103,6 +103,7 @@ export class ReleasesService {
     const releaseItems = items.map((item, index) => ({
       release_form_id: release.id,
       item_description: item.item_description,
+      wbs: item.wbs ?? null,
       qty: item.qty,
       unit: item.unit,
       sort_order: index,
