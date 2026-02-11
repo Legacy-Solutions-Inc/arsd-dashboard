@@ -49,15 +49,49 @@ export default function CreateDRPage() {
     supplier: '',
     items: [] as ItemEntry[],
     drPhoto: null as File | null,
-    poPhoto: null as File | null
+    deliveryProof: null as File | null,
   });
 
+  const [poTotalsByKey, setPoTotalsByKey] = useState<Record<string, number>>({});
+
   const { ipowItems } = useIPOW(formData.projectId);
+
+  const normalizeDescription = (value: string) => value.trim().toLowerCase();
+  const makeKey = (wbs: string | null, description: string) =>
+    `${wbs ?? 'null'}|${normalizeDescription(description)}`;
+
+  useEffect(() => {
+    async function fetchStockPO() {
+      if (!formData.projectId) {
+        setPoTotalsByKey({});
+        return;
+      }
+      try {
+        const response = await fetch(`/api/warehouse/stocks/${formData.projectId}`);
+        if (!response.ok) {
+          console.error('Failed to fetch stock PO for DR form');
+          return;
+        }
+        const data = await response.json() as { wbs: string | null; item_description: string; po?: number }[];
+        const totals: Record<string, number> = {};
+        data.forEach((item) => {
+          const key = makeKey(item.wbs ?? null, item.item_description);
+          const po = Number(item.po ?? 0);
+          totals[key] = (totals[key] ?? 0) + po;
+        });
+        setPoTotalsByKey(totals);
+      } catch (error) {
+        console.error('Error fetching stock PO for DR form', error);
+      }
+    }
+
+    fetchStockPO();
+  }, [formData.projectId]);
 
   const handleAddItem = () => {
     setFormData(prev => ({
       ...prev,
-      items: [...prev.items, { itemDescription: '', qty: 0, qtyInPO: 0, unit: 'kg' }]
+      items: [...prev.items, { itemDescription: '', qty: 0, qtyInPO: 0, unit: 'kg', wbs: null }]
     }));
   };
 
@@ -81,12 +115,17 @@ export default function CreateDRPage() {
     setSubmitError(null);
     setSubmitLoading(true);
     try {
-      const items = formData.items.map((it) => ({
-        item_description: it.itemDescription,
-        qty_in_dr: it.qty,
-        qty_in_po: it.qtyInPO ?? 0,
-        unit: it.unit
-      }));
+      const items = formData.items.map((it) => {
+        const key = makeKey(it.wbs ?? null, it.itemDescription);
+        const totalQtyInPO = poTotalsByKey[key] ?? 0;
+        return {
+          item_description: it.itemDescription,
+          wbs: it.wbs ?? null,
+          qty_in_dr: it.qty,
+          qty_in_po: totalQtyInPO,
+          unit: it.unit,
+        };
+      });
       const fd = new FormData();
       fd.set('project_id', formData.projectId);
       fd.set('supplier', formData.supplier);
@@ -95,7 +134,7 @@ export default function CreateDRPage() {
       fd.set('warehouseman', warehouseman);
       fd.set('items', JSON.stringify(items));
       if (formData.drPhoto) fd.set('dr_photo', formData.drPhoto);
-      if (formData.poPhoto) fd.set('po_photo', formData.poPhoto);
+      if (formData.deliveryProof) fd.set('delivery_proof', formData.deliveryProof);
       const res = await fetch('/api/warehouse/delivery-receipts', {
         method: 'POST',
         body: fd
@@ -124,7 +163,7 @@ export default function CreateDRPage() {
     }
     if (currentSection === 2) {
       return formData.items.length > 0 && formData.items.every(item =>
-        !!item.itemDescription && item.qty > 0 && (item.qtyInPO ?? 0) > 0
+        !!item.itemDescription && item.qty > 0
       );
     }
     if (currentSection === 3) {
@@ -342,6 +381,7 @@ export default function CreateDRPage() {
                 onRemove={handleRemoveItem}
                 onUpdate={handleUpdateItem}
                 showPOQty={true}
+                poTotalsByKey={poTotalsByKey}
                 ipowItems={ipowItems}
               />
             </div>
@@ -367,9 +407,9 @@ export default function CreateDRPage() {
               />
 
               <FileUploader
-                label="PO Photo (Optional)"
-                value={formData.poPhoto}
-                onChange={(file) => setFormData(prev => ({ ...prev, poPhoto: file }))}
+                label="Delivery Proof"
+                value={formData.deliveryProof}
+                onChange={(file) => setFormData(prev => ({ ...prev, deliveryProof: file }))}
                 required={false}
               />
             </div>
@@ -425,8 +465,8 @@ export default function CreateDRPage() {
                     <dd className="font-medium break-words min-w-0">{formData.drPhoto ? formData.drPhoto.name : 'Not uploaded'}</dd>
                   </div>
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2">
-                    <dt className="text-gray-600 shrink-0">PO Photo</dt>
-                    <dd className="font-medium break-words min-w-0">{formData.poPhoto ? formData.poPhoto.name : 'Not uploaded'}</dd>
+                    <dt className="text-gray-600 shrink-0">Delivery Proof</dt>
+                    <dd className="font-medium break-words min-w-0">{formData.deliveryProof ? formData.deliveryProof.name : 'Not uploaded'}</dd>
                   </div>
                 </dl>
               </section>
