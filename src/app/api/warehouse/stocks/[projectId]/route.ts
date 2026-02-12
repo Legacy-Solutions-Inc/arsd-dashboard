@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabase';
+import { createServerSupabaseClient, createServiceSupabaseClient } from '@/lib/supabase';
 import { DeliveryReceiptsService } from '@/services/warehouse/delivery-receipts.service';
 import { ReleasesService } from '@/services/warehouse/releases.service';
 import { IPOWService } from '@/services/warehouse/ipow.service';
@@ -25,6 +25,7 @@ export async function GET(
     const projectId = params.projectId;
 
     const supabase = await createServerSupabaseClient();
+    const serviceSupabase = createServiceSupabaseClient();
     const ipowService = new IPOWService(supabase);
     const drService = new DeliveryReceiptsService(supabase);
     const releaseService = new ReleasesService(supabase);
@@ -33,7 +34,7 @@ export async function GET(
       ipowService.getByProjectId(projectId),
       drService.list({ project_id: projectId }),
       releaseService.list({ project_id: projectId }),
-      supabase
+      serviceSupabase
         .from('stock_po_overrides')
         .select('project_id,wbs,item_description,po')
         .eq('project_id', projectId),
