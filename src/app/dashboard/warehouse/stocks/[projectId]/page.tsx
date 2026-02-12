@@ -384,14 +384,23 @@ export default function StockMonitoringPage() {
                             type="text"
                             inputMode="decimal"
                             className="mobile-form-input w-24 text-center mx-auto"
-                            defaultValue={effectivePO}
+                            value={Number.isFinite(effectivePO) ? effectivePO : 0}
+                            onChange={(e) => {
+                              const safeNewPO = Number(e.target.value) || 0;
+                              setPoDrafts(prev => ({ ...prev, [key]: safeNewPO }));
+                            }}
                             onBlur={(e) => {
                               const safeNewPO = Number(e.target.value) || 0;
                               const originalPO = item.po ?? 0;
                               if (safeNewPO === originalPO) {
+                                // No change; clear any draft override for this key
+                                setPoDrafts(prev => {
+                                  const next = { ...prev };
+                                  delete next[key];
+                                  return next;
+                                });
                                 return;
                               }
-                              setPoDrafts(prev => ({ ...prev, [key]: safeNewPO }));
                               setPoConfirmState({
                                 key,
                                 item,
