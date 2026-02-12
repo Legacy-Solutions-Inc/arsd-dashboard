@@ -8,17 +8,27 @@ import { useWarehouseAuth } from '@/hooks/warehouse/useWarehouseAuth';
 import { UniversalLoading } from '@/components/ui/universal-loading';
 import { ReleaseForm } from '@/types/warehouse';
 import { useIPOW } from '@/hooks/warehouse/useIPOW';
+import { ItemsRepeater, ItemEntry } from '@/components/warehouse/ItemsRepeater';
+import { mapReleaseItemsToEntries, buildUpdateReleasePayload } from '@/utils/warehouse/itemMapping';
 import { ArrowLeft, Package, FileText, Lock, Unlock } from 'lucide-react';
 
 export default function ReleaseFormDetailPage() {
   const params = useParams();
   const router = useRouter();
   const releaseId = params?.id as string;
-  const { canUnlock } = useWarehouseAuth();
+  const { user, canUnlock } = useWarehouseAuth();
 
   const [release, setRelease] = useState<ReleaseForm | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editDate, setEditDate] = useState('');
+  const [editReceivedBy, setEditReceivedBy] = useState('');
+  const [editWarehouseman, setEditWarehouseman] = useState('');
+  const [editPurpose, setEditPurpose] = useState('');
+  const [editItems, setEditItems] = useState<ItemEntry[]>([]);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveLoading, setSaveLoading] = useState(false);
 
   const projectId = release?.project_id ?? '';
   const { ipowItems } = useIPOW(projectId);
@@ -68,6 +78,90 @@ export default function ReleaseFormDetailPage() {
       fetchRelease();
     }
   }, [releaseId]);
+
+  const canEdit = useMemo(() => {
+    if (!release || !user) return false;
+    if (release.locked) return false;
+    if (user.role !== 'warehouseman') return false;
+    const currentName = (user.display_name || '').trim();
+    const releaseWarehouseman = (release.warehouseman || '').trim();
+    return currentName !== '' && currentName === releaseWarehouseman;
+  }, [release, user]);
+
+  const handleEnterEdit = () => {
+    if (!release || !canEdit) return;
+    setIsEditing(true);
+    setSaveError(null);
+    setEditDate(release.date);
+    setEditReceivedBy(release.received_by);
+    setEditWarehouseman(release.warehouseman || '');
+    setEditPurpose(release.purpose || '');
+    setEditItems(mapReleaseItemsToEntries(release.items));
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setSaveError(null);
+  };
+
+  const handleAddItem = () => {
+    setEditItems((prev) => [
+      ...prev,
+      { itemDescription: '', qty: 0, unit: 'kg', wbs: null },
+    ]);
+  };
+
+  const handleRemoveItem = (index: number) => {
+    setEditItems((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleUpdateItem = (index: number, field: keyof ItemEntry, value: string | number) => {
+    setEditItems((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, [field]: value } : item)),
+    );
+  };
+
+  const canSave = useMemo(() => {
+    if (!isEditing) return false;
+    if (!editDate || !editReceivedBy) return false;
+    if (editItems.length === 0) return false;
+    return editItems.every((item) => item.itemDescription.trim() !== '' && item.qty > 0);
+  }, [isEditing, editDate, editReceivedBy, editItems]);
+
+  const handleSave = async () => {
+    if (!release || !canEdit || !canSave) return;
+    setSaveError(null);
+    setSaveLoading(true);
+
+    try {
+      const payload = {
+        ...buildUpdateReleasePayload(release, editItems),
+        date: editDate,
+        received_by: editReceivedBy,
+        warehouseman: editWarehouseman || null,
+        purpose: editPurpose || null,
+      };
+
+      const response = await fetch(`/api/warehouse/releases/${release.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const json = await response.json().catch(() => null);
+        throw new Error(json?.error || 'Failed to save changes');
+      }
+
+      const updated = await response.json();
+      setRelease(updated);
+      setIsEditing(false);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Failed to save changes');
+    } finally {
+      setSaveLoading(false);
+    }
+  };
 
   const handleLockToggle = async () => {
     if (!release) return;
@@ -142,18 +236,58 @@ export default function ReleaseFormDetailPage() {
                 {canUnlock && (
                   <button
                     onClick={handleLockToggle}
+                    disabled={isEditing}
                     className={`btn-arsd-outline mobile-button flex items-center gap-2 ${
                       release.locked
                         ? 'text-amber-700 border-amber-300 hover:bg-amber-50'
                         : 'text-green-700 border-green-300 hover:bg-green-50'
-                    }`}
+                    } ${isEditing ? 'opacity-60 cursor-not-allowed' : ''}`}
                   >
                     {release.locked ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
                     {release.locked ? 'Unlock' : 'Lock'}
                   </button>
                 )}
+                {canEdit && !isEditing && (
+                  <button
+                    type="button"
+                    onClick={handleEnterEdit}
+                    className="btn-arsd-primary mobile-button flex items-center gap-2"
+                  >
+                    Edit
+                  </button>
+                )}
+                {canEdit && isEditing && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={handleSave}
+                      disabled={!canSave || saveLoading}
+                      className="btn-arsd-primary mobile-button flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      {saveLoading ? 'Saving…' : 'Save changes'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCancelEdit}
+                      disabled={saveLoading}
+                      className="btn-arsd-outline mobile-button flex items-center gap-2"
+                    >
+                      Cancel
+                    </button>
+                  </>
+                )}
               </div>
             </div>
+            {isEditing && (
+              <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                You are editing this unlocked release form. Changes will update the existing record.
+              </div>
+            )}
+            {saveError && (
+              <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800">
+                {saveError}
+              </div>
+            )}
           </div>
         </div>
 
@@ -174,22 +308,65 @@ export default function ReleaseFormDetailPage() {
               </div>
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-red-200/20">
                 <dt className="text-gray-600 shrink-0">Date</dt>
-                <dd className="font-medium break-words min-w-0">{release.date}</dd>
+                <dd className="font-medium break-words min-w-0">
+                  {isEditing ? (
+                    <input
+                      type="date"
+                      value={editDate}
+                      onChange={(e) => setEditDate(e.target.value)}
+                      className="mobile-form-input w-full sm:max-w-xs"
+                    />
+                  ) : (
+                    release.date
+                  )}
+                </dd>
               </div>
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-red-200/20">
                 <dt className="text-gray-600 shrink-0">Received By</dt>
-                <dd className="font-medium break-words min-w-0">{release.received_by}</dd>
+                <dd className="font-medium break-words min-w-0">
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={editReceivedBy}
+                      onChange={(e) => setEditReceivedBy(e.target.value)}
+                      className="mobile-form-input w-full sm:max-w-md"
+                    />
+                  ) : (
+                    release.received_by
+                  )}
+                </dd>
               </div>
               {release.warehouseman && (
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-red-200/20">
                   <dt className="text-gray-600 shrink-0">Warehouseman</dt>
-                  <dd className="font-medium break-words min-w-0">{release.warehouseman}</dd>
+                  <dd className="font-medium break-words min-w-0">
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        value={editWarehouseman}
+                        onChange={(e) => setEditWarehouseman(e.target.value)}
+                        className="mobile-form-input w-full sm:max-w-md"
+                      />
+                    ) : (
+                      release.warehouseman
+                    )}
+                  </dd>
                 </div>
               )}
               {release.purpose && (
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1 py-2 border-b border-red-200/20">
                   <dt className="text-gray-600 shrink-0">Purpose</dt>
-                  <dd className="font-medium break-words min-w-0">{release.purpose}</dd>
+                  <dd className="font-medium break-words min-w-0">
+                    {isEditing ? (
+                      <textarea
+                        value={editPurpose}
+                        onChange={(e) => setEditPurpose(e.target.value)}
+                        className="mobile-form-input w-full sm:max-w-xl min-h-[80px]"
+                      />
+                    ) : (
+                      release.purpose
+                    )}
+                  </dd>
                 </div>
               )}
             </dl>
@@ -203,33 +380,46 @@ export default function ReleaseFormDetailPage() {
               <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
                 <Package className="h-5 w-5 text-arsd-red" />
               </div>
-              <h2 className="text-lg sm:text-xl font-bold text-arsd-primary">Items ({release.items?.length || 0})</h2>
+              <h2 className="text-lg sm:text-xl font-bold text-arsd-primary">
+                Items ({(isEditing ? editItems.length : release.items?.length) || 0})
+              </h2>
             </div>
 
-            <div className="space-y-4">
-              {release.items?.map((item, index) => (
-                <div key={index} className="glass-card p-4">
-                  <dl className="grid grid-cols-2 gap-3 text-sm">
-                    <dt className="text-gray-600">Description</dt>
-                    <dd className="font-medium break-words">
-                      {item.item_description}
-                      {(() => {
-                        const resource = getItemResource(item);
-                        return resource ? (
-                          <span className="block text-xs text-gray-500 mt-0.5">
-                            {resource}
-                          </span>
-                        ) : null;
-                      })()}
-                    </dd>
-                    <dt className="text-gray-600">Quantity</dt>
-                    <dd className="font-medium">
-                      {item.qty.toLocaleString()} {item.unit}
-                    </dd>
-                  </dl>
-                </div>
-              ))}
-            </div>
+            {isEditing ? (
+              <ItemsRepeater
+                items={editItems}
+                onAdd={handleAddItem}
+                onRemove={handleRemoveItem}
+                onUpdate={handleUpdateItem}
+                showPOQty={false}
+                ipowItems={ipowItems}
+              />
+            ) : (
+              <div className="space-y-4">
+                {release.items?.map((item, index) => (
+                  <div key={index} className="glass-card p-4">
+                    <dl className="grid grid-cols-2 gap-3 text-sm">
+                      <dt className="text-gray-600">Description</dt>
+                      <dd className="font-medium break-words">
+                        {item.item_description}
+                        {(() => {
+                          const resource = getItemResource(item);
+                          return resource ? (
+                            <span className="block text-xs text-gray-500 mt-0.5">
+                              {resource}
+                            </span>
+                          ) : null;
+                        })()}
+                      </dd>
+                      <dt className="text-gray-600">Quantity</dt>
+                      <dd className="font-medium">
+                        {item.qty.toLocaleString()} {item.unit}
+                      </dd>
+                    </dl>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </ARSDCard>
 

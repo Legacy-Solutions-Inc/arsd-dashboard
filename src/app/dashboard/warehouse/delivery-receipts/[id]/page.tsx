@@ -9,18 +9,28 @@ import { useWarehouseAuth } from '@/hooks/warehouse/useWarehouseAuth';
 import { UniversalLoading } from '@/components/ui/universal-loading';
 import { DeliveryReceipt } from '@/types/warehouse';
 import { useIPOW } from '@/hooks/warehouse/useIPOW';
+import { ItemsRepeater, ItemEntry } from '@/components/warehouse/ItemsRepeater';
+import { mapDrItemsToEntries, buildUpdateDrPayload, mapEntriesToDrUpdateItems } from '@/utils/warehouse/itemMapping';
 import { ArrowLeft, Package, FileText, Lock, Unlock } from 'lucide-react';
 
 export default function DeliveryReceiptDetailPage() {
   const params = useParams();
   const router = useRouter();
   const drId = params?.id as string;
-  const { canUnlock } = useWarehouseAuth();
+  const { user, canUnlock } = useWarehouseAuth();
 
   const [dr, setDR] = useState<DeliveryReceipt | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [previewImage, setPreviewImage] = useState<{ url: string; label: string } | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editItems, setEditItems] = useState<ItemEntry[]>([]);
+  const [editDate, setEditDate] = useState('');
+  const [editTime, setEditTime] = useState('');
+  const [editSupplier, setEditSupplier] = useState('');
+  const [editWarehouseman, setEditWarehouseman] = useState('');
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveLoading, setSaveLoading] = useState(false);
 
   const projectId = dr?.project_id ?? '';
   const { ipowItems } = useIPOW(projectId);
@@ -71,6 +81,102 @@ export default function DeliveryReceiptDetailPage() {
       fetchDR();
     }
   }, [drId]);
+
+  const canEdit = useMemo(() => {
+    if (!dr || !user) return false;
+    if (dr.locked) return false;
+    if (user.role !== 'warehouseman') return false;
+    const currentName = (user.display_name || '').trim();
+    return currentName !== '' && currentName === dr.warehouseman;
+  }, [dr, user]);
+
+  const poTotalsByKey = useMemo(() => {
+    // For now we do not have PO totals on the detail page; default to zero.
+    return {} as Record<string, number>;
+  }, []);
+
+  const handleEnterEdit = () => {
+    if (!dr || !canEdit) return;
+    setSaveError(null);
+    setIsEditing(true);
+    setEditDate(dr.date);
+    setEditTime(dr.time ?? '');
+    setEditSupplier(dr.supplier);
+    setEditWarehouseman(dr.warehouseman);
+    setEditItems(mapDrItemsToEntries(dr.items));
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setSaveError(null);
+  };
+
+  const handleAddItem = () => {
+    setEditItems((prev) => [
+      ...prev,
+      { itemDescription: '', qty: 0, qtyInPO: 0, unit: 'kg', wbs: null },
+    ]);
+  };
+
+  const handleRemoveItem = (index: number) => {
+    setEditItems((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleUpdateItem = (index: number, field: keyof ItemEntry, value: string | number) => {
+    setEditItems((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, [field]: value } : item)),
+    );
+  };
+
+  const canSave = useMemo(() => {
+    if (!isEditing) return false;
+    if (!editDate || !editSupplier || !editWarehouseman) return false;
+    if (editItems.length === 0) return false;
+    return editItems.every((item) => item.itemDescription.trim() !== '' && item.qty > 0);
+  }, [isEditing, editDate, editSupplier, editWarehouseman, editItems]);
+
+  const handleSave = async () => {
+    if (!dr || !canEdit || !canSave) return;
+    setSaveError(null);
+    setSaveLoading(true);
+
+    try {
+      // Use mapping helpers to build payload, but override fields from edit state.
+      const mappedItems = mapEntriesToDrUpdateItems(
+        editItems.map((item) => ({
+          ...item,
+          qtyInPO: item.qtyInPO ?? 0,
+        })),
+      );
+
+      const payload = {
+        ...buildUpdateDrPayload(dr, editItems, mappedItems),
+        supplier: editSupplier,
+        date: editDate,
+        time: editTime || null,
+        warehouseman: editWarehouseman,
+      };
+
+      const response = await fetch(`/api/warehouse/delivery-receipts/${dr.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const json = await response.json().catch(() => null);
+        throw new Error(json?.error || 'Failed to save changes');
+      }
+
+      const updated = await response.json();
+      setDR(updated);
+      setIsEditing(false);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Failed to save changes');
+    } finally {
+      setSaveLoading(false);
+    }
+  };
 
   const handleLockToggle = async () => {
     if (!dr) return;
@@ -145,18 +251,58 @@ export default function DeliveryReceiptDetailPage() {
                 {canUnlock && (
                   <button
                     onClick={handleLockToggle}
+                    disabled={isEditing}
                     className={`btn-arsd-outline mobile-button flex items-center gap-2 ${
                       dr.locked
                         ? 'text-amber-700 border-amber-300 hover:bg-amber-50'
                         : 'text-green-700 border-green-300 hover:bg-green-50'
-                    }`}
+                    } ${isEditing ? 'opacity-60 cursor-not-allowed' : ''}`}
                   >
                     {dr.locked ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
                     {dr.locked ? 'Unlock' : 'Lock'}
                   </button>
                 )}
+                {canEdit && !isEditing && (
+                  <button
+                    type="button"
+                    onClick={handleEnterEdit}
+                    className="btn-arsd-primary mobile-button flex items-center gap-2"
+                  >
+                    Edit
+                  </button>
+                )}
+                {canEdit && isEditing && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={handleSave}
+                      disabled={!canSave || saveLoading}
+                      className="btn-arsd-primary mobile-button flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      {saveLoading ? 'Saving…' : 'Save changes'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCancelEdit}
+                      disabled={saveLoading}
+                      className="btn-arsd-outline mobile-button flex items-center gap-2"
+                    >
+                      Cancel
+                    </button>
+                  </>
+                )}
               </div>
             </div>
+            {isEditing && (
+              <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                You are editing this unlocked delivery receipt. Changes will update the existing record.
+              </div>
+            )}
+            {saveError && (
+              <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800">
+                {saveError}
+              </div>
+            )}
           </div>
         </div>
 
@@ -177,15 +323,58 @@ export default function DeliveryReceiptDetailPage() {
               </div>
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-red-200/20">
                 <dt className="text-gray-600 shrink-0">Date</dt>
-                <dd className="font-medium break-words min-w-0">{dr.date} {dr.time && `at ${dr.time}`}</dd>
+                <dd className="font-medium break-words min-w-0">
+                  {isEditing ? (
+                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:max-w-md">
+                      <input
+                        type="date"
+                        value={editDate}
+                        onChange={(e) => setEditDate(e.target.value)}
+                        className="mobile-form-input flex-1"
+                      />
+                      <input
+                        type="time"
+                        value={editTime}
+                        onChange={(e) => setEditTime(e.target.value)}
+                        className="mobile-form-input flex-1"
+                      />
+                    </div>
+                  ) : (
+                    <>
+                      {dr.date} {dr.time && `at ${dr.time}`}
+                    </>
+                  )}
+                </dd>
               </div>
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-red-200/20">
                 <dt className="text-gray-600 shrink-0">Supplier</dt>
-                <dd className="font-medium break-words min-w-0">{dr.supplier}</dd>
+                <dd className="font-medium break-words min-w-0">
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={editSupplier}
+                      onChange={(e) => setEditSupplier(e.target.value)}
+                      className="mobile-form-input w-full sm:max-w-md"
+                    />
+                  ) : (
+                    dr.supplier
+                  )}
+                </dd>
               </div>
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-red-200/20">
                 <dt className="text-gray-600 shrink-0">Warehouseman</dt>
-                <dd className="font-medium break-words min-w-0">{dr.warehouseman}</dd>
+                <dd className="font-medium break-words min-w-0">
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={editWarehouseman}
+                      onChange={(e) => setEditWarehouseman(e.target.value)}
+                      className="mobile-form-input w-full sm:max-w-md"
+                    />
+                  ) : (
+                    dr.warehouseman
+                  )}
+                </dd>
               </div>
               {dr.dr_photo_url && (
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-red-200/20">
@@ -236,33 +425,47 @@ export default function DeliveryReceiptDetailPage() {
               <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
                 <Package className="h-5 w-5 text-arsd-red" />
               </div>
-              <h2 className="text-lg sm:text-xl font-bold text-arsd-primary">Items ({dr.items?.length || 0})</h2>
+              <h2 className="text-lg sm:text-xl font-bold text-arsd-primary">
+                Items ({(isEditing ? editItems.length : dr.items?.length) || 0})
+              </h2>
             </div>
 
-            <div className="space-y-4">
-              {dr.items?.map((item, index) => (
-                <div key={index} className="glass-card p-4">
-                  <dl className="grid grid-cols-2 gap-3 text-sm">
-                    <dt className="text-gray-600">Description</dt>
-                    <dd className="font-medium break-words">
-                      {item.item_description}
-                      {(() => {
-                        const resource = getItemResource(item);
-                        return resource ? (
-                          <span className="block text-xs text-gray-500 mt-0.5">
-                            {resource}
-                          </span>
-                        ) : null;
-                      })()}
-                    </dd>
-                    <dt className="text-gray-600">Qty in DR</dt>
-                    <dd className="font-medium">
-                      {item.qty_in_dr.toLocaleString()} {item.unit}
-                    </dd>
-                  </dl>
-                </div>
-              ))}
-            </div>
+            {isEditing ? (
+              <ItemsRepeater
+                items={editItems}
+                onAdd={handleAddItem}
+                onRemove={handleRemoveItem}
+                onUpdate={handleUpdateItem}
+                showPOQty
+                poTotalsByKey={poTotalsByKey}
+                ipowItems={ipowItems}
+              />
+            ) : (
+              <div className="space-y-4">
+                {dr.items?.map((item, index) => (
+                  <div key={index} className="glass-card p-4">
+                    <dl className="grid grid-cols-2 gap-3 text-sm">
+                      <dt className="text-gray-600">Description</dt>
+                      <dd className="font-medium break-words">
+                        {item.item_description}
+                        {(() => {
+                          const resource = getItemResource(item);
+                          return resource ? (
+                            <span className="block text-xs text-gray-500 mt-0.5">
+                              {resource}
+                            </span>
+                          ) : null;
+                        })()}
+                      </dd>
+                      <dt className="text-gray-600">Qty in DR</dt>
+                      <dd className="font-medium">
+                        {item.qty_in_dr.toLocaleString()} {item.unit}
+                      </dd>
+                    </dl>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </ARSDCard>
       </div>
