@@ -73,6 +73,27 @@ export interface CreateDeliveryReceiptInput {
   delivery_proof?: File;
 }
 
+// Update types (used when editing existing DRs/Releases)
+// These mirror the create inputs but do not include File objects, since
+// inline edit for now only works with JSON payloads and existing URLs.
+
+export interface UpdateDRItemInput {
+  item_description: string;
+  wbs?: string | null;
+  qty_in_dr: number;
+  qty_in_po: number;
+  unit: string;
+}
+
+export interface UpdateDeliveryReceiptInput {
+  project_id: string;
+  supplier: string;
+  date: string;
+  time?: string | null;
+  warehouseman: string;
+  items: UpdateDRItemInput[];
+}
+
 export interface CreateReleaseItemInput {
   item_description: string;
   wbs?: string | null;
@@ -88,6 +109,22 @@ export interface CreateReleaseFormInput {
   purpose?: string;
   items: CreateReleaseItemInput[];
   attachment?: File;
+}
+
+export interface UpdateReleaseItemInput {
+  item_description: string;
+  wbs?: string | null;
+  qty: number;
+  unit: string;
+}
+
+export interface UpdateReleaseFormInput {
+  project_id: string;
+  received_by: string;
+  date: string;
+  warehouseman?: string | null;
+  purpose?: string | null;
+  items: UpdateReleaseItemInput[];
 }
 
 // Filter types
