@@ -1,5 +1,11 @@
 import { createClient } from '@/lib/supabase';
-import { DeliveryReceipt, DRItem, CreateDeliveryReceiptInput, DeliveryReceiptFilters } from '@/types/warehouse';
+import {
+  DeliveryReceipt,
+  DRItem,
+  CreateDeliveryReceiptInput,
+  DeliveryReceiptFilters,
+  UpdateDeliveryReceiptInput,
+} from '@/types/warehouse';
 
 export type DeliveryReceiptsSupabaseClient = ReturnType<typeof createClient>;
 
@@ -137,6 +143,65 @@ export class DeliveryReceiptsService {
     if (error) {
       throw new Error(`Failed to update lock status: ${error.message}`);
     }
+  }
+
+  /**
+   * Update an existing delivery receipt and its items.
+   * Intended for inline edit flows. Does not handle file uploads.
+   */
+  async update(id: string, input: UpdateDeliveryReceiptInput): Promise<DeliveryReceipt> {
+    // Ensure DR is unlocked before allowing update
+    const current = await this.getById(id);
+    if (current.locked) {
+      throw new Error('Cannot edit a locked delivery receipt');
+    }
+
+    const { items, ...drData } = input;
+
+    const { error: drError } = await this.supabase
+      .from('delivery_receipts')
+      .update({
+        project_id: drData.project_id,
+        supplier: drData.supplier,
+        date: drData.date,
+        time: drData.time ?? null,
+        warehouseman: drData.warehouseman,
+      })
+      .eq('id', id);
+
+    if (drError) {
+      throw new Error(`Failed to update delivery receipt: ${drError.message}`);
+    }
+
+    // Replace items
+    const { error: deleteError } = await this.supabase
+      .from('dr_items')
+      .delete()
+      .eq('delivery_receipt_id', id);
+
+    if (deleteError) {
+      throw new Error(`Failed to clear DR items: ${deleteError.message}`);
+    }
+
+    const drItems = items.map((item, index) => ({
+      delivery_receipt_id: id,
+      item_description: item.item_description,
+      wbs: item.wbs ?? null,
+      qty_in_dr: item.qty_in_dr,
+      qty_in_po: item.qty_in_po,
+      unit: item.unit,
+      sort_order: index,
+    }));
+
+    const { error: insertError } = await this.supabase
+      .from('dr_items')
+      .insert(drItems as DRItem[]);
+
+    if (insertError) {
+      throw new Error(`Failed to update DR items: ${insertError.message}`);
+    }
+
+    return this.getById(id);
   }
 
   /**
