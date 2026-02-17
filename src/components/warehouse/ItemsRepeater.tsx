@@ -51,6 +51,28 @@ function makeKey(wbs: string | null | undefined, description: string): string {
   return `${wbs ?? 'null'}|${normalizeDescription(description)}`;
 }
 
+function getResourceForEntry(entry: ItemEntry, ipowItems: IPOWItem[]): string | null {
+  if (!entry.itemDescription.trim() || ipowItems.length === 0) return null;
+  const normDesc = normalizeDescription(entry.itemDescription);
+  const byKey = ipowItems.find(
+    (ip) =>
+      (ip.wbs ?? 'null') === (entry.wbs ?? 'null') &&
+      normalizeDescription(ip.item_description) === normDesc &&
+      ip.resource
+  );
+  return byKey?.resource ?? null;
+}
+
+function isIpowMatched(entry: ItemEntry, ipowItems: IPOWItem[]): boolean {
+  if (!entry.itemDescription.trim() || ipowItems.length === 0) return false;
+  const normDesc = normalizeDescription(entry.itemDescription);
+  return ipowItems.some(
+    (ip) =>
+      (ip.wbs ?? 'null') === (entry.wbs ?? 'null') &&
+      normalizeDescription(ip.item_description) === normDesc
+  );
+}
+
 export function ItemsRepeater({
   items,
   onAdd,
@@ -143,13 +165,28 @@ export function ItemsRepeater({
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 Item Description
               </label>
-              <input
-                type="text"
-                value={item.itemDescription}
-                onChange={(e) => onUpdate(index, 'itemDescription', e.target.value)}
-                className="mobile-form-input w-full"
-                placeholder="Enter item description"
-              />
+              {ipowItems.length > 0 && isIpowMatched(item, ipowItems) ? (
+                <div className="mobile-form-input w-full bg-gray-50 cursor-not-allowed">
+                  {item.itemDescription}
+                </div>
+              ) : (
+                <input
+                  type="text"
+                  value={item.itemDescription}
+                  onChange={(e) => onUpdate(index, 'itemDescription', e.target.value)}
+                  className="mobile-form-input w-full"
+                  placeholder="Enter item description"
+                />
+              )}
+              {ipowItems.length > 0 && (() => {
+                const resource = getResourceForEntry(item, ipowItems);
+                return resource ? (
+                  <div className="mt-2 rounded-md bg-gray-50/80 px-3 py-2">
+                    <span className="block text-[10px] uppercase tracking-wide text-gray-500 mb-0.5">Resource</span>
+                    <p className="text-sm text-gray-600 break-words">{resource}</p>
+                  </div>
+                ) : null;
+              })()}
             </div>
 
             <div className="grid grid-cols-2 gap-3">
