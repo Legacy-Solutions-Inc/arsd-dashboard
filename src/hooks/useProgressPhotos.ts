@@ -73,7 +73,7 @@ export function useAllProgressPhotos(filters?: ProgressPhotoFilters) {
       }
       // Note: Superadmins and HR bypass these filters and see all photos
       
-      // Fetch filtered photos from database
+      // Fetch filtered photos from database (enforced by service/DB query)
       const data = await service.getAllProgressPhotos(queryFilters);
 
       setPhotos(data);
