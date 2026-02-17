@@ -28,6 +28,24 @@ export class IPOWService {
   }
 
   /**
+   * Get IPOW items with type 'Materials' for a specific project
+   */
+  async getMaterialsByProjectId(projectId: string): Promise<IPOWItem[]> {
+    const { data, error } = await this.supabase
+      .from('ipow_items')
+      .select('*')
+      .eq('project_id', projectId)
+      .eq('type', 'Materials')
+      .order('wbs', { ascending: true });
+
+    if (error) {
+      throw new Error(`Failed to fetch IPOW items: ${error.message}`);
+    }
+
+    return data || [];
+  }
+
+  /**
    * Get a single IPOW item by ID
    */
   async getById(id: string): Promise<IPOWItem> {

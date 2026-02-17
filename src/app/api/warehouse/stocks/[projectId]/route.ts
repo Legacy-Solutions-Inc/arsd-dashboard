@@ -31,7 +31,7 @@ export async function GET(
     const releaseService = new ReleasesService(supabase);
 
     const [ipowItems, deliveryReceipts, releaseForms, poOverridesResult] = await Promise.all([
-      ipowService.getByProjectId(projectId),
+      ipowService.getMaterialsByProjectId(projectId),
       drService.list({ project_id: projectId }),
       releaseService.list({ project_id: projectId }),
       serviceSupabase

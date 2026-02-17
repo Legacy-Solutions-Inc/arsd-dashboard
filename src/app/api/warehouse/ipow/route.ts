@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     }
 
     const service = new IPOWService(supabase);
-    const items = await service.getByProjectId(projectId);
+    const items = await service.getMaterialsByProjectId(projectId);
 
     return NextResponse.json(items);
   } catch (error) {
