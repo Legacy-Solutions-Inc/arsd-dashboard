@@ -128,18 +128,18 @@ export class AutoParseService {
         return { parsed: 0, total: 0, errors: [] };
       }
 
-      let parsedCount = 0;
-      const errors: string[] = [];
+      // Process each approved report in parallel
+      const results = await Promise.all(
+        approvedReports.map(async (report) => {
+          const result = await this.parseApprovedReport(report.id);
+          return { ...result, reportId: report.id };
+        })
+      );
 
-      // Process each approved report
-      for (const report of approvedReports) {
-        const result = await this.parseApprovedReport(report.id);
-        if (result.success) {
-          parsedCount++;
-        } else {
-          errors.push(`Report ${report.id}: ${result.error}`);
-        }
-      }
+      const parsedCount = results.filter(r => r.success).length;
+      const errors = results
+        .filter(r => !r.success)
+        .map(r => `Report ${r.reportId}: ${r.error}`);
 
       return {
         parsed: parsedCount,
