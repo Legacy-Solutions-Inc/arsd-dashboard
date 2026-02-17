@@ -48,6 +48,12 @@ export class ProgressPhotosService extends BaseService {
       if (filters?.uploaded_by) {
         query = query.eq('uploaded_by', filters.uploaded_by);
       }
+      if (filters?.project_manager_id) {
+        query = query.eq('project_manager_id', filters.project_manager_id);
+      }
+      if (filters?.project_inspector_id) {
+        query = query.eq('project_inspector_id', filters.project_inspector_id);
+      }
 
       const { data, error } = await query;
       if (error) throw error;
