@@ -97,12 +97,15 @@ export class WebsiteProjectsService {
     }
 
     if (payload.existing_photos) {
-      for (const photo of payload.existing_photos) {
-        await supabase
-          .from("website_project_photos")
-          .update({ order_index: photo.order_index })
-          .eq("id", photo.id);
-      }
+      await Promise.all(
+        payload.existing_photos.map(async (photo) => {
+          const { error } = await supabase
+            .from("website_project_photos")
+            .update({ order_index: photo.order_index })
+            .eq("id", photo.id);
+          if (error) throw error;
+        })
+      );
     }
   }
 
@@ -228,27 +231,28 @@ export class WebsiteProjectsService {
 
   private static async uploadPhotos(projectId: string, files: File[]) {
     const supabase = createClient();
-    
-    for (let index = 0; index < files.length; index++) {
-      const file = files[index];
-      const path = `${projectId}/${Date.now()}-${index}.${file.name.split(".").pop()}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from("website-projects")
-        .upload(path, file, { upsert: false });
-      
-      if (uploadError) throw uploadError;
+    await Promise.all(
+      files.map(async (file, index) => {
+        const path = `${projectId}/${Date.now()}-${index}.${file.name.split(".").pop()}`;
 
-      const { error: insertPhotoError } = await supabase
-        .from("website_project_photos")
-        .insert({
-          project_id: projectId,
-          file_path: path,
-          order_index: index,
-        });
-      
-      if (insertPhotoError) throw insertPhotoError;
-    }
+        const { error: uploadError } = await supabase.storage
+          .from("website-projects")
+          .upload(path, file, { upsert: false });
+
+        if (uploadError) throw uploadError;
+
+        const { error: insertPhotoError } = await supabase
+          .from("website_project_photos")
+          .insert({
+            project_id: projectId,
+            file_path: path,
+            order_index: index,
+          });
+
+        if (insertPhotoError) throw insertPhotoError;
+      })
+    );
   }
 
 }
