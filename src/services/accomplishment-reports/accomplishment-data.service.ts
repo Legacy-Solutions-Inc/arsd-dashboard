@@ -502,16 +502,18 @@ export class AccomplishmentDataService extends BaseService {
         'purchase_orders',
       ];
 
-      for (const table of tables) {
-        const { error } = await supabase
-          .from(table)
-          .delete()
-          .eq('accomplishment_report_id', accomplishment_report_id);
+      await Promise.all(
+        tables.map(async (table) => {
+          const { error } = await supabase
+            .from(table)
+            .delete()
+            .eq('accomplishment_report_id', accomplishment_report_id);
 
-        if (error) {
-          console.warn(`Error deleting from ${table}:`, error);
-        }
-      }
+          if (error) {
+            console.warn(`Error deleting from ${table}:`, error);
+          }
+        })
+      );
     } catch (error) {
       console.error('Error deleting accomplishment data:', error);
       throw new Error(`Failed to delete accomplishment data: ${error instanceof Error ? error.message : 'Unknown error'}`);
