@@ -61,7 +61,7 @@ export async function getCurrentWarehouseUser(): Promise<WarehouseUser | null> {
 export async function getAccessibleWarehouseProjects(user: WarehouseUser) {
   const supabase = createClient();
 
-  if (user.role === 'superadmin' || user.role === 'purchasing') {
+  if (user.role === 'superadmin' || user.role === 'purchasing' || user.role === 'material_control') {
     // Can see all projects
     const { data, error } = await supabase
       .from('projects')
