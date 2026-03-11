@@ -53,7 +53,7 @@ export default function StockMonitoringPage() {
 
   const project = projects.find(p => p.id === projectId);
 
-  const canEditPO = user?.role === 'superadmin' || user?.role === 'material_control';
+  const canEditPO = user?.role === 'superadmin' || user?.role === 'material_control' || user?.role === 'purchasing';
   const isWarehouseman = user?.role === 'warehouseman';
 
   const handleUpdatePO = async (item: StockItem, newPO: number) => {
