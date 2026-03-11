@@ -27,7 +27,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    if (profile.role !== 'material_control' && profile.role !== 'superadmin') {
+    if (!['superadmin', 'material_control', 'purchasing'].includes(profile.role)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
