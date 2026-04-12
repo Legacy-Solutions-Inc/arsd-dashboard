@@ -1,30 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createServerSupabaseClient } from '@/lib/supabase';
 import { StorageCleanupService } from '@/services/storage/storage-cleanup.service';
 
 /**
  * POST /api/storage/cleanup
- * 
+ *
  * Cleans up old parsed accomplishment report files from storage.
- * 
- * Query parameters:
- * - dryRun: boolean - If true, only shows what would be deleted without actually deleting
- * - weeksToKeep: number - Number of weeks to keep (default: 2)
- * 
- * Body (optional):
- * - dryRun: boolean
- * - weeksToKeep: number
- * - batchSize: number
- * 
- * Returns:
- * - success: boolean
- * - filesDeleted: number
- * - storageFreed: number (bytes)
- * - errors: string[]
- * - deletedFiles: string[]
- * - stats: object with cleanup statistics
+ * Requires superadmin role.
  */
 export async function POST(request: NextRequest) {
   try {
+    // Auth check — superadmin only
+    const supabase = await createServerSupabaseClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single();
+    if (!profile || profile.role !== 'superadmin') {
+      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
+    }
+
     // Parse query parameters
     const url = new URL(request.url);
     const dryRunParam = url.searchParams.get('dryRun');
@@ -109,18 +109,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(response);
 
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('❌ Cleanup API error:', errorMessage);
-    
+    console.error('❌ Cleanup API error:', error instanceof Error ? error.message : error);
+
     return NextResponse.json(
-      { 
+      {
         success: false,
-        error: 'Internal server error',
-        message: `Cleanup failed: ${errorMessage}`,
+        error: 'Cleanup failed',
         filesDeleted: 0,
         storageFreed: 0,
-        errors: [errorMessage]
-      }, 
+        errors: []
+      },
       { status: 500 }
     );
   }
@@ -128,21 +126,27 @@ export async function POST(request: NextRequest) {
 
 /**
  * GET /api/storage/cleanup
- * 
+ *
  * Gets cleanup statistics without performing any cleanup.
- * 
- * Query parameters:
- * - weeksToKeep: number - Number of weeks to keep (default: 2)
- * 
- * Returns:
- * - totalFilesToDelete: number
- * - totalSizeToFree: number (bytes)
- * - cutoffDate: string
- * - oldestFile: string
- * - newestFile: string
+ * Requires superadmin role.
  */
 export async function GET(request: NextRequest) {
   try {
+    // Auth check — superadmin only
+    const supabase = await createServerSupabaseClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single();
+    if (!profile || profile.role !== 'superadmin') {
+      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
+    }
+
     const url = new URL(request.url);
     const weeksToKeepParam = url.searchParams.get('weeksToKeep');
     
@@ -171,15 +175,13 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('❌ Cleanup stats API error:', errorMessage);
-    
+    console.error('❌ Cleanup stats API error:', error instanceof Error ? error.message : error);
+
     return NextResponse.json(
-      { 
+      {
         success: false,
-        error: 'Internal server error',
-        message: `Failed to get cleanup stats: ${errorMessage}`
-      }, 
+        error: 'Failed to get cleanup stats',
+      },
       { status: 500 }
     );
   }

@@ -36,15 +36,18 @@ export async function GET(
       releaseService.list({ project_id: projectId }),
       serviceSupabase
         .from('stock_po_overrides')
-        .select('project_id,wbs,item_description,po')
+        .select('project_id,wbs,item_description,po,unit_cost')
         .eq('project_id', projectId),
     ]);
 
-    const poOverrides = new Map<string, number>();
+    const poOverrides = new Map<string, { po: number; unit_cost: number }>();
     if (!poOverridesResult.error && poOverridesResult.data) {
       for (const row of poOverridesResult.data) {
         const key = makeOverrideKey(row.wbs as string | null, row.item_description as string);
-        poOverrides.set(key, Number(row.po) || 0);
+        poOverrides.set(key, {
+          po: Number(row.po) || 0,
+          unit_cost: Number(row.unit_cost) || 0,
+        });
       }
     }
 
@@ -69,9 +72,11 @@ export async function GET(
         const running_balance = delivered - utilized;
         const variance = running_balance - ipow.latest_ipow_qty;
 
-        const poOverride = poOverrides.get(makeOverrideKey(ipow.wbs, ipow.item_description));
-        const po = poOverride ?? 0;
+        const override = poOverrides.get(makeOverrideKey(ipow.wbs, ipow.item_description));
+        const po = override?.po ?? 0;
+        const unit_cost = override?.unit_cost ?? 0;
         const undelivered = po - delivered;
+        const total_unit_cost = po * unit_cost;
 
         return {
           wbs: ipow.wbs,
@@ -85,6 +90,8 @@ export async function GET(
           variance: Number.isFinite(variance) ? variance : 0,
           po,
           undelivered,
+          unit_cost,
+          total_unit_cost,
         };
       });
       return NextResponse.json(stockItems);
@@ -122,9 +129,11 @@ export async function GET(
       }, 0);
       const running_balance = delivered - utilized;
 
-      const poOverride = poOverrides.get(makeOverrideKey(null, item_description));
-      const po = poOverride ?? 0;
+      const override = poOverrides.get(makeOverrideKey(null, item_description));
+      const po = override?.po ?? 0;
+      const unit_cost = override?.unit_cost ?? 0;
       const undelivered = po - delivered;
+      const total_unit_cost = po * unit_cost;
 
       return {
         wbs: null,
@@ -138,6 +147,8 @@ export async function GET(
         variance: 0,
         po,
         undelivered,
+        unit_cost,
+        total_unit_cost,
       };
     });
 

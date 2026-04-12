@@ -1,20 +1,29 @@
 import { NextResponse } from 'next/server';
-import { createServiceSupabaseClient } from '@/lib/supabase';
+import { createServerSupabaseClient, createServiceSupabaseClient } from '@/lib/supabase';
 
 /**
  * POST /api/reset-failed-reports
- * 
+ *
  * Resets the parsing status of reports that failed to parse, allowing them to be retried.
- * Only resets reports with status 'approved' and parsed_status 'failed'.
- * 
- * Returns:
- * - success: boolean
- * - message: string
- * - resetCount: number of reports reset
- * - resetReports: array of reset report details
+ * Requires superadmin role.
  */
 export async function POST() {
   try {
+    // Auth check — superadmin only
+    const authSupabase = await createServerSupabaseClient();
+    const { data: { user } } = await authSupabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const { data: profile } = await authSupabase
+      .from('profiles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single();
+    if (!profile || profile.role !== 'superadmin') {
+      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
+    }
+
     const supabase = createServiceSupabaseClient();
     
     // Reset reports that failed to parse

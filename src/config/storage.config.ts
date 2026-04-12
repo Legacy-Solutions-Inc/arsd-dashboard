@@ -12,7 +12,7 @@ export const STORAGE_CONFIG = {
   
   // File Upload Configuration
   UPLOAD: {
-    MAX_FILE_SIZE: 20 * 1024 * 1024, // 20MB in bytes
+    MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB — matches Supabase bucket limit
     ALLOWED_EXTENSIONS: ['.csv', '.xlsx', '.xls'],
     ALLOWED_MIME_TYPES: [
       'text/csv',

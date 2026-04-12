@@ -7,6 +7,11 @@ import { CreateReleaseFormInput } from '@/types/warehouse';
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const searchParams = request.nextUrl.searchParams;
     const filters = {
       search: searchParams.get('search') || undefined,
@@ -22,7 +27,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching releases:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to fetch releases' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
@@ -30,8 +35,25 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = await createServerSupabaseClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Role check — only warehouse-related roles can create releases
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single();
+    const ALLOWED_ROLES = ['warehouseman', 'project_manager', 'project_inspector', 'superadmin'];
+    if (!profile || !ALLOWED_ROLES.includes(profile.role)) {
+      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
+    }
+
     const formData = await request.formData();
-    
+
     // Extract release data
     const projectId = formData.get('project_id') as string;
     const receivedBy = formData.get('received_by') as string;
@@ -51,7 +73,6 @@ export async function POST(request: NextRequest) {
     const items = JSON.parse(itemsJson);
 
     // Create release first to get ID for file upload (use server client for RLS)
-    const supabase = await createServerSupabaseClient();
     const service = new ReleasesService(supabase);
     // Use service-role client for storage to avoid storage RLS issues
     const storageService = new WarehouseStorageService(createServiceSupabaseClient());
@@ -94,7 +115,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error creating release:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to create release' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

@@ -12,6 +12,7 @@ import { UniversalLoading } from '@/components/ui/universal-loading';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Search, Download, Filter } from 'lucide-react';
+import { downloadStockLedger, EmptyLedgerError } from '@/lib/stock-ledger-export';
 
 interface StockItem {
   wbs: string | null;
@@ -25,6 +26,8 @@ interface StockItem {
   variance: number;
   po?: number;
   undelivered?: number;
+  unit_cost?: number;
+  total_unit_cost?: number;
 }
 
 function getItemKey(item: StockItem): string {
@@ -44,6 +47,14 @@ export default function StockMonitoringPage() {
     originalPO: number;
     newPO: number;
   } | null>(null);
+  const [unitCostDrafts, setUnitCostDrafts] = useState<Record<string, number>>({});
+  const [unitCostConfirmState, setUnitCostConfirmState] = useState<{
+    key: string;
+    item: StockItem;
+    originalUnitCost: number;
+    newUnitCost: number;
+  } | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const { user } = useWarehouseAuth();
   const { projects } = useWarehouseProjects(user);
@@ -117,6 +128,98 @@ export default function StockMonitoringPage() {
     // Revert draft back to original
     setPoDrafts(prev => ({ ...prev, [key]: originalPO }));
     setPoConfirmState(null);
+  };
+
+  const handleUpdateUnitCost = async (item: StockItem, newUnitCost: number) => {
+    if (!canEditPO || !projectId) return;
+
+    const key = getItemKey(item);
+    const originalUnitCost = item.unit_cost ?? 0;
+    const safeNewUnitCost = Number.isFinite(newUnitCost) && newUnitCost >= 0 ? newUnitCost : 0;
+
+    if (safeNewUnitCost === originalUnitCost) {
+      setUnitCostDrafts(prev => {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+      return;
+    }
+
+    const response = await fetch(`/api/warehouse/stocks/${projectId}/po`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        wbs: item.wbs,
+        item_description: item.item_description,
+        unit_cost: safeNewUnitCost,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update unit cost');
+    }
+  };
+
+  const handleConfirmUnitCost = async () => {
+    if (!unitCostConfirmState) return;
+    const { key, item, originalUnitCost, newUnitCost } = unitCostConfirmState;
+
+    setUnitCostDrafts(prev => ({ ...prev, [key]: newUnitCost }));
+
+    try {
+      await handleUpdateUnitCost(item, newUnitCost);
+    } catch {
+      setUnitCostDrafts(prev => ({ ...prev, [key]: originalUnitCost }));
+    } finally {
+      setUnitCostConfirmState(null);
+    }
+  };
+
+  const handleCancelUnitCost = () => {
+    if (!unitCostConfirmState) {
+      return;
+    }
+    const { key, originalUnitCost } = unitCostConfirmState;
+    setUnitCostDrafts(prev => ({ ...prev, [key]: originalUnitCost }));
+    setUnitCostConfirmState(null);
+  };
+
+  const handleDownload = async () => {
+    if (isDownloading || !project || stockItems.length === 0) return;
+    setIsDownloading(true);
+    try {
+      // Merge drafts on top of stockItems so the export matches what's on screen.
+      // useStocks does not refetch after PO/unit_cost saves, so the drafts are the
+      // authoritative latest values until the page is refreshed.
+      const itemsForExport: StockItem[] = stockItems.map((item) => {
+        const key = getItemKey(item);
+        const po = poDrafts[key] ?? item.po ?? 0;
+        const unit_cost = unitCostDrafts[key] ?? item.unit_cost ?? 0;
+        return {
+          ...item,
+          po,
+          unit_cost,
+          total_unit_cost: po * unit_cost,
+          undelivered: po - item.delivered,
+        };
+      });
+
+      await downloadStockLedger({
+        items: itemsForExport,
+        projectName: project.project_name,
+        role: isWarehouseman ? 'warehouseman' : 'full',
+      });
+    } catch (err) {
+      console.error('Stock ledger export failed:', err);
+      if (err instanceof EmptyLedgerError) {
+        window.alert('There are no items to download for this project.');
+      } else {
+        window.alert('Failed to generate the download. Please try again.');
+      }
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   // Update selected project ID when project param changes
@@ -237,11 +340,22 @@ export default function StockMonitoringPage() {
                 ))}
               </select>
               <button
-                className="btn-arsd-outline mobile-button flex items-center gap-2 px-4"
-                title="Download (UI only)"
+                type="button"
+                onClick={handleDownload}
+                disabled={isDownloading || stockItems.length === 0}
+                title={
+                  stockItems.length === 0
+                    ? 'No items to download'
+                    : isDownloading
+                      ? 'Preparing download…'
+                      : 'Download stock ledger as Excel'
+                }
+                className="btn-arsd-outline mobile-button flex items-center gap-2 px-4 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Download className="h-4 w-4" />
-                <span className="hidden sm:inline">Download</span>
+                <span className="hidden sm:inline">
+                  {isDownloading ? 'Downloading…' : 'Download'}
+                </span>
               </button>
             </div>
           </div>
@@ -319,14 +433,15 @@ export default function StockMonitoringPage() {
                   <th className="glass-table-header-cell">Item Description</th>
                   <th className="glass-table-header-cell w-0 max-w-[24rem]">Resource</th>
                   <th className="glass-table-header-cell text-center whitespace-nowrap">IPOW Qty</th>
-                  <th className="glass-table-header-cell text-center whitespace-nowrap">Total Cost</th>
+                  <th className="glass-table-header-cell text-center whitespace-nowrap">Total IPOW Cost</th>
                   <th className="glass-table-header-cell text-center whitespace-nowrap">PO</th>
+                  <th className="glass-table-header-cell text-center whitespace-nowrap">Unit Cost</th>
+                  <th className="glass-table-header-cell text-center whitespace-nowrap">Total Unit Cost</th>
                   <th className="glass-table-header-cell text-center whitespace-nowrap">Undelivered</th>
                   <th className="glass-table-header-cell text-center whitespace-nowrap">Delivered</th>
                   <th className="glass-table-header-cell text-center whitespace-nowrap">Utilized</th>
                   <th className="glass-table-header-cell text-center whitespace-nowrap">Running Balance</th>
                   <th className="glass-table-header-cell text-center whitespace-nowrap">Variance</th>
-                  <th className="glass-table-header-cell text-center">Alerts</th>
                 </tr>
               )}
             </thead>
@@ -338,6 +453,8 @@ export default function StockMonitoringPage() {
                   const isOverIPOWUtilized = item.utilized > item.ipow_qty;
                   const key = getItemKey(item);
                   const effectivePO = poDrafts[key] ?? item.po ?? 0;
+                  const effectiveUnitCost = unitCostDrafts[key] ?? item.unit_cost ?? 0;
+                  const effectiveTotalUnitCost = effectivePO * effectiveUnitCost;
 
                   if (isWarehouseman) {
                     return (
@@ -383,7 +500,7 @@ export default function StockMonitoringPage() {
                           <input
                             type="text"
                             inputMode="decimal"
-                            className="mobile-form-input w-24 text-center mx-auto"
+                            className="mobile-form-input w-28 text-center mx-auto"
                             value={Number.isFinite(effectivePO) ? effectivePO : 0}
                             onChange={(e) => {
                               const safeNewPO = Number(e.target.value) || 0;
@@ -414,6 +531,45 @@ export default function StockMonitoringPage() {
                         )}
                       </td>
                       <td className="glass-table-cell text-center whitespace-nowrap">
+                        {canEditPO ? (
+                          <input
+                            type="text"
+                            inputMode="decimal"
+                            className="mobile-form-input w-32 text-center mx-auto"
+                            value={Number.isFinite(effectiveUnitCost) ? effectiveUnitCost : 0}
+                            onChange={(e) => {
+                              const parsed = Number(e.target.value);
+                              const safeNewUnitCost = Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+                              setUnitCostDrafts(prev => ({ ...prev, [key]: safeNewUnitCost }));
+                            }}
+                            onBlur={(e) => {
+                              const parsed = Number(e.target.value);
+                              const safeNewUnitCost = Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+                              const originalUnitCost = item.unit_cost ?? 0;
+                              if (safeNewUnitCost === originalUnitCost) {
+                                setUnitCostDrafts(prev => {
+                                  const next = { ...prev };
+                                  delete next[key];
+                                  return next;
+                                });
+                                return;
+                              }
+                              setUnitCostConfirmState({
+                                key,
+                                item,
+                                originalUnitCost,
+                                newUnitCost: safeNewUnitCost,
+                              });
+                            }}
+                          />
+                        ) : (
+                          `₱${effectiveUnitCost.toLocaleString()}`
+                        )}
+                      </td>
+                      <td className="glass-table-cell text-center whitespace-nowrap">
+                        ₱{effectiveTotalUnitCost.toLocaleString()}
+                      </td>
+                      <td className="glass-table-cell text-center whitespace-nowrap">
                         {(effectivePO - item.delivered).toLocaleString()}
                       </td>
                       <td className="glass-table-cell text-center whitespace-nowrap">{item.delivered.toLocaleString()}</td>
@@ -424,19 +580,12 @@ export default function StockMonitoringPage() {
                       <td className={`glass-table-cell text-center whitespace-nowrap ${item.variance > 0 ? 'text-orange-600' : item.variance < 0 ? 'text-blue-600' : ''}`}>
                         {item.variance > 0 ? '+' : ''}{item.variance.toLocaleString()}
                       </td>
-                      <td className="glass-table-cell text-center">
-                        <div className="flex flex-wrap gap-1 justify-center">
-                          {isLowStock && <AlertBadge type="low_stock" />}
-                          {isOverIPOWDelivered && <AlertBadge type="over_ipow_delivered" />}
-                          {isOverIPOWUtilized && <AlertBadge type="over_ipow_utilized" />}
-                        </div>
-                      </td>
                     </tr>
                   );
                 })
               ) : (
                 <tr>
-                  <td colSpan={10} className="glass-table-cell text-center py-12">
+                  <td colSpan={13} className="glass-table-cell text-center py-12">
                     <p className="text-gray-600 font-medium">No items found</p>
                     <p className="text-sm text-gray-500 mt-2">
                       {searchQuery ? 'Try adjusting your search' : 'No stock items available for this project'}
@@ -516,6 +665,86 @@ export default function StockMonitoringPage() {
             <Button
               type="button"
               onClick={handleConfirmPO}
+              className="btn-arsd-primary"
+            >
+              Confirm Update
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirm Unit Cost Update Dialog */}
+      <Dialog
+        open={!!unitCostConfirmState}
+        onOpenChange={(open) => {
+          if (!open) {
+            handleCancelUnitCost();
+          }
+        }}
+      >
+        <DialogContent className="glass-elevated max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-arsd-primary text-lg">
+              Update Unit Cost?
+            </DialogTitle>
+            <DialogDescription className="text-sm text-gray-600">
+              This will update the <span className="font-semibold">Total Unit Cost</span> for this item
+              (calculated as <span className="font-mono">PO × Unit Cost</span>).
+            </DialogDescription>
+          </DialogHeader>
+
+          {unitCostConfirmState && (
+            <div className="mt-4 space-y-3 text-sm">
+              <div className="glass-card p-3">
+                <div className="text-xs font-medium text-gray-500">Item</div>
+                <div className="text-sm font-semibold text-arsd-primary break-words">
+                  {unitCostConfirmState.item.item_description}
+                </div>
+                <div className="mt-1 text-xs text-gray-500">
+                  WBS: {unitCostConfirmState.item.wbs ?? '–'}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="glass-card p-3">
+                  <div className="text-xs font-medium text-gray-500">Current Unit Cost</div>
+                  <div className="text-base font-semibold text-gray-800">
+                    ₱{unitCostConfirmState.originalUnitCost.toLocaleString()}
+                  </div>
+                </div>
+                <div className="glass-card p-3">
+                  <div className="text-xs font-medium text-gray-500">New Unit Cost</div>
+                  <div className="text-base font-semibold text-arsd-red">
+                    ₱{unitCostConfirmState.newUnitCost.toLocaleString()}
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-xs text-gray-500">
+                Total Unit Cost will be updated to{' '}
+                <strong>
+                  ₱{(
+                    (poDrafts[unitCostConfirmState.key] ?? unitCostConfirmState.item.po ?? 0) *
+                    unitCostConfirmState.newUnitCost
+                  ).toLocaleString()}
+                </strong>{' '}
+                for this item (calculated as <span className="font-mono">PO × Unit Cost</span>).
+              </div>
+            </div>
+          )}
+
+          <div className="mt-6 flex justify-end gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCancelUnitCost}
+              className="btn-arsd-outline"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleConfirmUnitCost}
               className="btn-arsd-primary"
             >
               Confirm Update
