@@ -490,8 +490,10 @@ export default function ReportsManagement() {
                             <User className="h-4 w-4 text-arsd-red" />
                           </div>
                           <div>
-                            <div className="font-medium text-glass-primary text-md">{report.display_name}</div>
-                            <div className="text-sm text-glass-muted">{report.email}</div>
+                            <div className="font-medium text-glass-primary text-md">
+                              {report.display_name || 'Unknown uploader'}
+                            </div>
+                            <div className="text-sm text-glass-muted">{report.email || ''}</div>
                           </div>
                         </div>
                       </TableCell>
