@@ -181,4 +181,12 @@ export interface StockItem {
    * Computed as PO - Delivered. May be provided by the backend or derived on the client.
    */
   undelivered?: number;
+  /**
+   * User-entered unit cost (peso) for this stock line. Stored in stock_po_overrides.unit_cost.
+   */
+  unit_cost?: number;
+  /**
+   * Derived: (po ?? 0) * (unit_cost ?? 0). Shown in the "Total Unit Cost" column.
+   */
+  total_unit_cost?: number;
 }
