@@ -1,26 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createServerSupabaseClient } from '@/lib/supabase';
 import { AutoParseService } from '@/services/accomplishment-reports/auto-parse.service';
 
 /**
  * POST /api/accomplishment-reports/parse-approved
- * 
+ *
  * Parses approved accomplishment reports and saves the data to the database.
- * 
- * Request body (optional):
- * - reportId: string - Parse a specific report by ID
- * 
- * If no reportId is provided, parses all approved reports that haven't been parsed yet.
- * 
- * Returns:
- * - success: boolean
- * - message: string
- * - recordsSaved?: number (for single report)
- * - parsed?: number (for all reports)
- * - total?: number (for all reports)
- * - errors?: string[] (for all reports)
+ * Requires superadmin role.
  */
 export async function POST(request: NextRequest) {
   try {
+    // Auth check — superadmin only
+    const supabase = await createServerSupabaseClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single();
+    if (!profile || profile.role !== 'superadmin') {
+      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
+    }
+
     const body = await request.json();
     const { reportId } = body;
     
@@ -72,37 +76,48 @@ export async function POST(request: NextRequest) {
 
 /**
  * GET /api/accomplishment-reports/parse-approved
- * 
+ *
  * Retrieves the status of accomplishment reports and their parsing status.
- * 
- * Returns:
- * - reports: array of report objects with parsing status
- * - total: total number of reports
- * - message: summary message
+ * Requires superadmin role.
  */
 export async function GET() {
   try {
+    // Auth check — superadmin only
+    const supabase = await createServerSupabaseClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single();
+    if (!profile || profile.role !== 'superadmin') {
+      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
+    }
+
     const { createServiceSupabaseClient } = await import('@/lib/supabase');
-    const supabase = createServiceSupabaseClient();
+    const serviceSupabase = createServiceSupabaseClient();
     
     // Get total count
-    const { count, error: countError } = await supabase
+    const { count, error: countError } = await serviceSupabase
       .from('accomplishment_reports')
       .select('*', { count: 'exact', head: true });
-    
+
     if (countError) {
       console.error('Error getting report count:', countError);
-      return NextResponse.json({ 
+      return NextResponse.json({
         success: false,
-        error: 'Failed to fetch report count', 
+        error: 'Failed to fetch report count',
         message: 'Unable to retrieve report statistics'
       }, { status: 500 });
     }
-    
+
     // Get recent reports with parsing status
-    const { data: reports, error } = await supabase
+    const { data: reports, error } = await serviceSupabase
       .from('accomplishment_reports')
-      .select('id, status, parsed_at, parsed_status, parse_error, project_id, file_name, created_at')
+      .select('id, status, parsed_at, parsed_status, project_id, file_name, created_at')
       .order('created_at', { ascending: false })
       .limit(20);
 

@@ -14,11 +14,11 @@ import { StorageCleanupService } from '@/services/storage/storage-cleanup.servic
  */
 export async function GET(request: NextRequest) {
   try {
-    // Verify the request is authorized (optional security check)
+    // Verify the request is authorized (fail closed — reject if token is missing or wrong)
     const authHeader = request.headers.get('authorization');
     const expectedToken = process.env.CRON_SECRET_TOKEN;
-    
-    if (expectedToken && authHeader !== `Bearer ${expectedToken}`) {
+
+    if (!expectedToken || authHeader !== `Bearer ${expectedToken}`) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
@@ -78,16 +78,14 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('🤖 Automated cleanup failed:', errorMessage);
-    
+    console.error('🤖 Automated cleanup failed:', error instanceof Error ? error.message : error);
+
     return NextResponse.json(
-      { 
+      {
         success: false,
         error: 'Automated cleanup failed',
-        message: errorMessage,
         timestamp: new Date().toISOString()
-      }, 
+      },
       { status: 500 }
     );
   }

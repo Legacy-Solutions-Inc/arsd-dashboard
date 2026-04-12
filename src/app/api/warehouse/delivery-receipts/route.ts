@@ -7,6 +7,11 @@ import { CreateDeliveryReceiptInput } from '@/types/warehouse';
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const searchParams = request.nextUrl.searchParams;
     const filters = {
       search: searchParams.get('search') || undefined,
@@ -22,7 +27,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching delivery receipts:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to fetch delivery receipts' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
@@ -35,6 +40,17 @@ export async function POST(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Role check — only warehouse-related roles can create delivery receipts
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single();
+    const ALLOWED_ROLES = ['warehouseman', 'project_manager', 'project_inspector', 'superadmin'];
+    if (!profile || !ALLOWED_ROLES.includes(profile.role)) {
+      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 
     const formData = await request.formData();
@@ -100,14 +116,15 @@ export async function POST(request: NextRequest) {
 
     // Update DR with photo URLs if any were uploaded
     if (drPhotoUrl || deliveryProofUrl) {
-      const updateData: any = {};
+      const updateData: { dr_photo_url?: string; delivery_proof_url?: string } = {};
       if (drPhotoUrl) updateData.dr_photo_url = drPhotoUrl;
       if (deliveryProofUrl) updateData.delivery_proof_url = deliveryProofUrl;
 
       const { error: updateError } = await serviceSupabase
         .from('delivery_receipts')
         .update(updateData)
-        .eq('id', dr.id);
+        .eq('id', dr.id)
+        .eq('created_by', user.id);
 
       if (updateError) {
         console.error('Failed to update DR photo URLs', {
@@ -124,7 +141,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error creating delivery receipt:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to create delivery receipt' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

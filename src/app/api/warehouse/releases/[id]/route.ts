@@ -15,7 +15,7 @@ export async function GET(
   } catch (error) {
     console.error('Error fetching release:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to fetch release' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
@@ -26,8 +26,24 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    const body = await request.json();
     const supabase = await createServerSupabaseClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single();
+
+    const UNLOCK_ROLES = ['superadmin', 'project_inspector', 'project_manager'];
+    if (!profile || !UNLOCK_ROLES.includes(profile.role)) {
+      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
+    }
+
+    const body = await request.json();
     const service = new ReleasesService(supabase);
 
     // Currently only support lock/unlock
@@ -44,7 +60,7 @@ export async function PATCH(
   } catch (error) {
     console.error('Error updating release:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to update release' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
@@ -121,7 +137,7 @@ export async function PUT(
   } catch (error) {
     console.error('Error updating release form:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to update release form' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
