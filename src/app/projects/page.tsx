@@ -53,15 +53,18 @@ export default function Projects() {
 
   // Keyboard navigation while gallery is open
   useEffect(() => {
-    if (!galleryOpen) return;
+    if (!galleryOpen || !currentProject) return;
+    const total = currentProject.photoUrls.length;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight") nextPhoto();
-      if (e.key === "ArrowLeft") prevPhoto();
+      if (e.key === "ArrowRight")
+        setCurrentPhotoIndex((prev) => (prev === total - 1 ? 0 : prev + 1));
+      if (e.key === "ArrowLeft")
+        setCurrentPhotoIndex((prev) => (prev === 0 ? total - 1 : prev - 1));
       if (e.key === "Escape") closeGallery();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [galleryOpen, currentProject, currentPhotoIndex]);
+  }, [galleryOpen, currentProject]);
 
   const fetchProjects = async (pageNum: number, append: boolean) => {
     try {
@@ -414,6 +417,7 @@ export default function Projects() {
                   <Button
                     variant="ghost"
                     size="sm"
+                    aria-label="Previous photo"
                     onClick={prevPhoto}
                     className="absolute left-4 top-1/2 -translate-y-1/2 bg-[#2a2626]/90 hover:bg-[#2a2626] text-[#f0ede8] shadow-lg"
                   >
@@ -422,6 +426,7 @@ export default function Projects() {
                   <Button
                     variant="ghost"
                     size="sm"
+                    aria-label="Next photo"
                     onClick={nextPhoto}
                     className="absolute right-4 top-1/2 -translate-y-1/2 bg-[#2a2626]/90 hover:bg-[#2a2626] text-[#f0ede8] shadow-lg"
                   >
