@@ -36,6 +36,7 @@ export function ServicesListAnimated({ services }: Props) {
         <motion.div key={service.num} variants={itemVariants}>
           <a
             href="/our-services"
+            aria-label={`Learn more about ${service.title}`}
             className="group grid grid-cols-[5rem_1fr] items-start py-5 sm:py-6 hover:bg-[#1c1c1c] -mx-4 px-4 transition-colors"
           >
             <span className="font-display text-5xl text-arsd-red/20 group-hover:text-arsd-red/60 transition-colors leading-none pt-1">

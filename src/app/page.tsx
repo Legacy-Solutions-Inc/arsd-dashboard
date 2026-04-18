@@ -43,7 +43,7 @@ export default async function Home() {
   }));
 
   return (
-    <div className="min-h-screen bg-[#111111]">
+    <div className="min-h-[100dvh] bg-[#111111]">
       {/* NavBar Section */}
       <Navbar />
       {/* Hero Section */}
