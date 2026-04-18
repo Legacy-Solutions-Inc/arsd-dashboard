@@ -74,7 +74,7 @@ export default function Services() {
                     index % 2 === 1 ? "lg:order-last" : ""
                   } flex items-center justify-center lg:justify-start`}
                 >
-                  <span className="font-display text-[8rem] sm:text-[10rem] leading-none text-arsd-red/10 select-none">
+                  <span aria-hidden="true" className="font-display text-[8rem] sm:text-[10rem] leading-none text-arsd-red/10 select-none">
                     0{index + 1}
                   </span>
                 </div>
@@ -93,7 +93,7 @@ export default function Services() {
                   <ul className="space-y-2">
                     {service.features.map((feature, idx) => (
                       <li key={idx} className="flex items-start gap-3 text-sm text-[#a09890]">
-                        <span className="text-arsd-red mt-0.5 flex-shrink-0">—</span>
+                        <span aria-hidden="true" className="text-arsd-red mt-0.5 flex-shrink-0">—</span>
                         <span>{feature}</span>
                       </li>
                     ))}
