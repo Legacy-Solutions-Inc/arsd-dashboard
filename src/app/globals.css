@@ -45,6 +45,72 @@
 }
 
 @layer components {
+  /* Glassmorphism Styles with ARSD Red Theme */
+  .glass {
+    @apply bg-red-50/15 backdrop-blur-md border border-red-200/25;
+  }
+
+  .glass-elevated {
+    @apply bg-red-50/25 backdrop-blur-lg border border-red-200/35 shadow-xl;
+  }
+
+  .glass-subtle {
+    @apply bg-red-50/5 backdrop-blur-sm border border-red-200/15;
+  }
+
+  .glass-card {
+    @apply glass rounded-2xl p-6 transition-all duration-300 hover:bg-red-50/20 hover:shadow-2xl hover:scale-[1.02];
+  }
+
+  .glass-card-neutral {
+    @apply bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-2xl p-6 transition-all duration-300 hover:bg-gray-50/90 hover:shadow-xl hover:scale-[1.02];
+  }
+
+  .glass-button {
+    @apply glass rounded-xl px-6 py-3 font-medium transition-all duration-300 hover:bg-red-50/25 hover:scale-105 active:scale-95;
+  }
+
+  .glass-input {
+    @apply glass rounded-xl px-4 py-3 placeholder:text-red-600/60 focus:bg-red-50/25 focus:outline-none focus:ring-2 focus:ring-red-300/40;
+  }
+
+  .glass-table {
+    @apply glass rounded-2xl overflow-hidden;
+  }
+
+  .glass-table-header {
+    @apply bg-red-50/20 backdrop-blur-sm border-b border-red-200/30;
+  }
+
+  .glass-table-row {
+    @apply border-b border-red-200/15 hover:bg-red-50/10 transition-all duration-200;
+  }
+
+  .glass-table-cell {
+    @apply px-3 py-2 sm:py-3 text-gray-800;
+  }
+
+  .glass-table-header-cell {
+    @apply px-3 py-2 sm:py-3 font-semibold text-red-800 text-xs uppercase tracking-wider;
+  }
+
+  /* Glass text color utilities */
+  .text-glass-primary {
+    @apply text-gray-900;
+  }
+
+  .text-glass-secondary {
+    @apply text-gray-600;
+  }
+
+  .text-glass-muted {
+    @apply text-gray-400;
+  }
+
+  .text-glass-accent {
+    @apply text-red-700;
+  }
+
   /* ARSD Text color utilities */
   .text-arsd-primary {
     @apply text-red-800;
@@ -88,7 +154,7 @@
   }
 
   .btn-arsd-glass {
-    @apply rounded-xl px-6 py-3 font-medium bg-red-500/20 text-red-800 border border-red-300/50 transition-all duration-300 hover:bg-red-500/30 hover:scale-105 active:scale-95;
+    @apply glass-button bg-red-500/20 text-red-800 border-red-300/50 hover:bg-red-500/30;
   }
 
   /* ARSD Badge variants */
@@ -101,7 +167,7 @@
   }
 
   .badge-arsd-glass {
-    @apply text-red-800 border-red-200/20 hover:bg-red-50/15;
+    @apply glass-subtle text-red-800 border-red-200/20 hover:bg-red-50/15;
   }
 }
 
@@ -160,7 +226,26 @@
   .scrollbar-arsd::-webkit-scrollbar-thumb {
     @apply bg-red-300/30 rounded-full hover:bg-red-400/50;
   }
-  
+
+  /* Glass scrollbar */
+  .scrollbar-glass {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(239, 68, 68, 0.3) transparent;
+  }
+
+  .scrollbar-glass::-webkit-scrollbar {
+    height: 6px;
+    width: 6px;
+  }
+
+  .scrollbar-glass::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-glass::-webkit-scrollbar-thumb {
+    @apply bg-red-300/30 rounded-full hover:bg-red-400/50;
+  }
+
   /* Responsive utility classes */
   .responsive-container {
     @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
