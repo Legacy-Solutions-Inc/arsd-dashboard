@@ -7,10 +7,8 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/auth";
 import { Button } from "./ui/button";
 import {
-  Phone,
   Menu,
   X,
-  MapPin,
 } from "lucide-react";
 import UserProfile from "./user-profile";
 import { useRBAC } from "@/hooks/useRBAC";
@@ -26,7 +24,7 @@ export default function Navbar() {
 
   useEffect(() => {
     const supabase = createClient();
-    
+
     // Get initial user
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -52,188 +50,169 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="w-full bg-white shadow-lg sticky top-0 z-50">
-      {/* Top Bar with Contact Info */}
-      <div className="bg-arsd-red text-white py-2">
-        <div className="responsive-container">
-          <div className="flex flex-col sm:flex-row justify-between items-center text-sm gap-2 sm:gap-0">
-            <div className="flex flex-col sm:flex-row items-center space-y-1 sm:space-y-0 sm:space-x-6">
-              <div className="flex items-center space-x-2">
-                <Phone className="w-4 h-4" />
-                <span className="hidden xs:inline">Contact: {CONTACT_INFO.email.display}</span>
-                <span className="xs:hidden">{CONTACT_INFO.email.display}</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <MapPin className="w-4 h-4" />
-                <span className="hidden sm:inline">{CONTACT_INFO.address.street}, {CONTACT_INFO.address.city}</span>
-                <span className="sm:hidden">{CONTACT_INFO.address.short}</span>
-              </div>
+    <nav className="w-full bg-[#111111] border-b border-[#2a2626] sticky top-0 z-50">
+      {/* Main Navigation */}
+      <div className="responsive-container">
+        <div className="flex justify-between items-center py-4">
+          {/* Logo and Company Name */}
+          <Link href="/" className="flex items-center space-x-2 sm:space-x-3">
+            <Image
+              src="/images/arsd-logo.png"
+              alt="ARSD Construction Corporation"
+              width={40}
+              height={40}
+              className="rounded-full sm:w-12 sm:h-12"
+            />
+            <div className="hidden sm:block">
+              <h1 className="text-base sm:text-lg font-bold text-[#f0ede8]">
+                {CONTACT_INFO.company.name}
+              </h1>
+              <p className="text-xs text-[#a09890]">
+                {CONTACT_INFO.company.tagline}
+              </p>
             </div>
-            <div className="flex items-center space-x-4">
-              {loading ? (
-                <div className="text-white text-sm">Loading...</div>
-              ) : user ? (
-                <UserProfile />
+            <div className="sm:hidden">
+              <h1 className="text-sm font-bold text-[#f0ede8]">ARSD</h1>
+              <p className="text-xs text-[#a09890]">Construction</p>
+            </div>
+          </Link>
+
+          {/* Navigation Menu */}
+          <div className="hidden lg:flex items-center space-x-8">
+            <Link
+              href="/"
+              className="text-[#a09890] hover:text-[#f0ede8] font-medium transition-colors"
+            >
+              Home
+            </Link>
+
+            <Link
+              href="/our-services"
+              className="text-[#a09890] hover:text-[#f0ede8] font-medium transition-colors"
+            >
+              Services
+            </Link>
+
+            <Link
+              href="/projects"
+              className="text-[#a09890] hover:text-[#f0ede8] font-medium transition-colors"
+            >
+              Projects
+            </Link>
+
+            <Link
+              href="/about-us"
+              className="text-[#a09890] hover:text-[#f0ede8] font-medium transition-colors"
+            >
+              About Us
+            </Link>
+
+            <Link
+              href="/contact-us"
+              className="text-[#a09890] hover:text-[#f0ede8] font-medium transition-colors"
+            >
+              Contact
+            </Link>
+
+            <Link href="/contact-us" className="px-4 py-2 bg-arsd-red text-white text-sm font-semibold rounded hover:bg-red-700 transition-colors">
+              Get a Quote
+            </Link>
+
+            {user && (
+              <Button
+                onClick={handleDashboardClick}
+                className="bg-arsd-red hover:bg-arsd-red-dark text-white"
+              >
+                Dashboard
+              </Button>
+            )}
+          </div>
+
+          {/* Mobile Menu Button */}
+          <div className="lg:hidden">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="text-[#a09890] hover:text-[#f0ede8] transition-colors"
+              aria-label="Toggle mobile menu"
+            >
+              {mobileMenuOpen ? (
+                <X className="w-6 h-6" />
               ) : (
-                <div className="text-white text-sm">
-                </div>
+                <Menu className="w-6 h-6" />
               )}
-            </div>
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Main Navigation */}
-      <div className="border-b border-gray-100">
-        <div className="responsive-container">
-          <div className="flex justify-between items-center py-4">
-            {/* Logo and Company Name */}
-            <Link href="/" className="flex items-center space-x-2 sm:space-x-3">
-              <Image
-                src="/images/arsd-logo.png"
-                alt="ARSD Construction Corporation"
-                width={40}
-                height={40}
-                className="rounded-full sm:w-12 sm:h-12"
-              />
-              <div className="hidden sm:block">
-                <h1 className="text-base sm:text-lg font-bold text-gray-900">
-                  {CONTACT_INFO.company.name}
-                </h1>
-                <p className="text-xs text-gray-600">
-                  {CONTACT_INFO.company.tagline}
-                </p>
-              </div>
-              <div className="sm:hidden">
-                <h1 className="text-sm font-bold text-gray-900">ARSD</h1>
-                <p className="text-xs text-gray-600">Construction</p>
-              </div>
-            </Link>
-
-            {/* Navigation Menu */}
-            <div className="hidden lg:flex items-center space-x-8">
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <div className="lg:hidden border-t border-[#2a2626] bg-[#111111]">
+          <div className="responsive-container py-4">
+            <div className="flex flex-col space-y-4">
               <Link
                 href="/"
-                className="text-gray-700 hover:text-arsd-red font-medium transition-colors"
+                className="text-[#a09890] hover:text-[#f0ede8] font-medium transition-colors py-2"
+                onClick={() => setMobileMenuOpen(false)}
               >
                 Home
               </Link>
 
               <Link
                 href="/our-services"
-                className="text-gray-700 hover:text-arsd-red font-medium transition-colors"
+                className="text-[#a09890] hover:text-[#f0ede8] font-medium transition-colors py-2"
+                onClick={() => setMobileMenuOpen(false)}
               >
                 Services
               </Link>
 
               <Link
                 href="/projects"
-                className="text-gray-700 hover:text-arsd-red font-medium transition-colors"
+                className="text-[#a09890] hover:text-[#f0ede8] font-medium transition-colors py-2"
+                onClick={() => setMobileMenuOpen(false)}
               >
                 Projects
               </Link>
 
               <Link
                 href="/about-us"
-                className="text-gray-700 hover:text-arsd-red font-medium transition-colors"
+                className="text-[#a09890] hover:text-[#f0ede8] font-medium transition-colors py-2"
+                onClick={() => setMobileMenuOpen(false)}
               >
                 About Us
               </Link>
 
               <Link
                 href="/contact-us"
-                className="text-gray-700 hover:text-arsd-red font-medium transition-colors"
+                className="text-[#a09890] hover:text-[#f0ede8] font-medium transition-colors py-2"
+                onClick={() => setMobileMenuOpen(false)}
               >
                 Contact
               </Link>
 
+              <Link
+                href="/contact-us"
+                className="px-4 py-2 bg-arsd-red text-white text-sm font-semibold rounded hover:bg-red-700 transition-colors text-center"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Get a Quote
+              </Link>
+
               {user && (
-                <Button 
-                  onClick={handleDashboardClick}
-                  className="bg-arsd-red hover:bg-arsd-red-dark text-white"
+                <Button
+                  onClick={() => {
+                    handleDashboardClick();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="bg-arsd-red hover:bg-arsd-red-dark text-white w-full justify-start"
                 >
                   Dashboard
                 </Button>
               )}
             </div>
-
-            {/* Mobile Menu Button */}
-            <div className="lg:hidden">
-              <button 
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="text-gray-700 hover:text-arsd-red transition-colors"
-              >
-                {mobileMenuOpen ? (
-                  <X className="w-6 h-6" />
-                ) : (
-                  <Menu className="w-6 h-6" />
-                )}
-              </button>
-            </div>
           </div>
         </div>
-        
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="lg:hidden border-t border-gray-100 bg-white">
-            <div className="responsive-container py-4">
-              <div className="flex flex-col space-y-4">
-                <Link
-                  href="/"
-                  className="text-gray-700 hover:text-arsd-red font-medium transition-colors py-2"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Home
-                </Link>
-                
-                <Link
-                  href="/our-services"
-                  className="text-gray-700 hover:text-arsd-red font-medium transition-colors py-2"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Services
-                </Link>
-
-                <Link
-                  href="/projects"
-                  className="text-gray-700 hover:text-arsd-red font-medium transition-colors py-2"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Projects
-                </Link>
-
-                <Link
-                  href="/about-us"
-                  className="text-gray-700 hover:text-arsd-red font-medium transition-colors py-2"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  About Us
-                </Link>
-
-                <Link
-                  href="/contact-us"
-                  className="text-gray-700 hover:text-arsd-red font-medium transition-colors py-2"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Contact
-                </Link>
-
-                {user && (
-                  <Button 
-                    onClick={() => {
-                      handleDashboardClick();
-                      setMobileMenuOpen(false);
-                    }}
-                    className="bg-arsd-red hover:bg-arsd-red-dark text-white w-full justify-start"
-                  >
-                    Dashboard
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+      )}
     </nav>
   );
 }
