@@ -1,9 +1,19 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Barlow_Condensed, Figtree } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 
-const inter = Inter({ subsets: ["latin"] });
+const barlowCondensed = Barlow_Condensed({
+  subsets: ["latin"],
+  weight: ["600", "700", "800"],
+  variable: "--font-display",
+});
+
+const figtree = Figtree({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-body",
+});
 
 export const metadata: Metadata = {
   title: "ARSD",
@@ -26,7 +36,7 @@ export default function RootLayout({
         <head>
           <link rel="icon" type="image/png" href="/images/arsd-logo.png" />
         </head>
-      <body className={inter.className} suppressHydrationWarning>
+      <body className={`${barlowCondensed.variable} ${figtree.variable} font-body`} suppressHydrationWarning>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
