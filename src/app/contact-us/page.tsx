@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useState } from "react";
-import { MapPin, Phone, Mail, Clock, Send, CheckCircle } from "lucide-react";
+import { MapPin, Phone, Mail, Clock, Send } from "lucide-react";
 import { FacebookIcon } from "@/components/ui/facebook-icon";
 import Link from "next/link";
 import { CONTACT_INFO } from "@/constants/contact-info";
@@ -195,7 +195,7 @@ export default function Contact() {
                 <div>
                   <Label htmlFor="budget" className="text-[#a09890]">Estimated Budget</Label>
                   <Select value={budget} onValueChange={setBudget}>
-                    <SelectTrigger className="mt-1 bg-[#1c1c1c] border-[#2a2626] text-[#f0ede8]">
+                    <SelectTrigger id="budget" className="mt-1 bg-[#1c1c1c] border-[#2a2626] text-[#f0ede8]">
                       <SelectValue placeholder="Select budget range" />
                     </SelectTrigger>
                     <SelectContent className="bg-[#1c1c1c] border-[#2a2626]">
@@ -212,7 +212,7 @@ export default function Contact() {
                 <div>
                   <Label htmlFor="timeline" className="text-[#a09890]">Project Timeline</Label>
                   <Select value={timeline} onValueChange={setTimeline}>
-                    <SelectTrigger className="mt-1 bg-[#1c1c1c] border-[#2a2626] text-[#f0ede8]">
+                    <SelectTrigger id="timeline" className="mt-1 bg-[#1c1c1c] border-[#2a2626] text-[#f0ede8]">
                       <SelectValue placeholder="Select timeline" />
                     </SelectTrigger>
                     <SelectContent className="bg-[#1c1c1c] border-[#2a2626]">
