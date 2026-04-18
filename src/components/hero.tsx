@@ -1,96 +1,76 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowUpRight, Check } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function Hero() {
   return (
-    <div className="relative overflow-hidden bg-white">
-      {/* Background Image */}
-      <div className="absolute inset-0">
-        <Image
-          src="/images/photos/office2.jpg"
-          alt="ARSD Construction office building background"
-          fill
-          className="object-cover"
-          priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-br from-arsd-red/20 via-black/80 to-black/90 rounded-lg" />
-      </div>
-      
-      {/* Decorative elements */}
-      <div className="pointer-events-none absolute inset-0" aria-hidden>
-        <div className="absolute top-[-20%] right-[-10%] w-[420px] h-[420px] rounded-full bg-arsd-red/10 blur-3xl" />
-        <div className="absolute bottom-[-20%] left-[-10%] w-[420px] h-[420px] rounded-full bg-orange-500/10 blur-3xl" />
-      </div>
+    <section className="relative min-h-[100dvh] bg-[#111111] flex items-center overflow-hidden">
+      <div className="responsive-container relative z-10 grid lg:grid-cols-[55fr_45fr] gap-0 min-h-[100dvh] items-center py-24 lg:py-0 w-full">
+        {/* Left content column */}
+        <motion.div
+          className="lg:py-32 flex flex-col justify-center"
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+        >
+          <p className="text-xs uppercase tracking-widest font-semibold text-arsd-red mb-6">
+            Since 1998
+          </p>
 
-      <div className="relative pt-20 pb-20 sm:pt-28 sm:pb-32 lg:pt-36 lg:pb-44">
-        <div className="responsive-container">
-          <div className="text-center max-w-7xl mx-auto">
-            <div className="flex justify-center mb-6 sm:mb-8">
-              <Image
-                src="/images/arsd-logo.png"
-                alt="ARSD Construction Corporation Logo"
-                width={100}
-                height={100}
-                className="rounded-full shadow-lg border-4 border-arsd-red bg-white sm:w-32 sm:h-32 lg:w-36 lg:h-36"
-              />
-            </div>
-            <h1 className="text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold text-white mb-3 sm:mb-6 tracking-tight drop-shadow-2xl">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-arsd-red to-orange-300 animate-gradient-x">
-                ARSD Construction Corporation
-              </span>
-            </h1>
-            <h2 className="text-sm sm:text-xl lg:text-2xl font-semibold text-white mb-5 sm:mb-8 px-4 drop-shadow-lg">
-              Building Excellence in Iloilo City & Beyond
-            </h2>
+          <h1 className="font-display text-6xl md:text-7xl lg:text-8xl tracking-tighter text-[#f0ede8] leading-none uppercase mb-6">
+            ARSD Construction<br />Corporation
+          </h1>
 
-            <p className="text-sm sm:text-base lg:text-lg text-gray-200 mb-8 sm:mb-10 max-w-3xl mx-auto leading-relaxed px-4 drop-shadow-md">
-              Your trusted construction partner in Iloilo City and beyond, delivering exceptional projects with integrity, excellence, and commitment.
-            </p>
+          <p className="text-lg text-[#a09890] mb-8 max-w-[50ch]">
+            Building Excellence in Iloilo City &amp; Beyond.
+          </p>
 
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mb-6 sm:mb-8 px-4">
-              <Link
-                href="/projects"
-                className="inline-flex items-center px-6 sm:px-8 py-3 sm:py-4 text-white bg-arsd-red rounded-lg hover:bg-orange-700 transition-colors text-base sm:text-lg font-bold shadow-lg w-full sm:w-auto justify-center"
-              >
-                View Our Projects
-                <ArrowUpRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
-              </Link>
+          {/* CTA row */}
+          <div className="flex flex-wrap gap-4">
+            <Link
+              href="/projects"
+              className="inline-flex items-center px-6 py-3 bg-arsd-red text-white font-semibold rounded hover:bg-red-700 transition-colors"
+            >
+              View Projects
+              <ArrowUpRight className="ml-2 w-4 h-4" />
+            </Link>
 
-              <Link
-                href="/our-services"
-                className="inline-flex items-center px-6 sm:px-8 py-3 sm:py-4 text-arsd-red bg-white border border-arsd-red rounded-lg hover:bg-arsd-red hover:text-white transition-colors text-base sm:text-lg font-bold shadow w-full sm:w-auto justify-center"
-              >
-                Our Services
-              </Link>
-            </div>
-
-            <div className="mt-8 sm:mt-10 flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-xs sm:text-base text-white px-4 drop-shadow-md">
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0" />
-                <span>Building Construction</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0" />
-                <span className="hidden sm:inline">Design & Plan Preparation</span>
-                <span className="sm:hidden">Design & Plans</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0" />
-                <span>Land Development</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0" />
-                <span>Waterproofing</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0" />
-                <span>Supply Aggregates</span>
-              </div>
-            </div>
+            <Link
+              href="/our-services"
+              className="inline-flex items-center px-6 py-3 border border-[#2a2626] text-[#f0ede8] font-semibold rounded hover:border-[#f0ede8] transition-colors"
+            >
+              Services
+            </Link>
           </div>
+
+          {/* Trust badges */}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-8 text-xs text-[#a09890] uppercase tracking-wider">
+            <span>PCAB Licensed</span>
+            <span aria-hidden="true">·</span>
+            <span>SEC Registered</span>
+            <span aria-hidden="true">·</span>
+            <span>PhilGEPS Supplier</span>
+            <span aria-hidden="true">·</span>
+            <span>25+ Years</span>
+          </div>
+        </motion.div>
+
+        {/* Right photo column — hidden on mobile */}
+        <div className="hidden lg:block relative h-full min-h-[100dvh]">
+          <Image
+            src="/images/photos/office2.jpg"
+            alt="ARSD Construction Corporation"
+            fill
+            className="object-cover"
+            priority
+          />
+          {/* Dark fade from left so the photo edge blends into the dark background */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#111111] via-[#111111]/30 to-transparent" />
         </div>
       </div>
-    </div>
+    </section>
   );
 }
