@@ -10,7 +10,6 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import UserProfile from "./user-profile";
 import { useRBAC } from "@/hooks/useRBAC";
 import { getDefaultDashboardRoute } from "@/utils/dashboard-routing";
 import { CONTACT_INFO } from "@/constants/contact-info";
