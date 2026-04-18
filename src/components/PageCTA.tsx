@@ -31,10 +31,10 @@ export function PageCTA({
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link
             href={primaryHref}
-            className="inline-flex items-center gap-2 bg-arsd-red hover:bg-red-700 text-white font-semibold px-8 py-3.5 transition-colors duration-200"
+            className="group inline-flex items-center gap-2 bg-arsd-red hover:bg-red-700 text-white font-semibold px-8 py-3.5 active:scale-[0.98] transition-[background-color,transform] duration-200 [transition-timing-function:cubic-bezier(0.32,0.72,0,1)] focus-visible:ring-2 focus-visible:ring-arsd-red focus-visible:ring-offset-2 focus-visible:ring-offset-[#111111] focus-visible:outline-none"
           >
             {primaryLabel}
-            <ArrowUpRight className="h-4 w-4" />
+            <ArrowUpRight className="h-4 w-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200 [transition-timing-function:cubic-bezier(0.32,0.72,0,1)]" />
           </Link>
 
           {secondaryLabel && secondaryHref && (

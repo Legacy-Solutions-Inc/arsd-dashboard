@@ -6,10 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/auth";
 import { Button } from "./ui/button";
-import {
-  Menu,
-  X,
-} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useRBAC } from "@/hooks/useRBAC";
 import { getDefaultDashboardRoute } from "@/utils/dashboard-routing";
 import { CONTACT_INFO } from "@/constants/contact-info";
@@ -131,22 +128,35 @@ export default function Navbar() {
           <div className="lg:hidden">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="text-[#a09890] hover:text-[#f0ede8] transition-colors"
+              className="relative flex h-6 w-6 flex-col justify-center gap-[6px] text-[#a09890] hover:text-[#f0ede8] transition-colors"
               aria-label="Toggle mobile menu"
+              aria-expanded={mobileMenuOpen}
             >
-              {mobileMenuOpen ? (
-                <X className="w-6 h-6" />
-              ) : (
-                <Menu className="w-6 h-6" />
-              )}
+              <motion.span
+                className="block h-[2px] w-5 bg-current"
+                animate={mobileMenuOpen ? { rotate: 45, y: 4 } : { rotate: 0, y: 0 }}
+                transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
+              />
+              <motion.span
+                className="block h-[2px] w-5 bg-current"
+                animate={mobileMenuOpen ? { rotate: -45, y: -4 } : { rotate: 0, y: 0 }}
+                transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
+              />
             </button>
           </div>
         </div>
       </div>
 
       {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-[#2a2626] bg-[#111111]">
+      <AnimatePresence>
+        {mobileMenuOpen && (
+        <motion.div
+          className="lg:hidden border-t border-[#2a2626] bg-[#111111] overflow-hidden"
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
+        >
           <div className="responsive-container py-4">
             <div className="flex flex-col space-y-4">
               <Link
@@ -210,8 +220,9 @@ export default function Navbar() {
               )}
             </div>
           </div>
-        </div>
-      )}
+        </motion.div>
+        )}
+      </AnimatePresence>
     </nav>
   );
 }

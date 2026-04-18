@@ -74,7 +74,7 @@ export default function Services() {
                     index % 2 === 1 ? "lg:order-last" : ""
                   } flex items-center justify-center lg:justify-start`}
                 >
-                  <span aria-hidden="true" className="font-display text-[8rem] sm:text-[10rem] leading-none text-arsd-red/10 select-none">
+                  <span aria-hidden="true" className="font-display text-[5rem] sm:text-[10rem] leading-none text-arsd-red/10 select-none">
                     0{index + 1}
                   </span>
                 </div>

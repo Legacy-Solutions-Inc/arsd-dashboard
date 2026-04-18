@@ -29,6 +29,8 @@ export default function Contact() {
   const [budget, setBudget] = useState("");
   const [timeline, setTimeline] = useState("");
   const [message, setMessage] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitted, setSubmitted] = useState(false);
 
   const services = [
     "Building Construction",
@@ -40,10 +42,25 @@ export default function Contact() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const newErrors: Record<string, string> = {};
+    if (!firstName.trim()) newErrors.firstName = "First name is required";
+    if (!lastName.trim()) newErrors.lastName = "Last name is required";
+    if (!email.trim()) newErrors.email = "Email address is required";
+    if (!message.trim()) newErrors.message = "Project details are required";
+    if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
+    setErrors({});
     const subject = `New inquiry from ${firstName} ${lastName}`;
     const body = `Name: ${firstName} ${lastName}%0D%0AEmail: ${email}%0D%0APhone: ${phone}%0D%0ACompany: ${company}%0D%0ABudget: ${budget}%0D%0ATimeline: ${timeline}%0D%0A%0D%0ADetails:%0D%0A${encodeURIComponent(message)}`;
     const mailto = `mailto:${CONTACT_INFO.email.primary}?subject=${encodeURIComponent(subject)}&body=${body}`;
     window.location.href = mailto;
+    setSubmitted(true);
+  };
+
+  const handleReset = () => {
+    setSubmitted(false);
+    setFirstName(""); setLastName(""); setEmail(""); setPhone("");
+    setCompany(""); setBudget(""); setTimeline(""); setMessage("");
+    setErrors({});
   };
 
   return (
@@ -121,6 +138,19 @@ export default function Contact() {
                 Fill out the form below and we&apos;ll get back to you within 24 hours to discuss your project requirements.
               </p>
 
+              {submitted ? (
+                <div className="bg-[#1c1c1c] border border-[#2a2626] rounded p-8 flex flex-col items-start gap-4">
+                  <div className="text-arsd-red text-3xl leading-none">✓</div>
+                  <h3 className="font-display text-2xl text-[#f0ede8] uppercase tracking-tight">Inquiry Sent</h3>
+                  <p className="text-[#a09890] text-sm">We&apos;ll reply within 24 hours.</p>
+                  <button
+                    onClick={handleReset}
+                    className="text-sm text-arsd-red hover:text-red-400 transition-colors [transition-timing-function:cubic-bezier(0.32,0.72,0,1)]"
+                  >
+                    Send another inquiry →
+                  </button>
+                </div>
+              ) : (
               <form className="space-y-4 sm:space-y-6" onSubmit={handleSubmit}>
                 <p className="text-xs text-[#a09890] mb-6">Fields marked <span aria-hidden="true">*</span> are required</p>
 
@@ -132,11 +162,11 @@ export default function Contact() {
                     <Input
                       id="firstName"
                       placeholder="Enter your first name"
-                      className="mt-1 bg-[#1c1c1c] border-[#2a2626] text-[#f0ede8] placeholder:text-[#a09890]"
+                      className={`mt-1 bg-[#1c1c1c] text-[#f0ede8] placeholder:text-[#a09890] ${errors.firstName ? "border-red-500" : "border-[#2a2626]"}`}
                       value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      required
+                      onChange={(e) => { setFirstName(e.target.value); if (errors.firstName) setErrors(prev => ({ ...prev, firstName: "" })); }}
                     />
+                    {errors.firstName && <p className="text-xs text-red-400 mt-1">{errors.firstName}</p>}
                   </div>
                   <div>
                     <Label htmlFor="lastName" className="text-[#a09890]">
@@ -145,11 +175,11 @@ export default function Contact() {
                     <Input
                       id="lastName"
                       placeholder="Enter your last name"
-                      className="mt-1 bg-[#1c1c1c] border-[#2a2626] text-[#f0ede8] placeholder:text-[#a09890]"
+                      className={`mt-1 bg-[#1c1c1c] text-[#f0ede8] placeholder:text-[#a09890] ${errors.lastName ? "border-red-500" : "border-[#2a2626]"}`}
                       value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                      required
+                      onChange={(e) => { setLastName(e.target.value); if (errors.lastName) setErrors(prev => ({ ...prev, lastName: "" })); }}
                     />
+                    {errors.lastName && <p className="text-xs text-red-400 mt-1">{errors.lastName}</p>}
                   </div>
                 </div>
 
@@ -162,11 +192,11 @@ export default function Contact() {
                       id="email"
                       type="email"
                       placeholder="Enter your email"
-                      className="mt-1 bg-[#1c1c1c] border-[#2a2626] text-[#f0ede8] placeholder:text-[#a09890]"
+                      className={`mt-1 bg-[#1c1c1c] text-[#f0ede8] placeholder:text-[#a09890] ${errors.email ? "border-red-500" : "border-[#2a2626]"}`}
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
+                      onChange={(e) => { setEmail(e.target.value); if (errors.email) setErrors(prev => ({ ...prev, email: "" })); }}
                     />
+                    {errors.email && <p className="text-xs text-red-400 mt-1">{errors.email}</p>}
                   </div>
                   <div>
                     <Label htmlFor="phone" className="text-[#a09890]">Phone Number</Label>
@@ -232,18 +262,19 @@ export default function Contact() {
                   <Textarea
                     id="message"
                     placeholder="Please describe your project requirements, location, and any specific needs..."
-                    className="mt-1 min-h-[120px] bg-[#1c1c1c] border-[#2a2626] text-[#f0ede8] placeholder:text-[#a09890]"
+                    className={`mt-1 min-h-[120px] bg-[#1c1c1c] text-[#f0ede8] placeholder:text-[#a09890] ${errors.message ? "border-red-500" : "border-[#2a2626]"}`}
                     value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    required
+                    onChange={(e) => { setMessage(e.target.value); if (errors.message) setErrors(prev => ({ ...prev, message: "" })); }}
                   />
+                  {errors.message && <p className="text-xs text-red-400 mt-1">{errors.message}</p>}
                 </div>
 
-                <Button type="submit" className="w-full bg-arsd-red hover:bg-red-700 text-white">
+                <Button type="submit" className="w-full bg-arsd-red hover:bg-red-700 active:scale-[0.98] text-white transition-[background-color,transform] duration-200 [transition-timing-function:cubic-bezier(0.32,0.72,0,1)] focus-visible:ring-2 focus-visible:ring-arsd-red focus-visible:ring-offset-2 focus-visible:ring-offset-[#111111]">
                   <Send className="w-4 h-4 mr-2" />
                   Send Message
                 </Button>
               </form>
+              )}
             </div>
 
             {/* Additional Information */}

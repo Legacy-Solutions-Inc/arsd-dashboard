@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useInView, useMotionValue, animate } from "framer-motion";
+import { EASE_SHARP } from "@/lib/motion";
 
 interface AnimatedNumberProps {
   value: number;
@@ -18,7 +19,7 @@ export function AnimatedNumber({ value, suffix = "", duration = 2 }: AnimatedNum
     if (isInView) {
       const controls = animate(motionValue, value, {
         duration,
-        ease: "easeOut",
+        ease: EASE_SHARP,
         onUpdate: (latest) => {
           if (ref.current) {
             ref.current.textContent = Math.round(latest) + suffix;

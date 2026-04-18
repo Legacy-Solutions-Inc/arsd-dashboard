@@ -1,296 +1,191 @@
+"use client";
+
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import {
-  Award,
-  Target,
-  Shield,
-  Heart,
-  Lightbulb,
-  ArrowRight,
-  Building,
-  Hammer,
-  HardHat,
-  Users,
-  Clock,
-  CheckCircle,
-  Star,
-  ArrowUpRight,
-  MapPin,
-  Phone,
-  Mail,
-  Calendar,
-  TrendingUp,
-  Award as AwardIcon,
-  FileText,
-  CheckCircle2,
-} from "lucide-react";
-import Link from "next/link";
-import { ValueCard } from "@/components/ValueCard";
-import { MilestoneCard, Milestone } from "@/components/MilestoneCard";
-import { TeamMemberCard, TeamMember } from "@/components/TeamMemberCard";
-import Image from "next/image";
+import { SectionEyebrow } from "@/components/SectionEyebrow";
+import { PageCTA } from "@/components/PageCTA";
 import { ABOUT_US_DATA } from "@/constants/about-us-data";
+import { motion } from "framer-motion";
+import { EASE_SHARP, fadeUpVariants, staggerContainer } from "@/lib/motion";
 
 export default function AboutPage() {
-  // Get data from centralized constants
-  const milestones = ABOUT_US_DATA.milestones;
-  const achievements = ABOUT_US_DATA.achievements;
+  const { milestones, achievements, certifications, story, mission, vision } = ABOUT_US_DATA;
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-[100dvh] bg-[#111111]">
       <Navbar />
 
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white py-16 sm:py-20 lg:py-32 overflow-hidden">
-        {/* Background Elements */}
-        <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.05%22%3E%3Ccircle%20cx%3D%2230%22%20cy%3D%2230%22%20r%3D%222%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-40"></div>
-          <div className="absolute top-0 right-0 w-64 h-64 sm:w-96 sm:h-96 bg-gradient-to-br from-arsd-red/20 to-transparent rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 w-64 h-64 sm:w-96 sm:h-96 bg-gradient-to-tr from-blue-500/20 to-transparent rounded-full blur-3xl"></div>
-        </div>
-        
-        <div className="container mx-auto px-4 sm:px-6 relative z-10">
-          <div className="max-w-6xl mx-auto">
-            <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-              <div className="text-center lg:text-left">
-                <div className="inline-flex items-center gap-2 bg-arsd-red/20 backdrop-blur-sm text-arsd-red px-3 py-2 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-semibold mb-4 sm:mb-6 border border-arsd-red/30">
-                  <Building className="h-4 w-4" />
-                  About Our Company
-                </div>
-                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
-                  Building Excellence
-                  <span className="block text-arsd-red">Since 1998</span>
-                </h1>
-                <p className="text-base sm:text-lg lg:text-xl text-slate-300 mb-6 sm:mb-8 leading-relaxed max-w-2xl mx-auto lg:mx-0">
-                  Your trusted construction partner in Iloilo City and beyond, delivering exceptional projects with integrity, excellence, and commitment.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
-                  <Link href="/contact-us">
-                    <Button size="lg" className="w-full sm:w-auto bg-arsd-red hover:bg-arsd-red/90 text-white px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-300">
-                      Get in Touch
-                      <ArrowUpRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
-                    </Button>
-                  </Link>
-                  <Link href="/projects">
-                    <Button size="lg" variant="outline" className="w-full sm:w-auto border-2 border-white text-white bg-transparent hover:bg-white hover:text-slate-900 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold transition-all duration-300">
-                      View Our Work
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-              <div className="relative mt-8 lg:mt-0">
-                <div className="relative z-10">
-                  <Image
-                    src="/images/photos/office2.jpg"
-                    alt="ARSD Construction Corporation Office Building"
-                    width={400}
-                    height={300}
-                    className="mx-auto rounded-2xl shadow-2xl w-48 h-48 sm:w-64 sm:h-64 lg:w-80 lg:h-80 object-cover"
-                  />
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-br from-arsd-red/20 to-blue-500/20 rounded-2xl blur-xl"></div>
-              </div>
-            </div>
-          </div>
+      {/* Hero */}
+      <section className="py-20 sm:py-28 bg-[#111111]">
+        <div className="responsive-container">
+          <SectionEyebrow className="mb-4">About ARSD</SectionEyebrow>
+          <motion.h1
+            className="font-display text-5xl sm:text-6xl lg:text-7xl tracking-tighter text-[#f0ede8] uppercase leading-none mb-6 max-w-2xl"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: EASE_SHARP }}
+          >
+            Building<br />Excellence<br />Since 1998
+          </motion.h1>
+          <motion.p
+            className="text-[#a09890] max-w-[55ch] leading-relaxed"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: EASE_SHARP, delay: 0.1 }}
+          >
+            From humble beginnings in labor contracting to a full-service construction company trusted across the Philippines.
+          </motion.p>
         </div>
       </section>
 
-      {/* Company Overview */}
-      <section className="py-16 sm:py-20 lg:py-24 bg-gray-50">
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-            <div>
-              <div className="inline-flex items-center gap-2 bg-arsd-red/10 text-arsd-red px-4 py-2 sm:px-6 sm:py-3 rounded-full text-xs sm:text-sm font-semibold mb-4 sm:mb-6">
-                Our Story
-              </div>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6">
+      {/* Story + Achievements */}
+      <section className="py-20 sm:py-28 bg-[#1c1c1c]">
+        <div className="responsive-container">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20">
+            {/* Story paragraphs */}
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-80px" }}
+            >
+              <SectionEyebrow className="mb-4">Our Story</SectionEyebrow>
+              <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl tracking-tight text-[#f0ede8] uppercase mb-8">
                 Who We Are
               </h2>
-              <div className="space-y-4 sm:space-y-6">
-                {ABOUT_US_DATA.story.paragraphs.map((paragraph, index) => (
-                  <p key={index} className="text-base sm:text-lg text-gray-600 leading-relaxed">
+              <div className="space-y-5">
+                {story.paragraphs.map((paragraph, i) => (
+                  <motion.p
+                    key={i}
+                    variants={fadeUpVariants}
+                    custom={i}
+                    className="text-[#a09890] leading-relaxed"
+                  >
                     {paragraph}
-                  </p>
+                  </motion.p>
                 ))}
               </div>
-              <div className="mt-6 sm:mt-8">
-                <Link href="/contact-us">
-                  <Button size="lg" className="w-full sm:w-auto bg-arsd-red hover:bg-arsd-red/90 text-white px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-300">
-                    Get in Touch
-                    <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
-                  </Button>
-                </Link>
-              </div>
-            </div>
-            <div className="relative mt-8 lg:mt-0">
-              <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-2xl">
-                <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6 text-center">
-                  Our Achievements
-                </h3>
-                <div className="grid grid-cols-2 gap-4 sm:gap-6">
-                  {achievements.map((achievement, index) => (
-                    <div key={index} className="text-center group">
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-arsd-red to-red-600 rounded-xl flex items-center justify-center mx-auto mb-2 sm:mb-3 group-hover:scale-110 transition-transform duration-300">
-                        <Star className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                      </div>
-                      <div className="text-xl sm:text-2xl font-bold text-arsd-red mb-1">
-                        {achievement.number}
-                      </div>
-                      <div className="text-gray-600 text-xs sm:text-sm font-medium">
-                        {achievement.label}
-                      </div>
-                    </div>
-                  ))}
+            </motion.div>
+
+            {/* Achievements flat grid */}
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.6, ease: EASE_SHARP, delay: 0.15 }}
+              className="border border-[#2a2626] divide-y divide-[#2a2626] self-start lg:mt-20"
+            >
+              {achievements.map((item) => (
+                <div key={item.label} className="p-8">
+                  <div className="font-display text-5xl tracking-tighter text-[#f0ede8] leading-none mb-2">
+                    {item.number}
+                  </div>
+                  <div className="text-xs text-[#a09890] uppercase tracking-wider">{item.label}</div>
                 </div>
-              </div>
-            </div>
+              ))}
+            </motion.div>
           </div>
         </div>
       </section>
 
       {/* Mission & Vision */}
-      <section className="py-16 sm:py-20 lg:py-24 bg-white">
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="text-center mb-12 sm:mb-16">
-            <div className="inline-flex items-center gap-2 bg-arsd-red/10 text-arsd-red px-4 py-2 sm:px-6 sm:py-3 rounded-full text-xs sm:text-sm font-semibold mb-4 sm:mb-6">
-              Our Foundation
+      <section className="py-20 sm:py-28 bg-[#111111]">
+        <div className="responsive-container">
+          <SectionEyebrow className="mb-8">Our Foundation</SectionEyebrow>
+          <div className="border border-[#2a2626] grid lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-[#2a2626]">
+            <div className="p-8 lg:p-12">
+              <p className="text-xs uppercase tracking-widest text-arsd-red mb-3">Mission</p>
+              <h3 className="font-display text-2xl text-[#f0ede8] uppercase tracking-tight mb-4">
+                Our Mission
+              </h3>
+              <p className="text-[#a09890] leading-relaxed">{mission}</p>
             </div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6">
-              Mission & Vision
-            </h2>
-            <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Our guiding principles that drive every decision and every project we undertake.
-            </p>
-          </div>
-
-          <div className="grid lg:grid-cols-2 gap-6 sm:gap-8">
-            <Card className="border-l-4 border-l-arsd-red shadow-xl hover:shadow-2xl transition-all duration-300 group">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-xl sm:text-2xl text-gray-900 flex items-center gap-3">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-arsd-red to-red-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <Target className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                  </div>
-                  Our Mission
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 leading-relaxed text-base sm:text-lg">
-                  {ABOUT_US_DATA.mission}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-l-4 border-l-arsd-red shadow-xl hover:shadow-2xl transition-all duration-300 group">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-xl sm:text-2xl text-gray-900 flex items-center gap-3">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-arsd-red to-red-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <Lightbulb className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                  </div>
-                  Our Vision
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 leading-relaxed text-base sm:text-lg">
-                  {ABOUT_US_DATA.vision}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Company Timeline */}
-      <section className="py-16 sm:py-20 lg:py-24 bg-white">
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="text-center mb-12 sm:mb-16">
-            <div className="inline-flex items-center gap-2 bg-arsd-red/10 text-arsd-red px-4 py-2 sm:px-6 sm:py-3 rounded-full text-xs sm:text-sm font-semibold mb-4 sm:mb-6">
-              <Clock className="h-4 w-4" />
-              Our Journey
-            </div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6">Our Journey</h2>
-            <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              From our humble beginnings to becoming a trusted name in construction, here's our story.
-            </p>
-          </div>
-          <div className="max-w-4xl mx-auto">
-            <div className="space-y-6 sm:space-y-8">
-              {milestones.map((milestone) => (
-                <MilestoneCard key={milestone.year} milestone={milestone} />
-              ))}
+            <div className="p-8 lg:p-12">
+              <p className="text-xs uppercase tracking-widest text-arsd-red mb-3">Vision</p>
+              <h3 className="font-display text-2xl text-[#f0ede8] uppercase tracking-tight mb-4">
+                Our Vision
+              </h3>
+              <p className="text-[#a09890] leading-relaxed">{vision}</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Certifications & Awards */}
-      <section className="py-16 sm:py-20 lg:py-24 bg-gray-50">
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="text-center mb-12 sm:mb-16">
-            <div className="inline-flex items-center gap-2 bg-arsd-red/10 text-arsd-red px-4 py-2 sm:px-6 sm:py-3 rounded-full text-xs sm:text-sm font-semibold mb-4 sm:mb-6">
-              <AwardIcon className="h-4 w-4" />
-              Certifications & Recognition
-            </div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6">
-              Certifications & Recognition
-            </h2>
-            <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Our commitment to quality and excellence has been recognized through various certifications and awards.
-            </p>
-          </div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {ABOUT_US_DATA.certifications.map((cert, index) => (
-              <div
-                key={index}
-                className="text-center bg-white p-6 sm:p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-gray-100 group"
+      {/* Milestones */}
+      <section className="py-20 sm:py-28 bg-[#1c1c1c]">
+        <div className="responsive-container">
+          <SectionEyebrow className="mb-4">Our Journey</SectionEyebrow>
+          <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl tracking-tight text-[#f0ede8] uppercase mb-12">
+            Milestones
+          </h2>
+          <motion.div
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-80px" }}
+            className="divide-y divide-[#2a2626]"
+          >
+            {milestones.map((milestone, index) => (
+              <motion.div
+                key={milestone.year}
+                variants={fadeUpVariants}
+                custom={index}
+                className="py-8 grid grid-cols-[5rem_1fr] gap-8 items-start"
               >
-                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-arsd-red to-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 group-hover:scale-110 transition-transform duration-300">
-                  <Award className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+                <span className="font-display text-2xl text-arsd-red leading-none pt-1">
+                  {milestone.year}
+                </span>
+                <div>
+                  <h4 className="font-display text-lg text-[#f0ede8] uppercase tracking-tight mb-1">
+                    {milestone.title}
+                  </h4>
+                  <p className="text-sm text-[#a09890] leading-relaxed">{milestone.description}</p>
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3">
-                  {cert.title}
-                </h3>
-                <p className="text-2xl sm:text-3xl font-bold text-arsd-red mb-2 sm:mb-3">{cert.description}</p>
-                <p className="text-sm sm:text-base text-gray-600">{cert.subtitle}</p>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-16 sm:py-20 lg:py-24 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
-        <div className="absolute inset-0">
-          <div className="absolute top-0 right-0 w-64 h-64 sm:w-96 sm:h-96 bg-gradient-to-br from-arsd-red/20 to-transparent rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 w-64 h-64 sm:w-96 sm:h-96 bg-gradient-to-tr from-blue-500/20 to-transparent rounded-full blur-3xl"></div>
-        </div>
-        
-        <div className="container mx-auto px-4 sm:px-6 text-center relative z-10">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6">
-              Partner with ARSD Construction
-            </h2>
-            <p className="text-lg sm:text-xl text-slate-300 mb-6 sm:mb-8 max-w-3xl mx-auto leading-relaxed">
-              Experience the difference that 25+ years of expertise and commitment to excellence can make for your next construction project.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-              <Link href="/contact-us">
-                <Button size="lg" className="w-full sm:w-auto bg-arsd-red hover:bg-arsd-red/90 text-white px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-300">
-                  Contact Us Today
-                  <ArrowUpRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
-                </Button>
-              </Link>
-              <Link href="/projects">
-                <Button size="lg" variant="outline" className="w-full sm:w-auto border-2 border-white text-white bg-transparent hover:bg-white hover:text-slate-900 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold transition-all duration-300">
-                  View Our Projects
-                </Button>
-              </Link>
-            </div>
-          </div>
+      {/* Certifications */}
+      <section className="py-20 sm:py-28 bg-[#111111]">
+        <div className="responsive-container">
+          <SectionEyebrow className="mb-4">Credentials</SectionEyebrow>
+          <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl tracking-tight text-[#f0ede8] uppercase mb-12">
+            Certifications
+          </h2>
+          <motion.div
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-80px" }}
+            className="grid md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-[#2a2626] border border-[#2a2626]"
+          >
+            {certifications.map((cert, index) => (
+              <motion.div
+                key={cert.title}
+                variants={fadeUpVariants}
+                custom={index}
+                className="p-8 md:p-10"
+              >
+                <p className="text-xs uppercase tracking-widest text-[#a09890] mb-3">{cert.title}</p>
+                <p className="font-display text-2xl text-arsd-red mb-2">{cert.description}</p>
+                <p className="text-sm text-[#a09890] leading-relaxed">{cert.subtitle}</p>
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
       </section>
+
+      {/* CTA */}
+      <PageCTA
+        heading="Partner With ARSD Construction"
+        body="Experience the difference that 25+ years of expertise and commitment to excellence makes for your project."
+        primaryLabel="Contact Us"
+        primaryHref="/contact-us"
+        secondaryLabel="View Projects"
+        secondaryHref="/projects"
+      />
 
       <Footer />
     </div>

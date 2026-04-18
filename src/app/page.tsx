@@ -175,9 +175,12 @@ export default async function Home() {
                 </a>
               ))
             ) : (
-              Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="aspect-[16/10] rounded-lg bg-[#1c1c1c] border border-[#2a2626]" />
-              ))
+              <div className="col-span-full flex flex-col items-center justify-center py-20 border border-[#2a2626] rounded-lg gap-3 text-center">
+                <p className="text-[#a09890] text-sm">Portfolio coming soon.</p>
+                <a href="/contact-us" className="text-sm text-arsd-red hover:text-red-400 font-semibold transition-colors">
+                  Contact us to discuss past projects →
+                </a>
+              </div>
             )}
           </div>
 

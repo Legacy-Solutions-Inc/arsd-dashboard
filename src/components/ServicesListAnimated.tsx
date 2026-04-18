@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
+import { EASE_SHARP } from "@/lib/motion";
 
 export interface ServiceItem {
   num: string;
@@ -16,7 +17,7 @@ const containerVariants = {
 
 const itemVariants = {
   hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE_SHARP } },
 };
 
 interface Props {
@@ -49,7 +50,7 @@ export function ServicesListAnimated({ services }: Props) {
                 </h3>
                 <p className="text-sm text-[#a09890] mt-1">{service.desc}</p>
               </div>
-              <ArrowUpRight className="w-5 h-5 text-[#2a2626] group-hover:text-arsd-red group-hover:translate-x-1 transition-all duration-200 flex-shrink-0 mt-1" />
+              <ArrowUpRight className="w-5 h-5 text-[#2a2626] group-hover:text-arsd-red group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200 [transition-timing-function:cubic-bezier(0.32,0.72,0,1)] flex-shrink-0 mt-1" />
             </div>
           </a>
         </motion.div>
