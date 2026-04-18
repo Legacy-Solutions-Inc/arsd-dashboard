@@ -1,9 +1,12 @@
 import Footer from "@/components/footer";
 import Hero from "@/components/hero";
 import Navbar from "@/components/navbar";
-import { ArrowUpRight, Building, PenTool, MapPin, Droplets, Truck } from "lucide-react";
+import { ArrowUpRight, MapPin } from "lucide-react";
 import { createClient } from "../../supabase/server";
 import Image from "next/image";
+import { SectionEyebrow } from "@/components/SectionEyebrow";
+import { AnimatedNumber } from "@/components/AnimatedNumber";
+import { PageCTA } from "@/components/PageCTA";
 
 /** Homepage for ARSD Construction.*/
 export default async function Home() {
@@ -30,210 +33,188 @@ export default async function Home() {
   }));
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
+    <div className="min-h-screen bg-[#111111]">
       {/* NavBar Section */}
       <Navbar />
       {/* Hero Section */}
       <Hero />
 
       {/* Services Overview */}
-      <section id="services" className="py-12 sm:py-16 lg:py-20 bg-white">
+      <section id="services" className="py-16 sm:py-20 lg:py-24 bg-[#111111]">
         <div className="responsive-container">
-          <div className="text-center mb-8 sm:mb-10 lg:mb-14">
-            <div className="inline-flex items-center gap-2 bg-arsd-red/10 text-arsd-red px-4 py-2 rounded-full text-xs sm:text-sm font-semibold mb-4">
+          <div className="mb-10 sm:mb-14">
+            <SectionEyebrow className="mb-3">What We Do</SectionEyebrow>
+            <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl tracking-tight text-[#f0ede8] uppercase mb-4">
               Our Services
-            </div>
-            <h2 className="responsive-heading font-bold mb-3">Delivering End-to-End Construction Solutions</h2>
-            <p className="responsive-text text-gray-600 max-w-xl sm:max-w-2xl mx-auto leading-relaxed">
-              Building Construction, Design & Plan Preparation, Land Development, Waterproofing, and Supply Aggregates.
+            </h2>
+            <p className="text-[#a09890] max-w-[55ch] leading-relaxed">
+              End-to-end construction from groundwork to handover.
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
-            <a href="/our-services" className="group bg-gray-50 rounded-2xl p-5 sm:p-6 border border-gray-100 hover:bg-white hover:shadow-lg transition-all">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-arsd-red to-red-600 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
-                <Building className="w-6 h-6 text-white" />
-              </div>
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1">Building Construction</h3>
-              <p className="text-gray-600 text-sm">Commercial, residential, and industrial projects, executed with precision.</p>
-            </a>
-            <a href="/our-services" className="group bg-gray-50 rounded-2xl p-5 sm:p-6 border border-gray-100 hover:bg-white hover:shadow-lg transition-all">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-arsd-red to-red-600 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
-                <PenTool className="w-6 h-6 text-white" />
-              </div>
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1">Design & Plan Preparation</h3>
-              <p className="text-gray-600 text-sm">Compliance-focused planning and design aligned with project goals.</p>
-            </a>
-            <a href="/our-services" className="group bg-gray-50 rounded-2xl p-5 sm:p-6 border border-gray-100 hover:bg-white hover:shadow-lg transition-all">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-arsd-red to-red-600 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
-                <MapPin className="w-6 h-6 text-white" />
-              </div>
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1">Land Development</h3>
-              <p className="text-gray-600 text-sm">Site preparation, roadworks, utilities, and earthmoving solutions.</p>
-            </a>
-            <a href="/our-services" className="group bg-gray-50 rounded-2xl p-5 sm:p-6 border border-gray-100 hover:bg-white hover:shadow-lg transition-all">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-arsd-red to-red-600 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
-                <Droplets className="w-6 h-6 text-white" />
-              </div>
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1">Waterproofing</h3>
-              <p className="text-gray-600 text-sm">Certified waterproofing systems for long-term durability.</p>
-            </a>
-            <a href="/our-services" className="group bg-gray-50 rounded-2xl p-5 sm:p-6 border border-gray-100 hover:bg-white hover:shadow-lg transition-all">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-arsd-red to-red-600 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
-                <Truck className="w-6 h-6 text-white" />
-              </div>
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1">Supply Aggregates</h3>
-              <p className="text-gray-600 text-sm">Reliable supply of sand, gravel, and construction materials.</p>
-            </a>
+
+          {/* Numbered service list */}
+          <div className="divide-y divide-[#2a2626]">
+            {[
+              { num: "01", title: "Building Construction", desc: "Commercial, residential, and industrial projects executed with precision." },
+              { num: "02", title: "Design & Plan Preparation", desc: "Compliance-focused planning and design aligned with project goals." },
+              { num: "03", title: "Land Development", desc: "Site preparation, roadworks, utilities, and earthmoving solutions." },
+              { num: "04", title: "Waterproofing", desc: "Certified waterproofing systems for long-term durability." },
+              { num: "05", title: "Supply Aggregates", desc: "Reliable supply of sand, gravel, and construction materials." },
+            ].map((service) => (
+              <a
+                key={service.num}
+                href="/our-services"
+                className="group flex items-center justify-between py-5 sm:py-6 hover:bg-[#1c1c1c] -mx-4 px-4 transition-colors"
+              >
+                <div className="flex items-baseline gap-6">
+                  <span className="font-display text-2xl text-arsd-red/30 group-hover:text-arsd-red transition-colors w-10 flex-shrink-0">
+                    {service.num}
+                  </span>
+                  <div>
+                    <h3 className="font-display text-xl sm:text-2xl text-[#f0ede8] uppercase tracking-tight">
+                      {service.title}
+                    </h3>
+                    <p className="text-sm text-[#a09890] mt-1">{service.desc}</p>
+                  </div>
+                </div>
+                <ArrowUpRight className="w-5 h-5 text-[#2a2626] group-hover:text-arsd-red transition-colors flex-shrink-0" />
+              </a>
+            ))}
           </div>
-          <div className="text-center mt-8 sm:mt-10">
-            <a href="/our-services" className="inline-flex items-center px-5 sm:px-6 py-3 rounded-lg bg-arsd-red text-white hover:bg-red-700 transition-colors text-sm sm:text-base font-medium">
-              Explore All Services
-              <ArrowUpRight className="ml-2 w-4 h-4" />
+
+          <div className="mt-8">
+            <a href="/our-services" className="inline-flex items-center gap-2 text-sm text-arsd-red hover:text-red-400 font-semibold transition-colors">
+              View all services <ArrowUpRight className="w-4 h-4" />
             </a>
           </div>
         </div>
       </section>
 
       {/* About Us Highlight */}
-      <section id="about" className="py-12 sm:py-16 lg:py-20 bg-gray-50">
-        <div className="responsive-container grid lg:grid-cols-2 gap-8 sm:gap-12 items-center">
+      <section id="about" className="py-16 sm:py-20 lg:py-24 bg-[#1c1c1c]">
+        <div className="responsive-container grid lg:grid-cols-2 gap-12 items-center">
           <div>
-            <div className="inline-flex items-center gap-2 bg-arsd-red/10 text-arsd-red px-4 py-2 rounded-full text-xs sm:text-sm font-semibold mb-4">Who We Are</div>
-            <h2 className="responsive-heading font-bold mb-3">ARSD Construction</h2>
-            <p className="responsive-text text-gray-600 mb-5 sm:mb-6">
-              ARSD Construction was founded with courage, honesty and dedication as it was started with a humble beginning in 1998. At first it was just labor contracting; after a year, a small seed capital was introduced and coupled with determination and dedication straight contract was ventured.
+            <SectionEyebrow className="mb-3">Who We Are</SectionEyebrow>
+            <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl tracking-tight text-[#f0ede8] uppercase mb-6">
+              ARSD Construction
+            </h2>
+            <p className="text-[#a09890] mb-6 leading-relaxed max-w-[55ch]">
+              Founded with courage, honesty, and dedication in 1998. From humble labor contracting beginnings to a full-service construction company trusted across the Philippines.
             </p>
-            <div className="flex flex-wrap gap-3 sm:gap-4">
-              <a href="/about-us" className="inline-flex items-center px-5 py-3 rounded-lg bg-arsd-red text-white hover:bg-red-700 transition-colors text-sm sm:text-base font-medium">
-                Learn About Us
-                <ArrowUpRight className="ml-2 w-4 h-4" />
+            <div className="flex flex-wrap gap-3">
+              <a href="/about-us" className="inline-flex items-center px-5 py-2.5 bg-arsd-red text-white text-sm font-semibold rounded hover:bg-red-700 transition-colors">
+                Learn About Us <ArrowUpRight className="ml-2 w-4 h-4" />
               </a>
-              <a href="/contact-us" className="inline-flex items-center px-5 py-3 rounded-lg bg-white border border-gray-200 text-gray-900 hover:bg-gray-50 transition-colors text-sm sm:text-base font-medium">
+              <a href="/contact-us" className="inline-flex items-center px-5 py-2.5 border border-[#2a2626] text-[#f0ede8] text-sm font-semibold rounded hover:border-[#f0ede8] transition-colors">
                 Get in Touch
               </a>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4 sm:gap-6">
-            <div className="rounded-2xl bg-white p-5 border border-gray-100 text-center shadow-sm">
-              <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">PCAB</div>
-              <div className="text-gray-600 text-xs sm:text-sm">Licensed Contractor</div>
-            </div>
-            <div className="rounded-2xl bg-white p-5 border border-gray-100 text-center shadow-sm">
-              <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">PhilGEPS</div>
-              <div className="text-gray-600 text-xs sm:text-sm">Registered Supplier</div>
-            </div>
-            <div className="rounded-2xl bg-white p-5 border border-gray-100 text-center shadow-sm">
-              <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">SEC</div>
-              <div className="text-gray-600 text-xs sm:text-sm">Duly Registered</div>
-            </div>
-            <div className="rounded-2xl bg-white p-5 border border-gray-100 text-center shadow-sm">
-              <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">20+ yrs</div>
-              <div className="text-gray-600 text-xs sm:text-sm">Industry Experience</div>
-            </div>
+
+          {/* Flat 2×2 credential grid — NO white card boxes */}
+          <div className="grid grid-cols-2 divide-x divide-y divide-[#2a2626] border border-[#2a2626]">
+            {[
+              { label: "PCAB", desc: "Licensed Contractor" },
+              { label: "PhilGEPS", desc: "Registered Supplier" },
+              { label: "SEC", desc: "Duly Registered" },
+              { label: "25+ yrs", desc: "Industry Experience" },
+            ].map((item) => (
+              <div key={item.label} className="p-6 text-center">
+                <div className="font-display text-2xl font-bold text-[#f0ede8] mb-1">{item.label}</div>
+                <div className="text-xs text-[#a09890] uppercase tracking-wider">{item.desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="py-16 sm:py-20 lg:py-24 bg-[#111111] border-y border-[#2a2626]">
+        <div className="responsive-container">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-0 sm:divide-x sm:divide-[#2a2626]">
+            {[
+              { value: 500, suffix: "+", label: "Projects Completed" },
+              { value: 25, suffix: "+", label: "Years Experience" },
+              { value: 100, suffix: "+", label: "Satisfied Clients" },
+            ].map((stat) => (
+              <div key={stat.label} className="text-center sm:px-8">
+                <div className="font-display text-6xl sm:text-7xl tracking-tighter text-[#f0ede8] leading-none mb-2">
+                  <AnimatedNumber value={stat.value} suffix={stat.suffix} />
+                </div>
+                <div className="text-sm text-[#a09890] uppercase tracking-wider">{stat.label}</div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Projects Preview */}
-      <section id="projects" className="py-12 sm:py-16 lg:py-20 bg-white">
+      <section id="projects" className="py-16 sm:py-20 lg:py-24 bg-[#1c1c1c]">
         <div className="responsive-container">
-          <div className="text-center mb-8 sm:mb-10 lg:mb-14">
-            <div className="inline-flex items-center gap-2 bg-arsd-red/10 text-arsd-red px-4 py-2 rounded-full text-xs sm:text-sm font-semibold mb-4">Recent Works</div>
-            <h2 className="responsive-heading font-bold mb-3">Featured Projects</h2>
-            <p className="responsive-text text-gray-600 max-w-xl sm:max-w-2xl mx-auto leading-relaxed">
-              A snapshot of our ongoing and completed builds across regions.
-            </p>
+          <div className="flex items-end justify-between mb-10 sm:mb-14">
+            <div>
+              <SectionEyebrow className="mb-3">Recent Works</SectionEyebrow>
+              <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl tracking-tight text-[#f0ede8] uppercase">
+                Featured Projects
+              </h2>
+            </div>
+            <a href="/projects" className="hidden sm:inline-flex items-center gap-1 text-sm text-arsd-red hover:text-red-400 font-semibold transition-colors">
+              View all <ArrowUpRight className="w-4 h-4" />
+            </a>
           </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {featuredProjects.length > 0 ? (
               featuredProjects.map((project: any) => (
-                <a key={project.id} href="/projects" className="group block rounded-2xl overflow-hidden border border-gray-200 bg-white shadow-sm hover:shadow-lg transition-all">
-                  <div className="relative aspect-[16/10] overflow-hidden">
+                <a key={project.id} href="/projects" className="group block rounded-lg overflow-hidden">
+                  <div className="relative aspect-[16/10] overflow-hidden bg-[#1c1c1c]">
                     {project.photoUrls && project.photoUrls.length > 0 ? (
-                      <Image src={project.photoUrls[0]} alt={project.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                      <Image
+                        src={project.photoUrls[0]}
+                        alt={project.name}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
                     ) : (
-                      <div className="w-full h-full bg-gray-100" />
+                      <div className="w-full h-full bg-[#2a2626]" />
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                    <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-                      <div>
-                        <h3 className="text-white text-sm sm:text-base font-semibold leading-tight">{project.name}</h3>
-                        <div className="flex items-center gap-1 text-white/80 text-xs"><MapPin className="w-3 h-3" />{project.location}</div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-4">
+                      <h3 className="font-display text-base sm:text-lg text-white uppercase tracking-tight leading-tight">
+                        {project.name}
+                      </h3>
+                      <div className="flex items-center gap-1 text-white/70 text-xs mt-1">
+                        <MapPin className="w-3 h-3" />
+                        {project.location}
                       </div>
-                      {project.photoUrls && project.photoUrls.length > 1 && (
-                        <div className="flex gap-1">
-                          {project.photoUrls.slice(0,4).map((_: any, idx: number) => (
-                            <span key={idx} className={`w-2 h-2 rounded-full ${idx===0? 'bg-white':'bg-white/60'}`} />
-                          ))}
-                        </div>
-                      )}
                     </div>
                   </div>
                 </a>
               ))
             ) : (
               Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="aspect-[16/10] rounded-2xl bg-gray-100 border border-gray-200" />
+                <div key={i} className="aspect-[16/10] rounded-lg bg-[#1c1c1c] border border-[#2a2626]" />
               ))
             )}
           </div>
-          <div className="text-center mt-8 sm:mt-10">
-            <a href="/projects" className="inline-flex items-center px-5 sm:px-6 py-3 rounded-lg bg-arsd-red text-white hover:bg-red-700 transition-colors text-sm sm:text-base font-medium">
-              View All Projects
-              <ArrowUpRight className="ml-2 w-4 h-4" />
+
+          <div className="sm:hidden text-center mt-8">
+            <a href="/projects" className="inline-flex items-center gap-2 text-sm text-arsd-red hover:text-red-400 font-semibold transition-colors">
+              View all projects <ArrowUpRight className="w-4 h-4" />
             </a>
           </div>
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-12 sm:py-16 lg:py-20 bg-arsd-red text-white">
-        <div className="responsive-container">
-          <div className="text-center mb-8 sm:mb-10 lg:mb-12">
-            <h2 className="responsive-heading font-bold mb-4">
-              Trusted by Construction Leaders
-            </h2>
-            <p className="responsive-text text-orange-100 max-w-xl sm:max-w-2xl mx-auto leading-relaxed">
-              Join industry professionals who rely on our platform for project success
-            </p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 text-center">
-            <div className="mobile-padding">
-              <div className="text-xl sm:text-2xl lg:text-4xl font-bold mb-2">500+</div>
-              <div className="text-orange-100 text-xs sm:text-sm lg:text-base">Projects Completed</div>
-            </div>
-            <div className="mobile-padding">
-              <div className="text-xl sm:text-2xl lg:text-4xl font-bold mb-2">25+</div>
-              <div className="text-orange-100 text-xs sm:text-sm lg:text-base">Years Experience</div>
-            </div>
-            <div className="mobile-padding">
-              <div className="text-xl sm:text-2xl lg:text-4xl font-bold mb-2">100+</div>
-              <div className="text-orange-100 text-xs sm:text-sm lg:text-base">Satisfied Clients</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* CTA Section */}
-      <section className="py-12 sm:py-16 lg:py-20 bg-gray-50">
-        <div className="responsive-container text-center">
-          <h2 className="responsive-heading font-bold mb-4">
-            Ready to Transform Your Project?
-          </h2>
-          <p className="responsive-text text-gray-600 mb-6 sm:mb-8 max-w-xl sm:max-w-2xl mx-auto leading-relaxed">
-            Interested in partnering or have a project in mind? Message us today and let's build success together. We're ready to collaborate and deliver excellence for your construction needs.
-          </p>
-          <a
-            href="https://www.facebook.com/ARSDConCorp"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center px-6 sm:px-8 py-3 sm:py-4 text-white bg-arsd-red rounded-lg hover:bg-orange-700 transition-colors text-base sm:text-lg font-medium"
-          >
-            Message Us on Facebook!
-            <ArrowUpRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
-          </a>
-        </div>
-      </section>
+      <PageCTA
+        heading="Ready to Build With Us?"
+        body="Interested in partnering or have a project in mind? Our team is ready to discuss your construction needs and deliver excellence."
+        primaryLabel="Get in Touch"
+        primaryHref="/contact-us"
+        secondaryLabel="View Our Work"
+        secondaryHref="/projects"
+      />
 
       {/* Footer Section */}
       <Footer />
