@@ -7,6 +7,16 @@ import Image from "next/image";
 import { SectionEyebrow } from "@/components/SectionEyebrow";
 import { AnimatedNumber } from "@/components/AnimatedNumber";
 import { PageCTA } from "@/components/PageCTA";
+import { ServicesListAnimated } from "@/components/ServicesListAnimated";
+import type { ServiceItem } from "@/components/ServicesListAnimated";
+
+const SERVICES_DATA: ServiceItem[] = [
+  { num: "01", title: "Building Construction", desc: "Commercial, residential, and industrial projects executed with precision." },
+  { num: "02", title: "Design & Plan Preparation", desc: "Compliance-focused planning and design aligned with project goals." },
+  { num: "03", title: "Land Development", desc: "Site preparation, roadworks, utilities, and earthmoving solutions." },
+  { num: "04", title: "Waterproofing", desc: "Certified waterproofing systems for long-term durability." },
+  { num: "05", title: "Supply Aggregates", desc: "Reliable supply of sand, gravel, and construction materials." },
+];
 
 /** Homepage for ARSD Construction.*/
 export default async function Home() {
@@ -52,35 +62,8 @@ export default async function Home() {
             </p>
           </div>
 
-          {/* Numbered service list */}
-          <div className="divide-y divide-[#2a2626]">
-            {[
-              { num: "01", title: "Building Construction", desc: "Commercial, residential, and industrial projects executed with precision." },
-              { num: "02", title: "Design & Plan Preparation", desc: "Compliance-focused planning and design aligned with project goals." },
-              { num: "03", title: "Land Development", desc: "Site preparation, roadworks, utilities, and earthmoving solutions." },
-              { num: "04", title: "Waterproofing", desc: "Certified waterproofing systems for long-term durability." },
-              { num: "05", title: "Supply Aggregates", desc: "Reliable supply of sand, gravel, and construction materials." },
-            ].map((service) => (
-              <a
-                key={service.num}
-                href="/our-services"
-                className="group flex items-center justify-between py-5 sm:py-6 hover:bg-[#1c1c1c] -mx-4 px-4 transition-colors"
-              >
-                <div className="flex items-baseline gap-6">
-                  <span className="font-display text-2xl text-arsd-red/30 group-hover:text-arsd-red transition-colors w-10 flex-shrink-0">
-                    {service.num}
-                  </span>
-                  <div>
-                    <h3 className="font-display text-xl sm:text-2xl text-[#f0ede8] uppercase tracking-tight">
-                      {service.title}
-                    </h3>
-                    <p className="text-sm text-[#a09890] mt-1">{service.desc}</p>
-                  </div>
-                </div>
-                <ArrowUpRight className="w-5 h-5 text-[#2a2626] group-hover:text-arsd-red transition-colors flex-shrink-0" />
-              </a>
-            ))}
-          </div>
+          {/* Animated numbered service list */}
+          <ServicesListAnimated services={SERVICES_DATA} />
 
           <div className="mt-8">
             <a href="/our-services" className="inline-flex items-center gap-2 text-sm text-arsd-red hover:text-red-400 font-semibold transition-colors">
