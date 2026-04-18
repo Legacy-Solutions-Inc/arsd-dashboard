@@ -8,123 +8,93 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-gray-50 border-t border-gray-100">
-      <div className="container mx-auto px-4 py-12">
-        {/* Company Info Section */}
-        <div className="text-center mb-12">
-          <div className="flex justify-center mb-4">
-            <Image
-              src="/images/arsd-logo.png"
-              alt="ARSD Construction Corporation Logo"
-              width={80}
-              height={80}
-              className="rounded-full"
-            />
-          </div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-4">
-            {CONTACT_INFO.company.name}
-          </h3>
-          <div className="flex flex-col md:flex-row justify-center items-center gap-6 text-gray-600">
-            <div className="flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-red-600" />
-              <span>{CONTACT_INFO.address.street}, {CONTACT_INFO.address.city}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Mail className="w-5 h-5 text-red-600" />
-              <a
-                href={`mailto:${CONTACT_INFO.email.primary}`}
-                className="hover:text-red-600"
-              >
-                {CONTACT_INFO.email.display}
-              </a>
-            </div>
-            <div className="flex items-center gap-2">
-              <FacebookIcon className="w-5 h-5 text-red-600" />
-              <a
-                href={CONTACT_INFO.social.facebook.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-red-600"
-              >
-                {CONTACT_INFO.social.facebook.handle}
-              </a>
-            </div>
-          </div>
-        </div>
+    <footer className="bg-[#0d0d0d] border-t border-[#2a2626]">
+      <div className="responsive-container py-16 sm:py-20">
+        {/* Main grid: 3 columns on large, 1 on mobile */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 sm:gap-12 mb-12">
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-          {/* Platform Column */}
+          {/* Column 1: Brand */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-4">Company</h3>
+            <div className="flex items-center gap-3 mb-4">
+              <Image
+                src="/images/arsd-logo.png"
+                alt="ARSD Construction Corporation"
+                width={36}
+                height={36}
+                className="rounded-full"
+              />
+              <span className="font-display text-lg font-bold text-[#f0ede8] uppercase tracking-tight">
+                ARSD
+              </span>
+            </div>
+            <p className="text-sm text-[#a09890] leading-relaxed mb-2">
+              {CONTACT_INFO.company.tagline}
+            </p>
+            <p className="text-xs text-[#a09890]">Founded 1998.</p>
+          </div>
+
+          {/* Column 2: Company links */}
+          <div>
+            <h3 className="text-xs uppercase tracking-widest font-semibold text-[#f0ede8] mb-4">Company</h3>
             <ul className="space-y-2">
-              <li>
-                <Link
-                  href="/our-services"
-                  className="text-gray-600 hover:text-red-600"
-                >
-                  Our Services
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/projects"
-                  className="text-gray-600 hover:text-red-600"
-                >
-                  Projects
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact-us" className="text-gray-600 hover:text-red-600">
-                  Contact Us
-                </Link>
-              </li>
-              <li>
-                <Link href="/about-us" className="text-gray-600 hover:text-red-600">
-                  About ARSD
-                </Link>
-              </li>
+              {[
+                { href: "/our-services", label: "Our Services" },
+                { href: "/projects", label: "Projects" },
+                { href: "/about-us", label: "About ARSD" },
+                { href: "/contact-us", label: "Contact Us" },
+                { href: "/sign-in", label: "Sign In" },
+              ].map(({ href, label }) => (
+                <li key={href}>
+                  <Link href={href} className="text-sm text-[#a09890] hover:text-arsd-red transition-colors">
+                    {label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
-          {/* Platform Column */}
+          {/* Column 3: Contact */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-4">Platform</h3>
-            <ul className="space-y-2">
+            <h3 className="text-xs uppercase tracking-widest font-semibold text-[#f0ede8] mb-4">Contact</h3>
+            <ul className="space-y-3">
               <li>
-                <Link href="/sign-in" className="text-gray-600 hover:text-red-600">
-                  Sign In
-                </Link>
+                <a href={`mailto:${CONTACT_INFO.email.primary}`} className="flex items-start gap-2 text-sm text-[#a09890] hover:text-arsd-red transition-colors">
+                  <Mail className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                  {CONTACT_INFO.email.display}
+                </a>
               </li>
               <li>
-                <Link href="/sign-up" className="text-gray-600 hover:text-red-600">
-                  Sign Up
-                </Link>
+                <span className="flex items-start gap-2 text-sm text-[#a09890]">
+                  <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                  {CONTACT_INFO.address.street}, {CONTACT_INFO.address.city}
+                </span>
+              </li>
+              <li>
+                <a
+                  href={CONTACT_INFO.social.facebook.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-sm text-[#a09890] hover:text-arsd-red transition-colors"
+                >
+                  <FacebookIcon className="w-4 h-4" />
+                  {CONTACT_INFO.social.facebook.handle}
+                </a>
               </li>
             </ul>
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-gray-200">
-          <div className="text-gray-600 mb-4 md:mb-0">
+        {/* Bottom bar */}
+        <div className="flex flex-col sm:flex-row justify-between items-center pt-8 border-t border-[#2a2626] gap-4">
+          <p className="text-xs text-[#a09890]">
             © {currentYear} ARSD Construction Corporation. All rights reserved.
-          </div>
-
-          <div className="flex space-x-6">
-            <a
-              href={CONTACT_INFO.social.facebook.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-gray-400 hover:text-red-600"
-            >
-              <span className="sr-only">Facebook</span>
-              <FacebookIcon className="h-6 w-6" />
+          </p>
+          <div className="flex items-center gap-4">
+            <a href={CONTACT_INFO.social.facebook.url} target="_blank" rel="noopener noreferrer" className="text-[#a09890] hover:text-arsd-red transition-colors" aria-label="Facebook">
+              <FacebookIcon className="w-5 h-5" />
             </a>
-            <a
-              href={`mailto:${CONTACT_INFO.email.primary}`}
-              className="text-gray-400 hover:text-red-600"
-            >
-              <span className="sr-only">Email</span>
-              <Mail className="h-6 w-6" />
+            <a href={`mailto:${CONTACT_INFO.email.primary}`} className="text-[#a09890] hover:text-arsd-red transition-colors" aria-label="Email">
+              <Mail className="w-5 h-5" />
             </a>
           </div>
         </div>
