@@ -72,29 +72,27 @@ export function Materials({ materials, purchaseOrders }: MaterialsProps) {
     <div className="space-y-4 lg:space-y-6 mt-4 lg:mt-6">
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
-        <Card className="border-l-4 border-l-gray-500 shadow-sm">
-          <CardContent className="p-4 lg:p-6">
-            <div className="text-center">
-              <div className="text-sm lg:text-base font-bold text-gray-700 mb-1 lg:mb-2">REQUESTS</div>
-              <div className="text-lg lg:text-xl font-bold text-gray-900">{summaryStats.totalRequests}</div>
+        <Card>
+          <CardContent className="p-4 lg:p-5">
+            <div className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Requests</div>
+            <div className="text-h2 font-display text-foreground mt-1 nums">
+              {summaryStats.totalRequests}
             </div>
           </CardContent>
         </Card>
-        
-        <Card className="border-l-4 border-l-green-500 shadow-sm">
-          <CardContent className="p-4 lg:p-6">
-            <div className="text-center">
-              <div className="text-sm lg:text-base font-bold text-green-700 mb-1 lg:mb-2">RECEIVED</div>
-              <div className="text-lg lg:text-xl font-bold text-green-900">{summaryStats.receivedPercentage}%</div>
+        <Card>
+          <CardContent className="p-4 lg:p-5">
+            <div className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Received</div>
+            <div className="text-h2 font-display text-foreground mt-1 nums">
+              {summaryStats.receivedPercentage}%
             </div>
           </CardContent>
         </Card>
-        
-        <Card className="border-l-4 border-l-blue-500 shadow-sm">
-          <CardContent className="p-4 lg:p-6">
-            <div className="text-center">
-              <div className="text-sm lg:text-base font-bold text-blue-700 mb-1 lg:mb-2">UTILIZED</div>
-              <div className="text-lg lg:text-xl font-bold text-blue-900">{summaryStats.utilizedPercentage}%</div>
+        <Card>
+          <CardContent className="p-4 lg:p-5">
+            <div className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Utilized</div>
+            <div className="text-h2 font-display text-foreground mt-1 nums">
+              {summaryStats.utilizedPercentage}%
             </div>
           </CardContent>
         </Card>
@@ -103,13 +101,13 @@ export function Materials({ materials, purchaseOrders }: MaterialsProps) {
       {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
       {/* Left: Material Requests Overview */}
-      <Card className="border-l-4 border-l-red-500 shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-red-600 text-sm lg:text-base font-semibold">Material Requests Overview</CardTitle>
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-semibold text-foreground">Material requests overview</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center text-base lg:text-lg font-bold text-red-700 mb-3 lg:mb-4">
-            {selectedMaterial?.name} - {selectedMaterial?.unit}
+          <div className="text-center text-sm font-semibold text-foreground mb-4">
+            {selectedMaterial?.name} — {selectedMaterial?.unit}
           </div>
           
           {/* Chart Section */}
@@ -137,8 +135,8 @@ export function Materials({ materials, purchaseOrders }: MaterialsProps) {
               </ResponsiveContainer>
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center">
-                  <div className="text-lg lg:text-xl font-bold text-red-700">{percentReceived}%</div>
-                  <div className="text-xs lg:text-sm text-gray-600">Received</div>
+                  <div className="text-h2 font-display text-foreground nums">{percentReceived}%</div>
+                  <div className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Received</div>
                 </div>
               </div>
             </div>
@@ -156,31 +154,31 @@ export function Materials({ materials, purchaseOrders }: MaterialsProps) {
               </div>
             ))}
           </div>
-          <div className="space-y-2 text-xs lg:text-sm">
-            <div className="flex justify-between px-3 lg:px-4 py-2 bg-white rounded">
-              <span className="text-gray-600">Requested:</span>
-              <span className="font-bold text-orange-600">{selectedMaterial?.requestedQuantity} {selectedMaterial?.unit}</span>
+          <div className="space-y-0 text-sm divide-y divide-border rounded-md border border-border overflow-hidden">
+            <div className="flex justify-between px-3 py-2 bg-card">
+              <span className="text-muted-foreground">Requested</span>
+              <span className="font-semibold text-foreground nums">{selectedMaterial?.requestedQuantity} {selectedMaterial?.unit}</span>
             </div>
-            <div className="flex justify-between px-3 lg:px-4 py-2 bg-white rounded">
-              <span className="text-gray-600">Received:</span>
-              <span className="font-bold text-green-600">{selectedMaterial?.receivedQuantity} {selectedMaterial?.unit}</span>
+            <div className="flex justify-between px-3 py-2 bg-card">
+              <span className="text-muted-foreground">Received</span>
+              <span className="font-semibold text-foreground nums">{selectedMaterial?.receivedQuantity} {selectedMaterial?.unit}</span>
             </div>
-            <div className="flex justify-between px-3 lg:px-4 py-2 bg-white rounded">
-              <span className="text-gray-600">Utilized:</span>
-              <span className="font-bold text-blue-600">{selectedMaterial?.utilizedQuantity} {selectedMaterial?.unit}</span>
+            <div className="flex justify-between px-3 py-2 bg-card">
+              <span className="text-muted-foreground">Utilized</span>
+              <span className="font-semibold text-foreground nums">{selectedMaterial?.utilizedQuantity} {selectedMaterial?.unit}</span>
             </div>
-            <div className="flex justify-between px-3 lg:px-4 py-2 bg-white rounded">
-              <span className="text-gray-600">Pending:</span>
-              <span className="font-bold text-red-500">{selectedMaterial?.pendingQuantity} {selectedMaterial?.unit}</span>
+            <div className="flex justify-between px-3 py-2 bg-card">
+              <span className="text-muted-foreground">Pending</span>
+              <span className="font-semibold text-foreground nums">{selectedMaterial?.pendingQuantity} {selectedMaterial?.unit}</span>
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Right: Materials List Table */}
-      <Card className="border-l-4 border-l-red-500 shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-red-600 text-sm lg:text-base font-semibold">Materials List</CardTitle>
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-semibold text-foreground">Materials list</CardTitle>
         </CardHeader>
         <CardContent>
           {/* Search and Filter Controls */}
@@ -246,30 +244,30 @@ export function Materials({ materials, purchaseOrders }: MaterialsProps) {
                       key={material.name}
                     className={
                         globalIndex === selectedIdx
-                        ? "bg-blue-50 cursor-pointer"
-                        : "hover:bg-blue-100 cursor-pointer"
+                        ? "bg-muted/50 cursor-pointer"
+                        : "hover:bg-muted/30 cursor-pointer transition-colors"
                     }
                       onClick={() => setSelectedIdx(globalIndex)}
                   >
-                    <TableCell className="font-medium text-gray-900 truncate max-w-[120px] lg:max-w-[140px] text-xs lg:text-sm">{material.name}</TableCell>
+                    <TableCell className="font-medium text-foreground truncate max-w-[140px] text-sm">{material.name}</TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline">
                         {material.type === 'recieved' ? 'received' : material.type}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-gray-900 text-xs lg:text-sm">{material.unit}</TableCell>
-                    <TableCell className="text-orange-600 font-medium text-xs lg:text-sm">{material.requestedQuantity}</TableCell>
+                    <TableCell className="text-foreground text-sm">{material.unit}</TableCell>
+                    <TableCell className="font-medium text-foreground text-sm nums">{material.requestedQuantity}</TableCell>
                     <TableCell
                       className={
                         material.receivedQuantity < material.requestedQuantity
-                          ? "text-red-600 font-bold text-xs lg:text-sm"
-                          : "text-green-600 font-bold text-xs lg:text-sm"
+                          ? "text-destructive font-semibold text-sm nums"
+                          : "text-foreground font-semibold text-sm nums"
                       }
                     >
                       {material.receivedQuantity}
                     </TableCell>
-                    <TableCell className="text-blue-600 font-medium text-xs lg:text-sm">{material.utilizedQuantity}</TableCell>
-                    <TableCell className="text-blue-600 font-medium text-xs lg:text-sm">{material.pendingQuantity}</TableCell>
+                    <TableCell className="text-foreground font-medium text-sm nums">{material.utilizedQuantity}</TableCell>
+                    <TableCell className="text-foreground font-medium text-sm nums">{material.pendingQuantity}</TableCell>
                     <TableCell>
                       <Badge 
                         variant="outline" 
@@ -322,10 +320,10 @@ export function Materials({ materials, purchaseOrders }: MaterialsProps) {
 
       {/* Purchase Orders Section */}
       {selectedMaterial && selectedMaterial.purchaseOrders.length > 0 && (
-        <Card className="border-l-4 border-l-orange-500 shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-orange-600 text-sm lg:text-base font-semibold">
-              Purchase Orders for {selectedMaterial.name}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-semibold text-foreground">
+              Purchase orders · {selectedMaterial.name}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -349,38 +347,38 @@ export function Materials({ materials, purchaseOrders }: MaterialsProps) {
                       <TableCell className="text-xs lg:text-sm">{new Date(po.expected_delivery_date).toLocaleDateString('en-GB')}</TableCell>
                       <TableCell className="font-medium text-xs lg:text-sm">{po.qty} {po.unit}</TableCell>
                       <TableCell>
-                        <Badge 
-                          variant="outline" 
+                        <Badge
+                          variant="outline"
                           className={`text-xs ${
-                            po.status.toLowerCase().includes('delivered') || 
-                            po.status.toLowerCase().includes('received') || 
+                            po.status.toLowerCase().includes('delivered') ||
+                            po.status.toLowerCase().includes('received') ||
                             po.status.toLowerCase().includes('recieved')
-                              ? "bg-green-100 text-green-800 border-green-200"
-                              : po.status.toLowerCase().includes('utilized') || 
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/50'
+                              : po.status.toLowerCase().includes('utilized') ||
                                 po.status.toLowerCase().includes('used')
-                              ? "bg-blue-100 text-blue-800 border-blue-200"
+                              ? 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/40 dark:text-sky-300 dark:border-sky-900/50'
                               : po.status.toLowerCase().includes('pending')
-                              ? "bg-yellow-100 text-yellow-800 border-yellow-200"
-                              : "bg-red-100 text-red-800 border-red-200"
+                              ? 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900/50'
+                              : 'bg-destructive/5 text-destructive border-destructive/30'
                           }`}
                         >
                           {po.status}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge 
-                          variant="outline" 
+                        <Badge
+                          variant="outline"
                           className={`text-xs ${
                             po.priority_level?.toLowerCase() === 'high'
-                              ? "bg-red-100 text-red-800 border-red-200"
+                              ? 'bg-destructive/5 text-destructive border-destructive/30'
                               : po.priority_level?.toLowerCase() === 'medium'
-                              ? "bg-yellow-100 text-yellow-800 border-yellow-200"
-                              : "bg-green-100 text-green-800 border-green-200"
+                              ? 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900/50'
+                              : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/50'
                           }`}
                         >
                           {po.priority_level || 'Normal'}
                         </Badge>
-                    </TableCell>
+                      </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

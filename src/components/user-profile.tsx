@@ -12,7 +12,7 @@ export default function UserProfile() {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" aria-label="Open account menu">
                     <UserCircle className="h-6 w-6" />
                 </Button>
             </DropdownMenuTrigger>

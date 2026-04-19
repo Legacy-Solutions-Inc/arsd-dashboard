@@ -55,6 +55,7 @@ export default function StockMonitoringPage() {
     newUnitCost: number;
   } | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
 
   const { user } = useWarehouseAuth();
   const { projects } = useWarehouseProjects(user);
@@ -213,14 +214,16 @@ export default function StockMonitoringPage() {
     } catch (err) {
       console.error('Stock ledger export failed:', err);
       if (err instanceof EmptyLedgerError) {
-        window.alert('There are no items to download for this project.');
+        setDownloadError('There are no items to download for this project.');
       } else {
-        window.alert('Failed to generate the download. Please try again.');
+        setDownloadError('Failed to generate the download. Please try again.');
       }
     } finally {
       setIsDownloading(false);
     }
   };
+
+  const dismissDownloadError = () => setDownloadError(null);
 
   // Update selected project ID when project param changes
   useEffect(() => {
@@ -286,33 +289,42 @@ export default function StockMonitoringPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 w-full">
-      <div className="w-full mx-4 sm:mx-6 lg:mx-8 space-y-4 sm:space-y-6 lg:space-y-8 py-4 sm:py-6 lg:py-8">
-        {/* Header */}
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-arsd-red/5 via-blue-500/5 to-purple-500/5 rounded-2xl blur-3xl"></div>
-          <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-white/20 shadow-xl">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => router.push('/dashboard/warehouse')}
-                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors mobile-touch-target"
-                >
-                  <ArrowLeft className="h-5 w-5 text-gray-600" />
-                </button>
-                <div>
-                  <h1 className="responsive-heading font-bold bg-gradient-to-r from-arsd-red to-red-600 bg-clip-text text-transparent">
-                    Stock Monitoring Ledger
-                  </h1>
-                  <p className="text-gray-600 responsive-text">{project.project_name}</p>
-                </div>
+    <div className="w-full space-y-6">
+        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-border">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.push('/dashboard/warehouse')}
+              className="p-2 rounded-md border border-border bg-card hover:bg-muted transition-colors mobile-touch-target"
+              aria-label="Back to warehouse"
+            >
+              <ArrowLeft className="h-4 w-4 text-foreground" strokeWidth={1.75} />
+            </button>
+            <div>
+              <div className="text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
+                Warehouse
               </div>
+              <h1 className="text-h1 font-display text-foreground leading-none">
+                Stock Monitoring Ledger
+              </h1>
+              <p className="text-sm text-muted-foreground mt-1">{project.project_name}</p>
             </div>
           </div>
-        </div>
+        </header>
+
+        {downloadError && (
+          <div className="bg-destructive/5 border border-destructive/20 rounded-md p-3 flex items-start justify-between gap-3">
+            <p className="text-sm text-destructive">{downloadError}</p>
+            <button
+              onClick={dismissDownloadError}
+              className="text-xs text-destructive/80 hover:text-destructive font-medium"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
 
         {/* Sticky Filter Bar */}
-        <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border border-red-200/30 rounded-xl shadow-lg p-4">
+        <div className="sticky top-0 z-40 bg-card border border-border rounded-md shadow-xs p-4">
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <div className="flex-1">
               <div className="relative">
@@ -596,7 +608,6 @@ export default function StockMonitoringPage() {
             </tbody>
           </ARSDTable>
         </div>
-      </div>
 
       {/* Confirm PO Update Dialog */}
       <Dialog
@@ -610,7 +621,7 @@ export default function StockMonitoringPage() {
       >
         <DialogContent className="glass-elevated max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-arsd-primary text-lg">
+            <DialogTitle className="text-foreground text-lg">
               Update PO value?
             </DialogTitle>
             <DialogDescription className="text-sm text-gray-600">
@@ -623,7 +634,7 @@ export default function StockMonitoringPage() {
             <div className="mt-4 space-y-3 text-sm">
               <div className="glass-card p-3">
                 <div className="text-xs font-medium text-gray-500">Item</div>
-                <div className="text-sm font-semibold text-arsd-primary break-words">
+                <div className="text-sm font-semibold text-foreground break-words">
                   {poConfirmState.item.item_description}
                 </div>
                 <div className="mt-1 text-xs text-gray-500">
@@ -640,7 +651,7 @@ export default function StockMonitoringPage() {
                 </div>
                 <div className="glass-card p-3">
                   <div className="text-xs font-medium text-gray-500">New PO</div>
-                  <div className="text-base font-semibold text-arsd-red">
+                  <div className="text-base font-semibold text-primary">
                     {poConfirmState.newPO.toLocaleString()}
                   </div>
                 </div>
@@ -684,7 +695,7 @@ export default function StockMonitoringPage() {
       >
         <DialogContent className="glass-elevated max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-arsd-primary text-lg">
+            <DialogTitle className="text-foreground text-lg">
               Update Unit Cost?
             </DialogTitle>
             <DialogDescription className="text-sm text-gray-600">
@@ -697,7 +708,7 @@ export default function StockMonitoringPage() {
             <div className="mt-4 space-y-3 text-sm">
               <div className="glass-card p-3">
                 <div className="text-xs font-medium text-gray-500">Item</div>
-                <div className="text-sm font-semibold text-arsd-primary break-words">
+                <div className="text-sm font-semibold text-foreground break-words">
                   {unitCostConfirmState.item.item_description}
                 </div>
                 <div className="mt-1 text-xs text-gray-500">
@@ -714,7 +725,7 @@ export default function StockMonitoringPage() {
                 </div>
                 <div className="glass-card p-3">
                   <div className="text-xs font-medium text-gray-500">New Unit Cost</div>
-                  <div className="text-base font-semibold text-arsd-red">
+                  <div className="text-base font-semibold text-primary">
                     ₱{unitCostConfirmState.newUnitCost.toLocaleString()}
                   </div>
                 </div>

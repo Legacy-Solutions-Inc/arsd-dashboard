@@ -137,13 +137,13 @@ export default function CreateReleasePage() {
 
   if (!loading && !user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 flex items-center justify-center">
-        <div className="glass-card text-center max-w-md">
+      <div className="min-h-[calc(100vh-6rem)] bg-background flex items-center justify-center">
+        <div className="bg-card border border-border rounded-lg p-6 text-center max-w-md shadow-sm-tinted">
           <h2 className="text-xl font-bold text-gray-900 mb-2">Sign in required</h2>
           <p className="text-gray-600 mb-4">You need to sign in to create a release form.</p>
           <button
             onClick={() => router.push('/dashboard/warehouse/releases')}
-            className="btn-arsd-primary mobile-button"
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-[hsl(var(--arsd-red-hover))] transition-colors"
           >
             Back to list
           </button>
@@ -153,12 +153,12 @@ export default function CreateReleasePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 pb-24 w-full">
+    <div className="min-h-[calc(100vh-6rem)] bg-background pb-24 w-full">
       <div className="w-full mx-4 sm:mx-6 lg:mx-8 space-y-4 sm:space-y-6 lg:space-y-8 py-4 sm:py-6 lg:py-8">
         {/* Header */}
         <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-arsd-red/5 via-blue-500/5 to-purple-500/5 rounded-2xl blur-3xl"></div>
-          <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-white/20 shadow-xl">
+          <div className="absolute inset-0 hidden"></div>
+          <div className="relative bg-card border border-border rounded-lg p-4 sm:p-6 shadow-xs">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => router.push('/dashboard/warehouse/releases')}
@@ -167,7 +167,7 @@ export default function CreateReleasePage() {
                 <ArrowLeft className="h-5 w-5 text-gray-600" />
               </button>
               <div className="flex-1">
-                <h1 className="responsive-heading font-bold bg-gradient-to-r from-arsd-red to-red-600 bg-clip-text text-transparent">
+                <h1 className="text-h1 font-display text-foreground leading-none">
                   Create Release Form
                 </h1>
                 <p className="text-gray-600 responsive-text">Fill in the details below</p>
@@ -183,9 +183,9 @@ export default function CreateReleasePage() {
             <div>
               <div className="flex items-center gap-2 mb-6 pb-4 border-b border-red-200/30">
                 <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                  <FileText className="h-5 w-5 text-arsd-red" />
+                  <FileText className="h-5 w-5 text-primary" />
                 </div>
-                <h2 className="text-lg sm:text-xl font-bold text-arsd-primary">Basic Details</h2>
+                <h2 className="text-lg sm:text-xl font-bold text-foreground">Basic Details</h2>
               </div>
 
               <div className="space-y-4">
@@ -250,9 +250,9 @@ export default function CreateReleasePage() {
             <div>
               <div className="flex items-center gap-2 mb-6 pb-4 border-b border-red-200/30">
                 <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                  <Package className="h-5 w-5 text-arsd-red" />
+                  <Package className="h-5 w-5 text-primary" />
                 </div>
-                <h2 className="text-lg sm:text-xl font-bold text-arsd-primary">Items</h2>
+                <h2 className="text-lg sm:text-xl font-bold text-foreground">Items</h2>
               </div>
 
               <ItemsRepeater
@@ -269,9 +269,9 @@ export default function CreateReleasePage() {
             <div>
               <div className="flex items-center gap-2 mb-6 pb-4 border-b border-red-200/30">
                 <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                  <FileText className="h-5 w-5 text-arsd-red" />
+                  <FileText className="h-5 w-5 text-primary" />
                 </div>
-                <h2 className="text-lg sm:text-xl font-bold text-arsd-primary">Additional Details</h2>
+                <h2 className="text-lg sm:text-xl font-bold text-foreground">Additional Details</h2>
               </div>
 
               <div className="space-y-4">
@@ -307,9 +307,9 @@ export default function CreateReleasePage() {
             <div>
               <div className="flex items-center gap-2 mb-6 pb-4 border-b border-red-200/30">
                 <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                  <UploadIcon className="h-5 w-5 text-arsd-red" />
+                  <UploadIcon className="h-5 w-5 text-primary" />
                 </div>
-                <h2 className="text-lg sm:text-xl font-bold text-arsd-primary">Attachment (Optional)</h2>
+                <h2 className="text-lg sm:text-xl font-bold text-foreground">Attachment (Optional)</h2>
               </div>
 
               <FileUploader
@@ -322,7 +322,7 @@ export default function CreateReleasePage() {
 
             {/* Review before submit */}
             <div className="rounded-xl border border-red-200/30 bg-red-50/10 p-4 sm:p-5">
-              <h3 className="text-sm font-semibold text-arsd-primary mb-3">Review before submit</h3>
+              <h3 className="text-sm font-semibold text-foreground mb-3">Review before submit</h3>
               <dl className="space-y-2 text-sm">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 py-1.5 border-b border-red-200/20">
                   <dt className="text-gray-600 shrink-0">Release No</dt>
@@ -364,7 +364,7 @@ export default function CreateReleasePage() {
           <button
             onClick={handleCancel}
             disabled={submitLoading}
-            className="btn-arsd-outline mobile-button mobile-touch-target min-h-[44px] flex-1 sm:flex-none sm:min-w-[120px] flex items-center justify-center disabled:opacity-50"
+            className="inline-flex items-center justify-center rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors duration-150 mobile-touch-target min-h-[44px] flex-1 sm:flex-none sm:min-w-[120px] disabled:opacity-50"
           >
             Cancel
           </button>
@@ -372,7 +372,7 @@ export default function CreateReleasePage() {
           <button
             onClick={handleSubmit}
             disabled={!canSubmit() || submitLoading}
-            className="btn-arsd-primary mobile-button mobile-touch-target min-h-[44px] flex-1 sm:flex-none sm:min-w-[120px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-6 py-3 text-base font-semibold text-primary-foreground shadow-red hover:bg-[hsl(var(--arsd-red-hover))] transition-colors duration-150 active:scale-[0.98] mobile-touch-target min-h-[44px] flex-1 sm:flex-none sm:min-w-[180px] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submitLoading ? (
               <>

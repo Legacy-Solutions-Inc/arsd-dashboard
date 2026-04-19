@@ -12,29 +12,33 @@ interface AlertBadgeProps {
 export function AlertBadge({ type }: AlertBadgeProps) {
   const config = {
     low_stock: {
-      label: 'Low Stock',
+      label: 'Low stock',
       icon: TrendingDown,
-      className: 'bg-red-100 text-red-800 border-red-200'
+      className:
+        'bg-destructive/5 text-destructive border-destructive/30',
     },
     over_ipow_delivered: {
-      label: 'Over IPOW Delivered',
+      label: 'Over IPOW delivered',
       icon: TrendingUp,
-      className: 'bg-orange-100 text-orange-800 border-orange-200'
+      className:
+        'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900/50',
     },
     over_ipow_utilized: {
-      label: 'Over IPOW Utilized',
+      label: 'Over IPOW utilized',
       icon: AlertTriangle,
-      className: 'bg-yellow-100 text-yellow-800 border-yellow-200'
-    }
+      className:
+        'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900/50',
+    },
   };
 
   const { label, icon: Icon, className } = config[type];
 
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium border ${className}`}>
-      <Icon className="h-3 w-3" />
+    <span
+      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium border ${className}`}
+    >
+      <Icon className="h-3 w-3" strokeWidth={1.75} />
       {label}
     </span>
   );
 }
-

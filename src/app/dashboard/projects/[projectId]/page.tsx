@@ -7,13 +7,33 @@ import { ScheduleTasks } from "../../../../components/project sections/ScheduleT
 import { CostAnalysis } from "../../../../components/project sections/CostAnalysis";
 import { Materials } from "../../../../components/project sections/Materials";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ProjectDetailsService, type ProjectDetails } from "@/services/projects/project-details.service";
-import { AlertCircle, ArrowLeft, Loader2, DollarSign, TrendingUp, Target, AlertTriangle, CheckCircle, Clock, BarChart3, Wallet, PiggyBank, Download, Share2, Edit3, Eye } from "lucide-react";
-import { ProjectLoading, InlineLoading } from "@/components/ui/universal-loading";
+import {
+  ProjectDetailsService,
+  type ProjectDetails,
+} from "@/services/projects/project-details.service";
+import {
+  AlertCircle,
+  ArrowLeft,
+  DollarSign,
+  TrendingUp,
+  Target,
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  BarChart3,
+  Wallet,
+  PiggyBank,
+} from "lucide-react";
+import { ProjectLoading } from "@/components/ui/universal-loading";
 import { Button } from "@/components/ui/button";
-import { calculateProjectStats, formatTargetPercentage, parseNumericValue, formatCurrency } from "@/utils/project-calculations";
+import {
+  calculateProjectStats,
+  formatTargetPercentage,
+  parseNumericValue,
+  formatCurrency,
+} from "@/utils/project-calculations";
+import { cn } from "@/lib/utils";
 
-// Data processing functions
 const calculateProjectStatsData = (project: ProjectDetails) => {
   const projectDetails = project.project_details || [];
   const projectCosts = project.project_costs || [];
@@ -24,7 +44,6 @@ const calculateProjectStatsData = (project: ProjectDetails) => {
   const materials = project.materials || [];
   const purchaseOrders = project.purchase_orders || [];
 
-  // Get the latest data from each category
   const latestProjectCost = projectCosts[0] || {};
   const latestProjectDetails = projectDetails[0] || {};
   const latestManHours = manHours || {};
@@ -34,21 +53,20 @@ const calculateProjectStatsData = (project: ProjectDetails) => {
   const latestMaterials = materials || {};
   const latestPurchaseOrders = purchaseOrders || {};
 
-  // Use centralized calculation function
   const stats = calculateProjectStats(latestProjectCost, latestProjectDetails);
 
-  // Calculate additional totals
-  const totalCosts = projectCosts.reduce((sum, cost) => {
-    return sum + parseNumericValue(cost.direct_cost_total);
-  }, 0);
-
-  const totalActualHours = manHours.reduce((sum, hour) => {
-    return sum + parseNumericValue(hour.actual_man_hours);
-  }, 0);
-
-  const totalProjectedHours = manHours.reduce((sum, hour) => {
-    return sum + parseNumericValue(hour.projected_man_hours);
-  }, 0);
+  const totalCosts = projectCosts.reduce(
+    (sum, cost) => sum + parseNumericValue(cost.direct_cost_total),
+    0,
+  );
+  const totalActualHours = manHours.reduce(
+    (sum, hour) => sum + parseNumericValue(hour.actual_man_hours),
+    0,
+  );
+  const totalProjectedHours = manHours.reduce(
+    (sum, hour) => sum + parseNumericValue(hour.projected_man_hours),
+    0,
+  );
 
   return {
     ...stats,
@@ -62,96 +80,84 @@ const calculateProjectStatsData = (project: ProjectDetails) => {
     latestCostItemsSecondary,
     latestMonthlyCosts,
     latestMaterials,
-    latestPurchaseOrders
+    latestPurchaseOrders,
   };
 };
 
-// Subcomponents
 const LoadingState = () => (
-  <ProjectLoading 
-    message="Loading Project Details"
+  <ProjectLoading
+    message="Loading project"
     subtitle="Fetching project information and financial data"
     size="lg"
     fullScreen={true}
   />
 );
 
-const ErrorState = ({ error, onBack }: { error: string; onBack: () => void }) => (
-  <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 flex items-center justify-center">
-    <div className="relative w-full max-w-md">
-      <div className="absolute inset-0 bg-gradient-to-r from-red-500/5 via-orange-500/5 to-yellow-500/5 rounded-2xl blur-3xl"></div>
-      <div className="relative bg-white/90 backdrop-blur-sm rounded-2xl p-8 border border-white/20 shadow-xl">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <AlertCircle className="h-8 w-8 text-red-500" />
-          </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Error Loading Project</h2>
-          <p className="text-gray-600 text-sm mb-6">{error}</p>
-          <Button 
-            variant="outline" 
-            onClick={onBack} 
-            className="w-full hover:bg-gray-50 transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Go Back
-          </Button>
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
-const ProjectHeader = ({ 
-  projectName, 
-  projectId, 
-  onBack 
-}: { 
-  projectName: string; 
-  projectId: string; 
-  onBack: () => void; 
+const ErrorState = ({
+  error,
+  onBack,
+}: {
+  error: string;
+  onBack: () => void;
 }) => (
-  <div className="relative mb-6">
-    <div className="absolute inset-0 bg-gradient-to-r from-arsd-red/5 via-blue-500/5 to-purple-500/5 rounded-xl blur-2xl"></div>
-    <div className="relative bg-white/90 backdrop-blur-sm rounded-xl p-4 border border-white/20 shadow-lg">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
-            onClick={onBack} 
-            size="sm" 
-            className="text-xs hover:bg-gray-50 transition-colors border-gray-300"
-          >
-            <ArrowLeft className="h-3 w-3 mr-1" />
-            Back
-          </Button>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-arsd-red to-red-600 rounded-lg flex items-center justify-center shadow-md">
-              <div className="w-3 h-3 bg-white rounded-sm"></div>
-            </div>
-            <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-arsd-red to-red-600 bg-clip-text text-transparent">
-              {projectName}
-            </h1>
-          </div>
-        </div>
-        <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-md font-mono">
-          ID: {projectId || 'N/A'}
-        </div>
+  <div className="min-h-screen bg-background flex items-center justify-center px-4">
+    <div className="w-full max-w-md bg-card border border-border rounded-lg shadow-sm-tinted p-6 text-center">
+      <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center mx-auto mb-3">
+        <AlertCircle className="h-5 w-5 text-destructive" strokeWidth={1.75} />
       </div>
+      <h2 className="text-h3 text-foreground mb-1">We couldn't load this project</h2>
+      <p className="text-sm text-muted-foreground mb-5">{error}</p>
+      <Button variant="outline" onClick={onBack} className="w-full">
+        <ArrowLeft className="h-4 w-4" strokeWidth={1.75} />
+        Go back
+      </Button>
     </div>
   </div>
 );
 
-const StatCard = ({ 
-  label, 
-  value, 
+const ProjectHeader = ({
+  projectName,
+  projectId,
+  onBack,
+}: {
+  projectName: string;
+  projectId: string;
+  onBack: () => void;
+}) => (
+  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-border">
+    <div className="flex items-center gap-3 min-w-0">
+      <Button variant="outline" onClick={onBack} size="sm">
+        <ArrowLeft className="h-4 w-4" strokeWidth={1.75} />
+        Back
+      </Button>
+      <div className="min-w-0">
+        <div className="text-[11px] uppercase tracking-[0.1em] text-muted-foreground mb-0.5">
+          Project
+        </div>
+        <h1 className="text-h1 font-display text-foreground leading-none truncate">
+          {projectName}
+        </h1>
+      </div>
+    </div>
+    <div className="text-xs text-muted-foreground bg-muted border border-border rounded-md px-2.5 py-1 font-mono nums self-start sm:self-auto">
+      ID: {projectId || 'N/A'}
+    </div>
+  </div>
+);
+
+type StatTone = 'neutral' | 'positive' | 'negative' | 'warning';
+
+const StatCard = ({
+  label,
+  value,
   isCurrency = false,
   isPercentage = false,
   isPositive = true,
   icon: Icon,
-  contractAmount
-}: { 
-  label: string; 
-  value: number | string; 
+  contractAmount,
+}: {
+  label: string;
+  value: number | string;
   isCurrency?: boolean;
   isPercentage?: boolean;
   isPositive?: boolean;
@@ -161,281 +167,334 @@ const StatCard = ({
   const numericValue = typeof value === 'string' ? parseFloat(value) : value;
   const isNegative = numericValue < 0;
   const isHighValue = isPercentage && numericValue > 100;
-  
-  const getColorClasses = () => {
-    if (isNegative) return 'text-red-600 bg-red-50 border-red-200';
-    if (isHighValue) return 'text-orange-600 bg-orange-50 border-orange-200';
-    if (isPositive) return 'text-green-600 bg-green-50 border-green-200';
-    return 'text-blue-600 bg-blue-50 border-blue-200';
+
+  const tone: StatTone = isNegative
+    ? 'negative'
+    : isHighValue
+      ? 'warning'
+      : isPositive
+        ? 'positive'
+        : 'neutral';
+
+  const toneClass: Record<StatTone, string> = {
+    neutral: 'text-foreground',
+    positive: 'text-foreground',
+    negative: 'text-destructive',
+    warning: 'text-amber-700 dark:text-amber-300',
   };
 
-  const getProgressColor = () => {
-    if (isNegative) return 'from-red-500 to-red-600';
-    if (isHighValue) return 'from-orange-500 to-orange-600';
-    if (isPositive) return 'from-green-500 to-green-600';
-    return 'from-blue-500 to-blue-600';
+  const barClass: Record<StatTone, string> = {
+    neutral: 'bg-muted-foreground/40',
+    positive: 'bg-emerald-500',
+    negative: 'bg-destructive',
+    warning: 'bg-amber-500',
   };
 
-  const getProgressWidth = () => {
-    if (isPercentage) {
-      return Math.min(Math.abs(numericValue), 100);
-    }
+  const progressWidth = () => {
+    if (isPercentage) return Math.min(Math.abs(numericValue), 100);
     if (isCurrency && contractAmount && contractAmount > 0) {
-      // Calculate percentage relative to contract amount, cap at 100%
-      const percentage = (Math.abs(numericValue) / contractAmount) * 100;
-      return Math.min(percentage, 100);
+      return Math.min((Math.abs(numericValue) / contractAmount) * 100, 100);
     }
-    return 60; // Default for non-percentage, non-currency values
+    return 60;
   };
 
   return (
-    <div className={`group bg-white rounded-lg shadow-sm border p-3 hover:shadow-md transition-all duration-200 hover:scale-[1.01] ${getColorClasses()}`}>
-      <div className="flex items-center justify-between mb-1">
-        <div className="text-xs text-gray-600 font-medium uppercase tracking-wide truncate">{label}</div>
-        {Icon && <Icon className="h-3 w-3 text-gray-400 flex-shrink-0 ml-1" />}
+    <div className="bg-card border border-border rounded-md p-3 transition-colors hover:border-foreground/15">
+      <div className="flex items-center justify-between mb-1.5">
+        <span className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground truncate">
+          {label}
+        </span>
+        {Icon && (
+          <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" strokeWidth={1.75} />
+        )}
       </div>
-      <div className="text-sm font-bold text-gray-900 mb-2">
-        {isCurrency ? formatCurrency(value) : `${value}${isPercentage ? '%' : ''}`}
+      <div className={cn('text-sm font-semibold nums', toneClass[tone])}>
+        {isCurrency
+          ? formatCurrency(value)
+          : `${value}${isPercentage ? '%' : ''}`}
       </div>
-      <div className="w-full bg-gray-200 rounded-full h-1">
-        <div 
-          className={`bg-gradient-to-r ${getProgressColor()} h-1 rounded-full transition-all duration-300`}
-          style={{width: `${getProgressWidth()}%`}}
-        ></div>
+      <div className="mt-2 h-1 w-full bg-muted rounded-full overflow-hidden">
+        <div
+          className={cn('h-full rounded-full transition-all duration-500', barClass[tone])}
+          style={{ width: `${progressWidth()}%` }}
+        />
       </div>
       {isPercentage && (
-        <div className="text-xs text-gray-500 mt-1 truncate">
-          {numericValue > 100 ? 'Over Target' : numericValue < 0 ? 'Under Target' : 'On Target'}
+        <div className="text-[11px] text-muted-foreground mt-1 truncate">
+          {numericValue > 100
+            ? 'Over target'
+            : numericValue < 0
+              ? 'Under target'
+              : 'On target'}
         </div>
       )}
     </div>
   );
 };
 
-const ProjectStatsGrid = ({ stats }: { stats: ReturnType<typeof calculateProjectStatsData> }) => {
-  const isOverBudget = parseNumericValue(stats.latestProjectCost.direct_cost_total) > stats.contractAmount;
-  const isOnTrack = stats.actualProgress >= stats.targetProgress * 0.9; // Within 90% of target
-  const hasPositiveSavings = stats.savings > 0;
-  
+const ProjectStatsGrid = ({
+  stats,
+}: {
+  stats: ReturnType<typeof calculateProjectStatsData>;
+}) => {
+  const isOverBudget =
+    parseNumericValue(stats.latestProjectCost.direct_cost_total) >
+    stats.contractAmount;
+  const isOnTrack = stats.actualProgress >= stats.targetProgress * 0.9;
+
   return (
-    <div className="relative mb-6">
-      <div className="absolute inset-0 bg-gradient-to-r from-arsd-red/5 via-blue-500/5 to-purple-500/5 rounded-xl blur-2xl"></div>
-      <div className="relative bg-white/90 backdrop-blur-sm rounded-xl p-4 border border-white/20 shadow-lg">
-        <div className="mb-4">
-          <h3 className="text-base font-bold text-gray-900 flex items-center gap-2 mb-1">
-            <BarChart3 className="h-4 w-4 text-arsd-red" />
-            Project Financial Overview
-          </h3>
-          
-          {/* Project Status Summary */}
-          <div className="flex items-center gap-4 mb-4">
-            <div className={`px-3 py-2 rounded-lg border ${isOverBudget ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'}`}>
-              <div className="flex items-center gap-2">
-                <div className={`w-2 h-2 rounded-full ${isOverBudget ? 'bg-red-500' : 'bg-green-500'}`}></div>
-                <span className="text-xs font-semibold text-gray-700">Budget:</span>
-                <span className={`text-xs font-bold ${isOverBudget ? 'text-red-600' : 'text-green-600'}`}>
-                  {isOverBudget ? 'Over' : 'Within'}
-                </span>
-              </div>
-            </div>
-            
-            <div className={`px-3 py-2 rounded-lg border ${isOnTrack ? 'bg-green-50 border-green-200' : 'bg-orange-50 border-orange-200'}`}>
-              <div className="flex items-center gap-2">
-                <div className={`w-2 h-2 rounded-full ${isOnTrack ? 'bg-green-500' : 'bg-orange-500'}`}></div>
-                <span className="text-xs font-semibold text-gray-700">Progress:</span>
-                <span className={`text-xs font-bold ${isOnTrack ? 'text-green-600' : 'text-orange-600'}`}>
-                  {isOnTrack ? 'On Track' : 'Behind'}
-                </span>
-              </div>
-            </div>
+    <section className="bg-card border border-border rounded-lg p-4 sm:p-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+        <h2 className="text-h3 text-foreground flex items-center gap-2">
+          <BarChart3 className="h-4 w-4 text-primary" strokeWidth={1.75} />
+          Financial overview
+        </h2>
+        <div className="flex items-center gap-2">
+          <div className="inline-flex items-center gap-1.5 rounded-md border border-border bg-muted/40 px-2.5 py-1 text-xs">
+            <span
+              aria-hidden
+              className={cn(
+                'w-1.5 h-1.5 rounded-full',
+                isOverBudget ? 'bg-destructive' : 'bg-emerald-500',
+              )}
+            />
+            <span className="text-muted-foreground">Budget</span>
+            <span className="font-medium text-foreground">
+              {isOverBudget ? 'Over' : 'Within'}
+            </span>
+          </div>
+          <div className="inline-flex items-center gap-1.5 rounded-md border border-border bg-muted/40 px-2.5 py-1 text-xs">
+            <span
+              aria-hidden
+              className={cn(
+                'w-1.5 h-1.5 rounded-full',
+                isOnTrack ? 'bg-emerald-500' : 'bg-amber-500',
+              )}
+            />
+            <span className="text-muted-foreground">Progress</span>
+            <span className="font-medium text-foreground">
+              {isOnTrack ? 'On track' : 'Behind'}
+            </span>
           </div>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-          <StatCard 
-            label="Contract Amount" 
-            value={stats.contractAmount} 
-            isCurrency 
-            icon={DollarSign}
-            isPositive={true}
-            contractAmount={stats.contractAmount}
-          />
-          <StatCard 
-            label="Direct Cost Total" 
-            value={parseNumericValue(stats.latestProjectCost.direct_cost_total)} 
-            isCurrency 
-            icon={TrendingUp}
-            isPositive={parseNumericValue(stats.latestProjectCost.direct_cost_total) <= stats.contractAmount}
-            contractAmount={stats.contractAmount}
-          />
-          <StatCard 
-            label="SWA Cost Total" 
-            value={parseNumericValue(stats.latestProjectCost.swa_cost_total)} 
-            isCurrency 
-            icon={Target}
-            isPositive={true}
-            contractAmount={stats.contractAmount}
-          />
-          <StatCard 
-            label="Target %" 
-            value={formatTargetPercentage(stats.targetProgress)} 
-            isPercentage={true}
-            icon={Target}
-            isPositive={stats.targetProgress <= 100}
-          />
-          <StatCard 
-            label="Actual %" 
-            value={stats.actualProgress} 
-            isPercentage={true}
-            icon={CheckCircle}
-            isPositive={stats.actualProgress <= 100}
-          />
-          <StatCard 
-            label="Slippage" 
-            value={Number((stats.actualProgress - formatTargetPercentage(stats.targetProgress)).toFixed(2))} 
-            isPercentage={true}
-            icon={AlertTriangle}
-            isPositive={stats.slippage <= 0}
-          />
-          <StatCard 
-            label="Target Cost Total" 
-            value={stats.targetProgress === 1 ? stats.contractAmount * stats.targetProgress : stats.contractAmount * (stats.targetProgress / 100)}            isCurrency 
-            icon={Target}
-            isPositive={true}
-            contractAmount={stats.contractAmount}
-          />
-          <StatCard 
-            label="Billed Cost Total" 
-            value={parseNumericValue(stats.latestProjectCost.billed_cost_total)} 
-            isCurrency 
-            icon={Clock}
-            isPositive={true}
-            contractAmount={stats.contractAmount}
-          />
-          <StatCard 
-            label="Collectible" 
-            value={stats.latestProjectCost.collectibles} 
-            isCurrency 
-            icon={Wallet}
-            isPositive={stats.collectible > 0}
-            contractAmount={stats.contractAmount}
-          />
-          <StatCard 
-            label="Balance" 
-            value={stats.latestProjectCost.balance} 
-            isCurrency 
-            icon={BarChart3}
-            isPositive={stats.balance > 0}
-            contractAmount={stats.contractAmount}
-          />
-          <StatCard 
-            label="Savings" 
-            value={stats.latestProjectCost.direct_cost_savings} 
-            isCurrency 
-            icon={PiggyBank}
-            isPositive={stats.savings > 0}
-            contractAmount={stats.contractAmount}
-          />
-        </div>
       </div>
-    </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+        <StatCard
+          label="Contract amount"
+          value={stats.contractAmount}
+          isCurrency
+          icon={DollarSign}
+          isPositive
+          contractAmount={stats.contractAmount}
+        />
+        <StatCard
+          label="Direct cost total"
+          value={parseNumericValue(stats.latestProjectCost.direct_cost_total)}
+          isCurrency
+          icon={TrendingUp}
+          isPositive={
+            parseNumericValue(stats.latestProjectCost.direct_cost_total) <=
+            stats.contractAmount
+          }
+          contractAmount={stats.contractAmount}
+        />
+        <StatCard
+          label="SWA cost total"
+          value={parseNumericValue(stats.latestProjectCost.swa_cost_total)}
+          isCurrency
+          icon={Target}
+          isPositive
+          contractAmount={stats.contractAmount}
+        />
+        <StatCard
+          label="Target %"
+          value={formatTargetPercentage(stats.targetProgress)}
+          isPercentage
+          icon={Target}
+          isPositive={stats.targetProgress <= 100}
+        />
+        <StatCard
+          label="Actual %"
+          value={stats.actualProgress}
+          isPercentage
+          icon={CheckCircle}
+          isPositive={stats.actualProgress <= 100}
+        />
+        <StatCard
+          label="Slippage"
+          value={Number(
+            (stats.actualProgress - formatTargetPercentage(stats.targetProgress)).toFixed(2),
+          )}
+          isPercentage
+          icon={AlertTriangle}
+          isPositive={stats.slippage <= 0}
+        />
+        <StatCard
+          label="Target cost total"
+          value={
+            stats.targetProgress === 1
+              ? stats.contractAmount * stats.targetProgress
+              : stats.contractAmount * (stats.targetProgress / 100)
+          }
+          isCurrency
+          icon={Target}
+          isPositive
+          contractAmount={stats.contractAmount}
+        />
+        <StatCard
+          label="Billed cost total"
+          value={parseNumericValue(stats.latestProjectCost.billed_cost_total)}
+          isCurrency
+          icon={Clock}
+          isPositive
+          contractAmount={stats.contractAmount}
+        />
+        <StatCard
+          label="Collectible"
+          value={stats.latestProjectCost.collectibles}
+          isCurrency
+          icon={Wallet}
+          isPositive={stats.collectible > 0}
+          contractAmount={stats.contractAmount}
+        />
+        <StatCard
+          label="Balance"
+          value={stats.latestProjectCost.balance}
+          isCurrency
+          icon={BarChart3}
+          isPositive={stats.balance > 0}
+          contractAmount={stats.contractAmount}
+        />
+        <StatCard
+          label="Savings"
+          value={stats.latestProjectCost.direct_cost_savings}
+          isCurrency
+          icon={PiggyBank}
+          isPositive={stats.savings > 0}
+          contractAmount={stats.contractAmount}
+        />
+      </div>
+    </section>
   );
 };
 
-const ProjectTabs = ({ 
-  project, 
-  stats 
-}: { 
-  project: ProjectDetails; 
-  stats: ReturnType<typeof calculateProjectStatsData>; 
+const ProjectTabs = ({
+  project,
+  stats,
+}: {
+  project: ProjectDetails;
+  stats: ReturnType<typeof calculateProjectStatsData>;
 }) => (
-  <div className="relative">
-    <div className="absolute inset-0 bg-gradient-to-r from-arsd-red/5 via-blue-500/5 to-purple-500/5 rounded-xl blur-2xl"></div>
-    <div className="relative bg-white/90 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg overflow-hidden">
-      <Tabs defaultValue="overview" className="w-full">
-        <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50/50 border-b border-gray-200/50">
-          <TabsList className="grid w-full grid-cols-4 bg-white/80 backdrop-blur-sm">
-            <TabsTrigger value="overview" className="text-xs sm:text-sm font-medium">Project Overview</TabsTrigger>
-            <TabsTrigger value="schedule" className="text-xs sm:text-sm font-medium">Schedule & Tasks</TabsTrigger>
-            <TabsTrigger value="costs" className="text-xs sm:text-sm font-medium">Cost Analysis</TabsTrigger>
-            <TabsTrigger value="materials" className="text-xs sm:text-sm font-medium">Materials</TabsTrigger>
-          </TabsList>
-        </div>
+  <Tabs defaultValue="overview" className="w-full">
+    <div className="bg-card border border-border rounded-lg overflow-hidden">
+      <div className="border-b border-border px-2 sm:px-4 overflow-x-auto">
+        <TabsList className="bg-transparent p-0 h-auto gap-1 w-full sm:w-auto justify-start">
+          {[
+            { value: 'overview', label: 'Overview' },
+            { value: 'schedule', label: 'Schedule' },
+            { value: 'costs', label: 'Cost analysis' },
+            { value: 'materials', label: 'Materials' },
+          ].map((t) => (
+            <TabsTrigger
+              key={t.value}
+              value={t.value}
+              className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 py-3 text-sm font-medium text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none hover:text-foreground transition-colors"
+            >
+              {t.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </div>
 
-        <div className="p-6">
-          <TabsContent value="overview" className="space-y-4">
-            <ProjectOverview
-              projectData={{
-                id: project.id,
-                projectId: stats.latestProjectDetails.project_id || project.project_id,
-                projectName: stats.latestProjectDetails.project_name || 'N/A',
-                client: stats.latestProjectDetails.client || 'N/A',
-                contractor: stats.latestProjectDetails.contractor_license || 'N/A',
-                location: stats.latestProjectDetails.project_location || 'N/A',
-                pmName: stats.latestProjectDetails.pm_name || 'N/A',
-                siteEngineer: stats.latestProjectDetails.site_engineer_name || 'N/A',
-                contractAmount: stats.contractAmount,
-                directContractAmount: parseNumericValue(stats.latestProjectDetails.direct_contract_amount),
-                plannedStartDate: stats.latestProjectDetails.planned_start_date || 'N/A',
-                plannedEndDate: stats.latestProjectDetails.planned_end_date || 'N/A',
-                actualStartDate: stats.latestProjectDetails.actual_start_date || 'N/A',
-                actualEndDate: stats.latestProjectDetails.actual_end_date || 'N/A',
-                calendarDays: parseNumericValue(stats.latestProjectDetails.calendar_days),
-                workingDays: parseNumericValue(stats.latestProjectDetails.working_days),
-                priorityLevel: stats.latestProjectDetails.priority_level || 'N/A',
-                remarks: stats.latestProjectDetails.remarks || 'N/A',
-                actualProgress: stats.actualProgress,
-                targetProgress: stats.targetProgress,
-                slippage: stats.slippage,
-                balance: stats.balance,
-                collectible: stats.collectible,
-                savings: stats.savings
-              }}
-              costData={project.project_costs || []}
-            />
-          </TabsContent>
+      <div className="p-4 sm:p-6">
+        <TabsContent value="overview" className="mt-0 space-y-4">
+          <ProjectOverview
+            projectData={{
+              id: project.id,
+              projectId:
+                stats.latestProjectDetails.project_id || project.project_id,
+              projectName: stats.latestProjectDetails.project_name || 'N/A',
+              client: stats.latestProjectDetails.client || 'N/A',
+              contractor: stats.latestProjectDetails.contractor_license || 'N/A',
+              location: stats.latestProjectDetails.project_location || 'N/A',
+              pmName: stats.latestProjectDetails.pm_name || 'N/A',
+              siteEngineer:
+                stats.latestProjectDetails.site_engineer_name || 'N/A',
+              contractAmount: stats.contractAmount,
+              directContractAmount: parseNumericValue(
+                stats.latestProjectDetails.direct_contract_amount,
+              ),
+              plannedStartDate:
+                stats.latestProjectDetails.planned_start_date || 'N/A',
+              plannedEndDate:
+                stats.latestProjectDetails.planned_end_date || 'N/A',
+              actualStartDate:
+                stats.latestProjectDetails.actual_start_date || 'N/A',
+              actualEndDate:
+                stats.latestProjectDetails.actual_end_date || 'N/A',
+              calendarDays: parseNumericValue(
+                stats.latestProjectDetails.calendar_days,
+              ),
+              workingDays: parseNumericValue(
+                stats.latestProjectDetails.working_days,
+              ),
+              priorityLevel: stats.latestProjectDetails.priority_level || 'N/A',
+              remarks: stats.latestProjectDetails.remarks || 'N/A',
+              actualProgress: stats.actualProgress,
+              targetProgress: stats.targetProgress,
+              slippage: stats.slippage,
+              balance: stats.balance,
+              collectible: stats.collectible,
+              savings: stats.savings,
+            }}
+            costData={project.project_costs || []}
+          />
+        </TabsContent>
 
-          <TabsContent value="schedule" className="space-y-4">
-            <ScheduleTasks
-              tasks={[]}
-              costItemsSecondaryData={project.cost_items_secondary || []}
-              targetCostTotal={parseNumericValue(stats.latestProjectCost.target_cost_total)}
-              projectData={{
-                actualProgress: stats.actualProgress,
-                targetProgress: stats.targetProgress
-              }}
-            />
-          </TabsContent>
+        <TabsContent value="schedule" className="mt-0 space-y-4">
+          <ScheduleTasks
+            tasks={[]}
+            costItemsSecondaryData={project.cost_items_secondary || []}
+            targetCostTotal={parseNumericValue(
+              stats.latestProjectCost.target_cost_total,
+            )}
+            projectData={{
+              actualProgress: stats.actualProgress,
+              targetProgress: stats.targetProgress,
+            }}
+          />
+        </TabsContent>
 
-          <TabsContent value="costs" className="space-y-4">
-            <CostAnalysis
-              costData={project.monthly_costs || []}
-              costItemsData={project.cost_items || []}
-              manHoursData={project.man_hours || []}
-              projectData={{
-                actualProgress: stats.actualProgress,
-                targetProgress: stats.targetProgress,
-                savings: stats.savings
-              }}
-              projectStats={{
-                contractAmount: stats.contractAmount,
-                targetCostTotal: stats.targetCostTotal,
-                directCostTotal: stats.directCostTotal,
-                swaCostTotal: stats.swaCostTotal,
-                billedCostTotal: stats.billedCostTotal
-              }}
-            />
-          </TabsContent>
+        <TabsContent value="costs" className="mt-0 space-y-4">
+          <CostAnalysis
+            costData={project.monthly_costs || []}
+            costItemsData={project.cost_items || []}
+            manHoursData={project.man_hours || []}
+            projectData={{
+              actualProgress: stats.actualProgress,
+              targetProgress: stats.targetProgress,
+              savings: stats.savings,
+            }}
+            projectStats={{
+              contractAmount: stats.contractAmount,
+              targetCostTotal: stats.targetCostTotal,
+              directCostTotal: stats.directCostTotal,
+              swaCostTotal: stats.swaCostTotal,
+              billedCostTotal: stats.billedCostTotal,
+            }}
+          />
+        </TabsContent>
 
-          <TabsContent value="materials" className="space-y-4">
-            <Materials
-              materials={project.materials || []}
-              purchaseOrders={project.purchase_orders || []}
-            />
-          </TabsContent>
-        </div>
-      </Tabs>
+        <TabsContent value="materials" className="mt-0 space-y-4">
+          <Materials
+            materials={project.materials || []}
+            purchaseOrders={project.purchase_orders || []}
+          />
+        </TabsContent>
+      </div>
     </div>
-  </div>
+  </Tabs>
 );
 
 export default function ProjectProfilePage() {
@@ -451,17 +510,15 @@ export default function ProjectProfilePage() {
   useEffect(() => {
     const fetchProjectDetails = async () => {
       if (!projectId) return;
-
       try {
         setLoading(true);
         setError(null);
-        const projectData = await projectDetailsService.getProjectDetails(projectId);
-
+        const projectData =
+          await projectDetailsService.getProjectDetails(projectId);
         if (!projectData) {
           setError('Project not found');
           return;
         }
-
         setProject(projectData);
       } catch (err) {
         console.error('Error fetching project details:', err);
@@ -470,26 +527,29 @@ export default function ProjectProfilePage() {
         setLoading(false);
       }
     };
-
     fetchProjectDetails();
   }, [projectId]);
 
   if (loading) return <LoadingState />;
-  if (error || !project) return <ErrorState error={error || 'Project not found'} onBack={() => router.back()} />;
+  if (error || !project)
+    return (
+      <ErrorState
+        error={error || 'Project not found'}
+        onBack={() => router.back()}
+      />
+    );
 
   const stats = calculateProjectStatsData(project);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
-      <div className="container mx-auto px-4 py-4 space-y-4">
-        <ProjectHeader 
-          projectName={project.project_name} 
-          projectId={stats.latestProjectDetails.project_id || project.id} 
-          onBack={() => router.back()} 
-        />
-        <ProjectStatsGrid stats={stats} />
-        <ProjectTabs project={project} stats={stats} />
-      </div>
+    <div className="space-y-5">
+      <ProjectHeader
+        projectName={project.project_name}
+        projectId={stats.latestProjectDetails.project_id || project.id}
+        onBack={() => router.back()}
+      />
+      <ProjectStatsGrid stats={stats} />
+      <ProjectTabs project={project} stats={stats} />
     </div>
   );
 }

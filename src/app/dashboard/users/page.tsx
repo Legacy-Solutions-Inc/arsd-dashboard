@@ -274,8 +274,8 @@ export default function UserManagementPage() {
       <div className="space-y-8">
         {/* Loading Overlays for Operations */}
         {(isUpdating || isBulkApproving || isBulkRejecting || isApproving) && (
-          <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center">
-            <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 p-8 max-w-md mx-4">
+          <div className="fixed inset-0 bg-foreground/30 z-50 flex items-center justify-center" role="status" aria-live="polite">
+            <div className="bg-card rounded-lg shadow-lg-tinted border border-border p-6 max-w-md mx-4">
               <UniversalLoading
                 type={isUpdating ? "user" : isBulkApproving || isApproving ? "user" : "general"}
                 message={
@@ -297,14 +297,17 @@ export default function UserManagementPage() {
           </div>
         )}
 
-        {/* Header Section */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-glass-subtle rounded-xl flex items-center justify-center">
-              <Users className="h-10 w-10 text-arsd-red" />
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 pb-4 border-b border-border">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-md bg-primary/10 text-primary flex items-center justify-center">
+              <Users className="h-5 w-5" strokeWidth={1.75} />
             </div>
             <div>
-              <h1 className="text-4xl font-bold text-glass-primary flex items-center gap-3 text-arsd-red">
+              <div className="text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
+                Access control
+              </div>
+              <h1 className="text-h1 font-display text-foreground leading-none">
                 User Management
               </h1>
             </div>
@@ -316,7 +319,7 @@ export default function UserManagementPage() {
               // Force refresh of users list
               fetchUsers();
             }}
-            className="glass-button bg-gradient-to-r from-arsd-red/20 to-red-500/20 text-arsd-red border-arsd-red/30 hover:from-arsd-red/30 hover:to-red-500/30"
+            className="border border-border bg-card text-foreground hover:bg-muted"
           >
             <RefreshCw className="h-4 w-4 mr-1" />
             Refresh
@@ -325,11 +328,9 @@ export default function UserManagementPage() {
 
         {/* Error Display */}
         {error && (
-          <GlassCard variant="elevated" className="border-red-200/50 bg-red-50/10">
-            <GlassCardContent className="p-6">
-              <p className="text-red-800 font-medium">{error}</p>
-            </GlassCardContent>
-          </GlassCard>
+          <div className="bg-destructive/5 border border-destructive/20 rounded-md p-4">
+            <p className="text-sm text-destructive font-medium">{error}</p>
+          </div>
         )}
 
         {/* New Users Table - Only show if there are new users */}
@@ -338,7 +339,7 @@ export default function UserManagementPage() {
             <GlassCardHeader className="bg-transparent border-amber-500/20">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-amber-500/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                  <div className="w-12 h-12 bg-amber-100 dark:bg-amber-950/40 rounded-md flex items-center justify-center border border-amber-200 dark:border-amber-900/50">
                     <UserPlus className="h-6 w-6 text-amber-600" />
                   </div>
                   <div>
@@ -363,7 +364,7 @@ export default function UserManagementPage() {
                         size="sm"
                         onClick={() => handleBulkApproveUsers(selectedNewUsers, 'project_inspector')}
                         disabled={isBulkApproving || isBulkRejecting}
-                        className="glass-button bg-gradient-to-r from-green-500/30 to-green-600/30 text-white border-green-500/50 hover:from-green-500/40 hover:to-green-600/40"
+                        className="border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-300"
                       >
                         {isBulkApproving ? (
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1" />
@@ -376,7 +377,7 @@ export default function UserManagementPage() {
                         size="sm"
                         onClick={() => handleBulkApproveUsers(selectedNewUsers, 'project_manager')}
                         disabled={isBulkApproving || isBulkRejecting}
-                        className="glass-button bg-gradient-to-r from-blue-500/30 to-blue-600/30 text-white border-blue-500/50 hover:from-blue-500/40 hover:to-blue-600/40"
+                        className="border border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100 dark:border-sky-900/50 dark:bg-sky-950/40 dark:text-sky-300"
                       >
                         {isBulkApproving ? (
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1" />
@@ -389,7 +390,7 @@ export default function UserManagementPage() {
                         size="sm"
                         onClick={() => handleBulkApproveUsers(selectedNewUsers, 'warehouseman')}
                         disabled={isBulkApproving || isBulkRejecting}
-                        className="glass-button bg-gradient-to-r from-amber-500/30 to-amber-600/30 text-white border-amber-500/50 hover:from-amber-500/40 hover:to-amber-600/40"
+                        className="border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-300"
                       >
                         {isBulkApproving ? (
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1" />
@@ -402,7 +403,7 @@ export default function UserManagementPage() {
                         size="sm"
                         onClick={() => handleBulkApproveUsers(selectedNewUsers, 'purchasing')}
                         disabled={isBulkApproving || isBulkRejecting}
-                        className="glass-button bg-gradient-to-r from-purple-500/30 to-purple-600/30 text-white border-purple-500/50 hover:from-purple-500/40 hover:to-purple-600/40"
+                        className="border border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100 dark:border-violet-900/50 dark:bg-violet-950/40 dark:text-violet-300"
                       >
                         {isBulkApproving ? (
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1" />
@@ -416,7 +417,7 @@ export default function UserManagementPage() {
                         variant="outline"
                         onClick={() => handleBulkRejectUsers(selectedNewUsers)}
                         disabled={isBulkApproving || isBulkRejecting}
-                        className="glass-button bg-gradient-to-r from-red-500/20 to-red-600/20 text-red-600 border-red-500/30 hover:from-red-500/30 hover:to-red-600/30"
+                        className="border border-destructive/30 bg-destructive/5 text-destructive hover:bg-destructive/10"
                       >
                         {isBulkRejecting ? (
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600 mr-1" />
@@ -435,7 +436,7 @@ export default function UserManagementPage() {
               <div className="overflow-x-auto scrollbar-glass">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-gradient-to-r from-amber-500/5 to-amber-600/5 border-b border-amber-500/10">
+                    <TableRow className="bg-muted/40 border-b border-border">
                       <TableHead className="px-6 py-4 font-semibold text-amber-600 text-sm uppercase tracking-wider w-12">
                         <Checkbox
                           checked={selectedNewUsers.length === paginatedNewUsers.length && paginatedNewUsers.length > 0}
@@ -461,7 +462,7 @@ export default function UserManagementPage() {
                     {paginatedNewUsers.map((user, index) => (
                       <TableRow 
                         key={user.id} 
-                        className={`border-b border-white/10 hover:bg-gradient-to-r hover:from-amber-500/5 hover:to-amber-600/5 transition-colors duration-200 ${
+                        className={`border-b border-white/10 hover:bg-muted/30 transition-colors duration-150 ${
                           index % 2 === 0 ? 'bg-white/2' : 'bg-white/5'
                         } ${selectedNewUsers.includes(user.id) ? 'bg-amber-500/10' : ''}`}
                       >
@@ -474,7 +475,7 @@ export default function UserManagementPage() {
                         </TableCell>
                         <TableCell className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-amber-500/20 to-amber-600/20 rounded-full flex items-center justify-center backdrop-blur-sm border border-amber-500/30">
+                            <div className="w-10 h-10 bg-amber-100 dark:bg-amber-950/40 rounded-full flex items-center justify-center border border-amber-200 dark:border-amber-900/50">
                               <UserIcon className="h-5 w-5 text-amber-600" />
                             </div>
                             <div>
@@ -508,7 +509,7 @@ export default function UserManagementPage() {
                               size="sm"
                               onClick={() => handleApproveUser(user)}
                               disabled={isApproving || isBulkApproving || isBulkRejecting}
-                              className="glass-button bg-gradient-to-r from-green-500/30 to-green-600/30 text-white border-green-500/50 hover:from-green-500/40 hover:to-green-600/40"
+                              className="border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-300"
                             >
                               {isApproving || isBulkApproving ? (
                                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1" />
@@ -522,7 +523,7 @@ export default function UserManagementPage() {
                               variant="outline"
                               onClick={() => handleBulkRejectUsers([user.id])}
                               disabled={isApproving || isBulkApproving || isBulkRejecting}
-                              className="glass-button bg-gradient-to-r from-red-500/20 to-red-600/20 text-red-600 border-red-500/30 hover:from-red-500/30 hover:to-red-600/30"
+                              className="border border-destructive/30 bg-destructive/5 text-destructive hover:bg-destructive/10"
                             >
                               {isBulkRejecting ? (
                                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600 mr-1" />
@@ -542,7 +543,7 @@ export default function UserManagementPage() {
           
           {/* New Users Pagination */}
           {totalNewUsersPages > 1 && (
-            <div className="bg-gradient-to-r from-amber-500/5 to-amber-600/5 border-t border-amber-500/10 p-6">
+            <div className="bg-muted/30 border-t border-border p-6">
               <div className="flex items-center justify-between">
                 <div className="text-sm text-glass-secondary font-medium">
                   Showing {newUsersStartIndex + 1} to {Math.min(newUsersEndIndex, sortedNewUsers.length)} of {sortedNewUsers.length} new users
@@ -554,7 +555,7 @@ export default function UserManagementPage() {
                     size="sm"
                     onClick={goToPreviousNewUsersPage}
                     disabled={newUsersPage === 1}
-                    className="glass-button bg-gradient-to-r from-amber-500/20 to-amber-600/20 text-amber-600 border-amber-500/30 hover:from-amber-500/30 hover:to-amber-600/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="border border-border bg-card text-foreground hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <ChevronLeft className="h-4 w-4" />
                     Previous
@@ -586,7 +587,7 @@ export default function UserManagementPage() {
                           className={`w-10 h-10 p-0 font-semibold ${
                             newUsersPage === page 
                               ? 'bg-amber-600 text-white border-amber-600 shadow-lg' 
-                              : 'glass-button bg-gradient-to-r from-amber-500/10 to-amber-600/10 text-amber-600 border-amber-500/20 hover:from-amber-500/20 hover:to-amber-600/20 transition-colors duration-200'
+                              : 'border border-border bg-card text-foreground hover:bg-muted transition-colors duration-150'
                           }`}
                         >
                           {page}
@@ -600,7 +601,7 @@ export default function UserManagementPage() {
                     size="sm"
                     onClick={goToNextNewUsersPage}
                     disabled={newUsersPage === totalNewUsersPages}
-                    className="glass-button bg-gradient-to-r from-amber-500/20 to-amber-600/20 text-amber-600 border-amber-500/30 hover:from-amber-500/30 hover:to-amber-600/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="border border-border bg-card text-foreground hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Next
                     <ChevronRight className="h-4 w-4" />
@@ -616,7 +617,7 @@ export default function UserManagementPage() {
         <GlassCard variant="elevated" className="overflow-hidden">
           <GlassCardHeader className="bg-transparent border-arsd-red/20">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-arsd-red/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+              <div className="w-12 h-12 bg-primary/10 rounded-md flex items-center justify-center border border-primary/20">
                 <Shield className="h-6 w-6 text-arsd-red" />
               </div>
               <div>
@@ -632,7 +633,7 @@ export default function UserManagementPage() {
             <div className="overflow-x-auto scrollbar-glass">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-gradient-to-r from-arsd-red/5 to-red-500/5 border-b border-arsd-red/10">
+                  <TableRow className="bg-muted/40 border-b border-border">
                     <TableHead className="px-6 py-4 font-semibold text-arsd-red text-sm uppercase tracking-wider">
                       Name
                     </TableHead>
@@ -657,13 +658,13 @@ export default function UserManagementPage() {
                   {paginatedExistingUsers.map((user, index) => (
                     <TableRow 
                       key={user.id} 
-                      className={`border-b border-white/10 hover:bg-gradient-to-r hover:from-arsd-red/5 hover:to-red-500/5 transition-colors duration-200 ${
+                      className={`border-b border-white/10 hover:bg-muted/30 transition-colors duration-150 ${
                         index % 2 === 0 ? 'bg-white/2' : 'bg-white/5'
                       }`}
                     >
                       <TableCell className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-arsd-red/20 to-red-500/20 rounded-full flex items-center justify-center backdrop-blur-sm border border-arsd-red/30">
+                          <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center border border-primary/20">
                             <UserIcon className="h-5 w-5 text-arsd-red" />
                           </div>
                           <div>
@@ -716,7 +717,7 @@ export default function UserManagementPage() {
                             setIsEditDialogOpen(true);
                           }}
                           disabled={isUpdating}
-                          className="glass-button bg-gradient-to-r from-arsd-red/30 to-red-500/30 text-white border-arsd-red/50 hover:from-arsd-red/40 hover:to-red-500/40 shadow-lg transition-colors duration-200"
+                          className="bg-primary text-primary-foreground hover:bg-[hsl(var(--arsd-red-hover))]"
                         >
                           {isUpdating ? (
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
@@ -734,7 +735,7 @@ export default function UserManagementPage() {
           
           {/* Existing Users Pagination */}
           {totalPages > 1 && (
-            <div className="bg-gradient-to-r from-arsd-red/5 to-red-500/5 border-t border-arsd-red/10 p-6">
+            <div className="bg-muted/30 border-t border-border p-6">
               <div className="flex items-center justify-between">
                 <div className="text-sm text-glass-secondary font-medium">
                   Showing {startIndex + 1} to {Math.min(endIndex, sortedExistingUsers.length)} of {sortedExistingUsers.length} users
@@ -746,7 +747,7 @@ export default function UserManagementPage() {
                     size="sm"
                     onClick={goToPreviousPage}
                     disabled={currentPage === 1}
-                    className="glass-button bg-gradient-to-r from-arsd-red/20 to-red-500/20 text-arsd-red border-arsd-red/30 hover:from-arsd-red/30 hover:to-red-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="border border-border bg-card text-foreground hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <ChevronLeft className="h-4 w-4" />
                     Previous
@@ -778,7 +779,7 @@ export default function UserManagementPage() {
                           className={`w-10 h-10 p-0 font-semibold ${
                             currentPage === page 
                               ? 'bg-arsd-red text-white border-arsd-red shadow-lg' 
-                              : 'glass-button bg-gradient-to-r from-arsd-red/10 to-red-500/10 text-arsd-red border-arsd-red/20 hover:from-arsd-red/20 hover:to-red-500/20 transition-colors duration-200'
+                              : 'border border-border bg-card text-foreground hover:bg-muted transition-colors duration-150'
                           }`}
                         >
                           {page}
@@ -792,7 +793,7 @@ export default function UserManagementPage() {
                     size="sm"
                     onClick={goToNextPage}
                     disabled={currentPage === totalPages}
-                    className="glass-button bg-gradient-to-r from-arsd-red/20 to-red-500/20 text-arsd-red border-arsd-red/30 hover:from-arsd-red/30 hover:to-red-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="border border-border bg-card text-foreground hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Next
                     <ChevronRight className="h-4 w-4" />
@@ -866,7 +867,7 @@ export default function UserManagementPage() {
                       setEditingUser(null);
                       setIsEditDialogOpen(false);
                     }}
-                    className="glass-button bg-gradient-to-r from-gray-500/20 to-gray-600/20 text-glass-primary border-gray-400/50 hover:from-gray-500/30 hover:to-gray-600/30"
+                    className="border border-border bg-card text-foreground hover:bg-muted"
                   >
                     Cancel
                   </Button>
@@ -877,7 +878,7 @@ export default function UserManagementPage() {
                       editingUser.status
                     )}
                     disabled={isUpdating}
-                    className="glass-button bg-gradient-to-r from-arsd-red/100 text-white border-arsd-red/50 hover:from-arsd-red/80"
+                    className="bg-primary text-primary-foreground hover:bg-[hsl(var(--arsd-red-hover))]"
                   >
                     {isUpdating ? (
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
@@ -952,14 +953,14 @@ export default function UserManagementPage() {
                       setApprovingUser(null);
                       setIsApproveDialogOpen(false);
                     }}
-                    className="glass-button bg-gradient-to-r from-gray-500/20 to-gray-600/20 text-glass-primary border-gray-400/50 hover:from-gray-500/30 hover:to-gray-600/30"
+                    className="border border-border bg-card text-foreground hover:bg-muted"
                   >
                     Cancel
                   </Button>
                   <Button
                     onClick={() => handleConfirmApproval(approvingUser.id, approvalRole, approvalStatus)}
                     disabled={isApproving}
-                    className="glass-button bg-gradient-to-r from-green-500/100 text-white border-green-500/50 hover:from-green-600/100"
+                    className="bg-emerald-600 text-white hover:bg-emerald-700"
                   >
                     {isApproving ? (
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />

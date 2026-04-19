@@ -2,26 +2,31 @@
 
 import { WebsiteProjectsTab } from "@/components/website-projects/WebsiteProjectsTab";
 import { FolderOpen } from "lucide-react";
-import Image from "next/image";
 
 export default function WebsiteDetails() {
   return (
-    <div className="space-y-8">
-      {/* Header Section */}
-      <div className="flex items-center gap-4">
-        <div className="w-16 h-16 bg-gradient-to-br from-arsd-red/20 to-red-500/20 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-arsd-red/30 shadow-lg">
-          <FolderOpen className="h-8 w-8 text-arsd-red" />
+    <div className="space-y-6">
+      {/* Header */}
+      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 pb-4 border-b border-border">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-md bg-primary/10 text-primary flex items-center justify-center">
+            <FolderOpen className="h-5 w-5" strokeWidth={1.75} />
+          </div>
+          <div>
+            <div className="text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
+              Public site
+            </div>
+            <h1 className="text-h1 font-display text-foreground leading-none">
+              Website Projects
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Manage and showcase your project portfolio.
+            </p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-arsd-red to-red-600 bg-clip-text text-transparent flex items-center gap-3">
-            Website Projects
-          </h1>
-          <p className="text-glass-secondary text-lg font-medium mt-2">Manage and showcase your project portfolio</p>
-        </div>
-      </div>
-      
-      {/* Projects Section */}
-      <div className="space-y-8">
+      </header>
+
+      <div className="space-y-6">
         <WebsiteProjectsTab />
       </div>
     </div>

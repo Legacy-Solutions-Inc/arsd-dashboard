@@ -294,38 +294,38 @@ export default function LeaderboardPage() {
   }, [rows]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-amber-50/30 to-yellow-50/20">
-      <div className="space-y-6 p-6 lg:p-8">
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/5 via-amber-500/5 to-orange-500/5 rounded-2xl blur-3xl"></div>
-          <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-xl">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-yellow-500 rounded-xl flex items-center justify-center shadow-lg">
-                  <Trophy className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-amber-600 to-yellow-700 bg-clip-text text-transparent">Performance Leaderboard</h1>
-                  <p className="text-gray-600 text-sm">Rankings based on slippage • {period === 'week' ? 'Last 7 days' : period === 'month' ? 'Last 30 days' : 'Overall (latest)'}
-                  </p>
-                </div>
+    <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-border">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-md bg-primary/10 text-primary flex items-center justify-center">
+                <Trophy className="h-5 w-5" strokeWidth={1.75} />
               </div>
-              <div className="flex items-center gap-2">
-                <div className="bg-gray-100 rounded-xl p-1 hidden sm:flex">
-                  <button onClick={() => setPeriod('week')} className={`px-3 py-1 rounded-lg text-sm ${period === 'week' ? 'bg-white shadow text-gray-900' : 'text-gray-600'}`}>Week</button>
-                  <button onClick={() => setPeriod('month')} className={`px-3 py-1 rounded-lg text-sm ${period === 'month' ? 'bg-white shadow text-gray-900' : 'text-gray-600'}`}>Month</button>
-                  <button onClick={() => setPeriod('overall')} className={`px-3 py-1 rounded-lg text-sm ${period === 'overall' ? 'bg-white shadow text-gray-900' : 'text-gray-600'}`}>Overall</button>
+              <div>
+                <div className="text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
+                  {period === 'week' ? 'Last 7 days' : period === 'month' ? 'Last 30 days' : 'Overall'}
                 </div>
-                <button onClick={() => router.push('/dashboard')} className="rounded-xl px-3 sm:px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700">Back</button>
+                <h1 className="text-h1 font-display text-foreground leading-none">
+                  Performance Leaderboard
+                </h1>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Rankings based on slippage.
+                </p>
               </div>
             </div>
-          </div>
+            <div className="flex items-center gap-2">
+              <div className="bg-muted rounded-md p-0.5 hidden sm:flex border border-border">
+                <button onClick={() => setPeriod('week')} className={`px-3 py-1 rounded text-xs font-medium transition-colors ${period === 'week' ? 'bg-card text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'}`}>Week</button>
+                <button onClick={() => setPeriod('month')} className={`px-3 py-1 rounded text-xs font-medium transition-colors ${period === 'month' ? 'bg-card text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'}`}>Month</button>
+                <button onClick={() => setPeriod('overall')} className={`px-3 py-1 rounded text-xs font-medium transition-colors ${period === 'overall' ? 'bg-card text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'}`}>Overall</button>
+              </div>
+              <button onClick={() => router.push('/dashboard')} className="rounded-md px-3 py-1.5 border border-border bg-card text-sm text-foreground hover:bg-muted transition-colors">Back</button>
+            </div>
         </div>
 
         {viewMode === 'summary' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
-            <section className="bg-white/90 backdrop-blur-sm rounded-2xl border border-white/20 shadow-xl overflow-hidden">
-              <div className="px-4 sm:px-6 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 bg-gradient-to-r from-green-50 to-emerald-50">
+            <section className="bg-card border border-border rounded-lg overflow-hidden">
+              <div className="px-4 sm:px-6 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 bg-muted/40 border-b border-border">
                 <div className="flex items-center gap-3">
                   <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-emerald-600/10 text-emerald-700 flex items-center justify-center"><Medal className="h-4 w-4" /></div>
                   <div className="text-emerald-800 font-semibold text-sm sm:text-base">Top Performing Projects</div>
@@ -363,8 +363,8 @@ export default function LeaderboardPage() {
               </div>
             </section>
 
-            <section className="bg-white/90 backdrop-blur-sm rounded-2xl border border-white/20 shadow-xl overflow-hidden">
-              <div className="px-4 sm:px-6 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 bg-gradient-to-r from-yellow-50 to-amber-50">
+            <section className="bg-card border border-border rounded-lg overflow-hidden">
+              <div className="px-4 sm:px-6 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 bg-muted/40 border-b border-border">
                 <div className="flex items-center gap-3">
                   <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-amber-600/10 text-amber-700 flex items-center justify-center"><PiggyBank className="h-4 w-4" /></div>
                   <div className="text-amber-800 font-semibold text-sm sm:text-base">Top Savings Projects</div>
@@ -401,8 +401,8 @@ export default function LeaderboardPage() {
               </div>
             </section>
 
-            <section className="bg-white/90 backdrop-blur-sm rounded-2xl border border-white/20 shadow-xl overflow-hidden">
-              <div className="px-4 sm:px-6 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 bg-gradient-to-r from-blue-50 to-cyan-50">
+            <section className="bg-card border border-border rounded-lg overflow-hidden">
+              <div className="px-4 sm:px-6 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 bg-muted/40 border-b border-border">
                 <div className="flex items-center gap-3">
                   <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-blue-600/10 text-blue-700 flex items-center justify-center"><UserIcon className="h-4 w-4" /></div>
                   <div className="text-blue-800 font-semibold text-sm sm:text-base">Top Site Engineers</div>
@@ -440,8 +440,8 @@ export default function LeaderboardPage() {
             </section>
           </div>
         ) : (
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-white/20 shadow-xl overflow-hidden">
-            <div className="px-6 py-4 flex items-center justify-between bg-gradient-to-r from-gray-50 to-gray-100">
+          <div className="bg-card border border-border rounded-lg overflow-hidden">
+            <div className="px-6 py-4 flex items-center justify-between bg-muted/40 border-b border-border">
               <div className="font-semibold text-gray-700">
                 {viewMode === 'top' && 'All Top Performing Projects'}
                 {viewMode === 'under' && 'All Underperforming Projects'}
@@ -524,7 +524,6 @@ export default function LeaderboardPage() {
             </div>
           </div>
         )}
-      </div>
     </div>
   );
 }

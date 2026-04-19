@@ -7,11 +7,10 @@ interface ARSDTableProps {
 
 export function ARSDTable({ children, className = '' }: ARSDTableProps) {
   return (
-    <div className={`glass-table overflow-x-auto rounded-2xl ${className}`}>
+    <div className={`bg-card border border-border rounded-lg overflow-x-auto ${className}`}>
       <table className="w-full">
         {children}
       </table>
     </div>
   );
 }
-

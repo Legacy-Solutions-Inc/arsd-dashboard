@@ -1,13 +1,12 @@
 "use client";
 import { useMemo } from "react";
-import { 
-  processProjectListData,
+import {
   getStatusBadgeStyling,
   formatStatus,
-  validateProject,
   calculateProjectListMetrics,
-  Project
+  Project,
 } from "@/utils/project-list-utils";
+import { ArrowRight } from "lucide-react";
 
 interface ProjectListProps {
   projects: Project[];
@@ -15,52 +14,52 @@ interface ProjectListProps {
 }
 
 const ProjectList: React.FC<ProjectListProps> = ({ projects, onSelect }) => {
-  // Calculate project metrics using utility function
-  const projectMetrics = useMemo(() => {
-    return calculateProjectListMetrics(projects);
-  }, [projects]);
+  useMemo(() => calculateProjectListMetrics(projects), [projects]);
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
-      <div className="flex items-center mb-6 gap-2">
-        <span className="inline-flex items-center justify-center bg-arsd-red/10 rounded-full p-2">
-          <svg width="28" height="28" fill="none" stroke="#B91C1C" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></svg>
+    <div className="bg-card rounded-lg border border-border">
+      <div className="flex items-center gap-2 px-5 py-4 border-b border-border">
+        <span className="inline-flex items-center justify-center rounded-md bg-primary/10 text-primary p-1.5">
+          <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <rect x="3" y="7" width="18" height="13" rx="2" />
+            <path d="M16 3v4M8 3v4M3 11h18" />
+          </svg>
         </span>
-        <h2 className="text-2xl font-bold text-arsd-red tracking-wide">Projects</h2>
+        <h2 className="text-h3 font-semibold text-foreground">Projects</h2>
       </div>
       <div className="overflow-x-auto">
-        <table className="min-w-full text-left border-separate border-spacing-y-2">
-          <thead>
-            <tr className="">
-              <th className="py-3 px-4 text-xs font-semibold text-gray-500">Project ID</th>
-              <th className="py-3 px-4 text-xs font-semibold text-gray-500">Name</th>
-              <th className="py-3 px-4 text-xs font-semibold text-gray-500">Client</th>
-              <th className="py-3 px-4 text-xs font-semibold text-gray-500">Location</th>
-              <th className="py-3 px-4 text-xs font-semibold text-gray-500">Status</th>
-              <th className="py-3 px-4 text-xs font-semibold text-gray-500">Action</th>
+        <table className="min-w-full text-left">
+          <thead className="bg-muted/40 border-b border-border">
+            <tr>
+              <th className="py-2.5 px-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Project ID</th>
+              <th className="py-2.5 px-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Name</th>
+              <th className="py-2.5 px-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Client</th>
+              <th className="py-2.5 px-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Location</th>
+              <th className="py-2.5 px-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Status</th>
+              <th className="py-2.5 px-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Action</th>
             </tr>
           </thead>
           <tbody>
             {projects.map((project: Project) => (
               <tr
                 key={project.id}
-                className="bg-white rounded-lg shadow-sm transition-all duration-150 hover:shadow-md hover:bg-yellow-50"
+                className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors"
               >
-                <td className="py-3 px-4 font-semibold text-arsd-red text-sm rounded-l-lg">{project.id}</td>
-                <td className="py-3 px-4 text-gray-900 text-sm">{project.name}</td>
-                <td className="py-3 px-4 text-gray-900 text-sm">{project.client}</td>
-                <td className="py-3 px-4 text-gray-900 text-sm">{project.location}</td>
+                <td className="py-3 px-4 font-mono text-sm text-primary nums">{project.id}</td>
+                <td className="py-3 px-4 text-foreground text-sm">{project.name}</td>
+                <td className="py-3 px-4 text-foreground text-sm">{project.client}</td>
+                <td className="py-3 px-4 text-foreground text-sm">{project.location}</td>
                 <td className="py-3 px-4">
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${getStatusBadgeStyling(project.status)}`}>
+                  <span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium ${getStatusBadgeStyling(project.status)}`}>
                     {formatStatus(project.status)}
                   </span>
                 </td>
-                <td className="py-3 px-4 rounded-r-lg">
+                <td className="py-3 px-4">
                   <button
-                    className="flex items-center gap-2 px-4 py-2 bg-arsd-red text-white rounded-lg hover:bg-yellow-400 hover:text-arsd-red font-semibold text-xs shadow transition-all duration-150"
+                    className="inline-flex items-center gap-1.5 rounded-md bg-primary text-primary-foreground px-3 py-1.5 text-xs font-medium hover:bg-[hsl(var(--arsd-red-hover))] transition-colors"
                     onClick={() => onSelect(project.id)}
                   >
-                    <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M15 12l-6 6V6z"/></svg>
+                    <ArrowRight className="h-3.5 w-3.5" strokeWidth={1.75} />
                     View
                   </button>
                 </td>

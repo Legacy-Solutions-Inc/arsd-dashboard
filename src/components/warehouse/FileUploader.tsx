@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef } from 'react';
-import { Upload, X } from 'lucide-react';
+import { Upload, X, FileCheck2 } from 'lucide-react';
 
 interface FileUploaderProps {
   label: string;
@@ -11,28 +11,31 @@ interface FileUploaderProps {
   required?: boolean;
 }
 
-export function FileUploader({ label, accept = 'image/*', value, onChange, required = false }: FileUploaderProps) {
+export function FileUploader({
+  label,
+  accept = 'image/*',
+  value,
+  onChange,
+  required = false,
+}: FileUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    onChange(file);
+    onChange(e.target.files?.[0] || null);
   };
 
   const handleRemove = () => {
     onChange(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">
+      <label className="block text-sm font-medium text-foreground">
         {label}
-        {required && <span className="text-red-600 ml-1">*</span>}
+        {required && <span className="text-destructive ml-1">*</span>}
       </label>
-      
+
       <div className="relative">
         <input
           ref={fileInputRef}
@@ -42,32 +45,32 @@ export function FileUploader({ label, accept = 'image/*', value, onChange, requi
           className="hidden"
           id={`file-upload-${label.replace(/\s+/g, '-')}`}
         />
-        
+
         <label
           htmlFor={`file-upload-${label.replace(/\s+/g, '-')}`}
-          className="flex flex-col items-center justify-center w-full h-32 sm:h-40 glass-subtle border-2 border-dashed border-red-300/50 rounded-xl cursor-pointer hover:bg-red-50/20 hover:border-red-400/70 transition-all duration-200 mobile-touch-target"
+          className="flex flex-col items-center justify-center w-full h-32 sm:h-40 bg-muted/30 border-2 border-dashed border-border rounded-md cursor-pointer hover:bg-muted/50 hover:border-foreground/20 transition-colors mobile-touch-target"
         >
           {value ? (
             <div className="flex flex-col items-center gap-2 p-4">
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                <Upload className="h-6 w-6 text-green-600" />
+              <div className="w-10 h-10 bg-emerald-50 dark:bg-emerald-950/40 rounded-full flex items-center justify-center">
+                <FileCheck2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" strokeWidth={1.75} />
               </div>
-              <span className="text-sm font-medium text-gray-700 truncate max-w-full px-2">
+              <span className="text-sm font-medium text-foreground truncate max-w-full px-2">
                 {value.name}
               </span>
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-muted-foreground nums">
                 {(value.size / 1024 / 1024).toFixed(2)} MB
               </span>
             </div>
           ) : (
             <div className="flex flex-col items-center gap-2 p-4">
-              <div className="w-12 h-12 bg-red-100/50 rounded-full flex items-center justify-center">
-                <Upload className="h-6 w-6 text-arsd-red" />
+              <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                <Upload className="h-5 w-5 text-primary" strokeWidth={1.75} />
               </div>
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-sm font-medium text-foreground">
                 Click to upload
               </span>
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-muted-foreground">
                 or drag and drop
               </span>
             </div>
@@ -77,14 +80,13 @@ export function FileUploader({ label, accept = 'image/*', value, onChange, requi
         {value && (
           <button
             onClick={handleRemove}
-            className="absolute top-2 right-2 p-1.5 rounded-full bg-red-100 hover:bg-red-200 text-red-600 transition-colors mobile-touch-target"
+            className="absolute top-2 right-2 inline-flex items-center justify-center rounded-full bg-card border border-border p-1.5 text-muted-foreground hover:text-destructive hover:border-destructive/30 transition-colors mobile-touch-target"
             aria-label="Remove file"
           >
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4" strokeWidth={1.75} />
           </button>
         )}
       </div>
     </div>
   );
 }
-

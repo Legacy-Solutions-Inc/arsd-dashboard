@@ -211,13 +211,13 @@ export default function DeliveryReceiptDetailPage() {
 
   if (error || !dr) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 flex items-center justify-center">
-        <div className="glass-card text-center max-w-md">
+      <div className="min-h-[calc(100vh-6rem)] bg-background flex items-center justify-center">
+        <div className="bg-card border border-border rounded-lg p-6 text-center max-w-md shadow-sm-tinted">
           <h2 className="text-xl font-bold text-gray-900 mb-2">Delivery Receipt Not Found</h2>
           <p className="text-gray-600 mb-4">{error?.message || 'The requested delivery receipt could not be found.'}</p>
           <button
             onClick={() => router.push('/dashboard/warehouse/delivery-receipts')}
-            className="btn-arsd-primary mobile-button"
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-[hsl(var(--arsd-red-hover))] transition-colors"
           >
             Back to List
           </button>
@@ -227,12 +227,12 @@ export default function DeliveryReceiptDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 w-full">
+    <div className="min-h-[calc(100vh-6rem)] bg-background w-full">
       <div className="w-full mx-4 sm:mx-6 lg:mx-8 py-4 sm:py-6 lg:py-8 space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-arsd-red/5 via-blue-500/5 to-purple-500/5 rounded-2xl blur-3xl"></div>
-          <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-white/20 shadow-xl">
+          <div className="absolute inset-0 hidden"></div>
+          <div className="relative bg-card border border-border rounded-lg p-4 sm:p-6 shadow-xs">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => router.push('/dashboard/warehouse/delivery-receipts')}
@@ -241,7 +241,7 @@ export default function DeliveryReceiptDetailPage() {
                 <ArrowLeft className="h-5 w-5 text-gray-600" />
               </button>
               <div className="flex-1">
-                <h1 className="responsive-heading font-bold bg-gradient-to-r from-arsd-red to-red-600 bg-clip-text text-transparent">
+                <h1 className="text-h1 font-display text-foreground leading-none">
                   Delivery Receipt Details
                 </h1>
                 <p className="text-gray-600 responsive-text">{dr.dr_no}</p>
@@ -266,7 +266,7 @@ export default function DeliveryReceiptDetailPage() {
                   <button
                     type="button"
                     onClick={handleEnterEdit}
-                    className="btn-arsd-primary mobile-button flex items-center gap-2"
+                    className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-[hsl(var(--arsd-red-hover))] transition-colors flex items-center gap-2"
                   >
                     Edit
                   </button>
@@ -277,7 +277,7 @@ export default function DeliveryReceiptDetailPage() {
                       type="button"
                       onClick={handleSave}
                       disabled={!canSave || saveLoading}
-                      className="btn-arsd-primary mobile-button flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                      className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-[hsl(var(--arsd-red-hover))] transition-colors flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                       {saveLoading ? 'Saving…' : 'Save changes'}
                     </button>
@@ -311,9 +311,9 @@ export default function DeliveryReceiptDetailPage() {
           <div className="space-y-6">
             <div className="flex items-center gap-2 mb-4 pb-4 border-b border-red-200/30">
               <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                <FileText className="h-5 w-5 text-arsd-red" />
+                <FileText className="h-5 w-5 text-primary" />
               </div>
-              <h2 className="text-lg sm:text-xl font-bold text-arsd-primary">Basic Details</h2>
+              <h2 className="text-lg sm:text-xl font-bold text-foreground">Basic Details</h2>
             </div>
 
             <dl className="space-y-3 text-sm">
@@ -423,9 +423,9 @@ export default function DeliveryReceiptDetailPage() {
           <div className="space-y-6">
             <div className="flex items-center gap-2 mb-4 pb-4 border-b border-red-200/30">
               <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                <Package className="h-5 w-5 text-arsd-red" />
+                <Package className="h-5 w-5 text-primary" />
               </div>
-              <h2 className="text-lg sm:text-xl font-bold text-arsd-primary">
+              <h2 className="text-lg sm:text-xl font-bold text-foreground">
                 Items ({(isEditing ? editItems.length : dr.items?.length) || 0})
               </h2>
             </div>
@@ -471,15 +471,18 @@ export default function DeliveryReceiptDetailPage() {
       </div>
       {previewImage && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/50 px-4"
           onClick={() => setPreviewImage(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Image preview"
         >
           <div
-            className="relative w-full max-w-3xl bg-white/95 rounded-2xl shadow-2xl border border-white/40 p-4 sm:p-6"
+            className="relative w-full max-w-3xl bg-card rounded-lg shadow-lg-tinted border border-border p-4 sm:p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base sm:text-lg font-semibold text-arsd-primary">
+              <h2 className="text-base sm:text-lg font-semibold text-foreground">
                 {previewImage.label}
               </h2>
               <button
