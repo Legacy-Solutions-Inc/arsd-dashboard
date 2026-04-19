@@ -64,169 +64,165 @@ export default function WarehouseDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 w-full">
-      <div className="w-full mx-4 sm:mx-6 lg:mx-8 py-4 sm:py-6 lg:py-8 space-y-4 sm:space-y-6 lg:space-y-8">
-        {/* Header */}
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-arsd-red/5 via-blue-500/5 to-purple-500/5 rounded-2xl blur-3xl"></div>
-          <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-white/20 shadow-xl">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-arsd-red to-red-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <Package className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <h1 className="responsive-heading font-bold bg-gradient-to-r from-arsd-red to-red-600 bg-clip-text text-transparent">
-                    Warehouse Management
-                  </h1>
-                  <p className="text-gray-600 responsive-text font-medium">
-                    Manage inventory, delivery receipts, and releases
-                  </p>
-                </div>
-              </div>
+    <div className="w-full space-y-6">
+      {/* Header */}
+      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-border">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-md bg-primary/10 text-primary flex items-center justify-center">
+            <Package className="h-5 w-5" />
+          </div>
+          <div>
+            <div className="text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
+              Inventory
             </div>
+            <h1 className="text-h1 font-display text-foreground leading-none">
+              Warehouse Management
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Manage inventory, delivery receipts, and releases.
+            </p>
           </div>
         </div>
+      </header>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <button
-            onClick={() => router.push('/dashboard/warehouse/delivery-receipts')}
-            className="glass-card hover:scale-105 transition-transform duration-200 text-left"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-lg flex items-center justify-center">
-                <FileText className="h-5 w-5 text-blue-600" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-arsd-primary text-sm sm:text-base">
-                  Delivery Receipts List
-                </h3>
-                <p className="text-xs text-gray-600 mt-1">View all delivery receipts</p>
-              </div>
-              <List className="h-5 w-5 text-gray-400" />
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <button
+          onClick={() => router.push('/dashboard/warehouse/delivery-receipts')}
+          className="bg-card border border-border rounded-md p-4 text-left hover:border-foreground/15 hover:bg-muted/30 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-md bg-muted flex items-center justify-center">
+              <FileText className="h-4 w-4 text-muted-foreground" />
             </div>
-          </button>
-
-          <button
-            onClick={() => router.push('/dashboard/warehouse/releases')}
-            className="glass-card hover:scale-105 transition-transform duration-200 text-left"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-lg flex items-center justify-center">
-                <Package className="h-5 w-5 text-green-600" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-arsd-primary text-sm sm:text-base">
-                  Release Forms List
-                </h3>
-                <p className="text-xs text-gray-600 mt-1">View all release forms</p>
-              </div>
-              <List className="h-5 w-5 text-gray-400" />
-            </div>
-          </button>
-        </div>
-
-        {/* Create Buttons - Only for Warehouseman */}
-        {canCreate && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <button
-              onClick={() => router.push('/dashboard/warehouse/delivery-receipts/new')}
-              className="btn-arsd-glass mobile-button flex items-center justify-center gap-2"
-            >
-              <Plus className="h-5 w-5" />
-              Create Delivery Receipt
-            </button>
-            <button
-              onClick={() => router.push('/dashboard/warehouse/releases/new')}
-              className="btn-arsd-glass mobile-button flex items-center justify-center gap-2"
-            >
-              <Plus className="h-5 w-5" />
-              Create Release Form
-            </button>
-          </div>
-        )}
-
-        {/* Project Selector Grid */}
-        <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <h2 className="responsive-heading font-bold text-arsd-primary">
-              {canViewAll ? 'All Projects' : 'Assigned Projects'}
-            </h2>
-            <span className="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-lg self-start sm:self-auto">
-              {filteredProjects.length} project{filteredProjects.length !== 1 ? 's' : ''}
-            </span>
-          </div>
-
-          {accessibleProjects.length > 0 ? (
-            <>
-              <div className="relative max-w-xl">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="    Search by project name, location, or warehouseman..."
-                  className="mobile-form-input w-full pl-10 min-w-0"
-                />
-              </div>
-              {filteredProjects.length > 0 ? (
-                <>
-                  <ProjectGrid projects={paginatedProjects} />
-                  {totalPages > 1 && (
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-4">
-                      <p className="text-xs text-gray-500">
-                        Showing <span className="font-medium">{startIndex}</span>
-                        {'–'}
-                        <span className="font-medium">{endIndex}</span> of{' '}
-                        <span className="font-medium">{filteredProjects.length}</span> project
-                        {filteredProjects.length !== 1 ? 's' : ''}
-                      </p>
-                      <div className="flex items-center gap-2 self-start sm:self-auto">
-                        <button
-                          type="button"
-                          onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                          disabled={activePage === 1}
-                          className="btn-arsd-outline mobile-button px-3 py-1.5 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          Previous
-                        </button>
-                        <span className="text-xs text-gray-600">
-                          Page <span className="font-medium">{activePage}</span> of{' '}
-                          <span className="font-medium">{totalPages}</span>
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                          disabled={activePage === totalPages}
-                          className="btn-arsd-outline mobile-button px-3 py-1.5 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          Next
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div className="glass-card text-center py-12">
-                  <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 font-medium">No projects match your search</p>
-                  <p className="text-sm text-gray-500 mt-2">Try a different search term</p>
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="glass-card text-center py-12">
-              <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600 font-medium">No projects available</p>
-              <p className="text-sm text-gray-500 mt-2">
-                {canViewAll
-                  ? 'No projects found in the system'
-                  : 'You are not assigned to any projects'}
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold text-foreground">
+                Delivery receipts
+              </h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                View all delivery receipts
               </p>
             </div>
-          )}
+            <List className="h-4 w-4 text-muted-foreground" />
+          </div>
+        </button>
+
+        <button
+          onClick={() => router.push('/dashboard/warehouse/releases')}
+          className="bg-card border border-border rounded-md p-4 text-left hover:border-foreground/15 hover:bg-muted/30 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-md bg-muted flex items-center justify-center">
+              <Package className="h-4 w-4 text-muted-foreground" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold text-foreground">
+                Release forms
+              </h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                View all release forms
+              </p>
+            </div>
+            <List className="h-4 w-4 text-muted-foreground" />
+          </div>
+        </button>
+      </div>
+
+      {canCreate && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <button
+            onClick={() => router.push('/dashboard/warehouse/delivery-receipts/new')}
+            className="inline-flex items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground px-4 py-2.5 text-sm font-medium hover:bg-[hsl(var(--arsd-red-hover))] transition-colors"
+          >
+            <Plus className="h-4 w-4" />
+            Create delivery receipt
+          </button>
+          <button
+            onClick={() => router.push('/dashboard/warehouse/releases/new')}
+            className="inline-flex items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground px-4 py-2.5 text-sm font-medium hover:bg-[hsl(var(--arsd-red-hover))] transition-colors"
+          >
+            <Plus className="h-4 w-4" />
+            Create release form
+          </button>
         </div>
+      )}
+
+      {/* Project selector */}
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <h2 className="text-h3 text-foreground">
+            {canViewAll ? 'All projects' : 'Assigned projects'}
+          </h2>
+          <span className="text-xs text-muted-foreground bg-muted border border-border px-2.5 py-0.5 rounded-md self-start sm:self-auto nums">
+            {filteredProjects.length} project{filteredProjects.length !== 1 ? 's' : ''}
+          </span>
+        </div>
+
+        {accessibleProjects.length > 0 ? (
+          <>
+            <div className="relative max-w-xl">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search by project, location, or warehouseman"
+                className="w-full rounded-md border border-border bg-card pl-9 pr-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-transparent"
+              />
+            </div>
+            {filteredProjects.length > 0 ? (
+              <>
+                <ProjectGrid projects={paginatedProjects} />
+                {totalPages > 1 && (
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 border-t border-border">
+                    <p className="text-sm text-muted-foreground nums">
+                      Showing <span className="text-foreground font-medium">{startIndex}</span>
+                      {'–'}
+                      <span className="text-foreground font-medium">{endIndex}</span> of{' '}
+                      <span className="text-foreground font-medium">{filteredProjects.length}</span>
+                    </p>
+                    <div className="flex items-center gap-2 self-start sm:self-auto">
+                      <button
+                        type="button"
+                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                        disabled={activePage === 1}
+                        className="inline-flex items-center rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Previous
+                      </button>
+                      <span className="text-xs text-muted-foreground nums">
+                        Page <span className="text-foreground font-medium">{activePage}</span> of{' '}
+                        <span className="text-foreground font-medium">{totalPages}</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                        disabled={activePage === totalPages}
+                        className="inline-flex items-center rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="bg-card border border-border rounded-md text-center py-10">
+                <Search className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm font-medium text-foreground">No projects match your search</p>
+                <p className="text-sm text-muted-foreground mt-1">Try a different search term.</p>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="bg-card border border-border rounded-md text-center py-10">
+            <Package className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
+            <p className="text-sm font-medium text-foreground">No projects available</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              {canViewAll ? 'No projects found in the system.' : 'You are not assigned to any projects.'}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

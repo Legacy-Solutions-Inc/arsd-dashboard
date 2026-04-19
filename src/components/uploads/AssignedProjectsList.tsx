@@ -282,7 +282,7 @@ export default function AssignedProjectsList({ itemsPerPage = 6 }: AssignedProje
         </div>
         <GlassCard variant="elevated" className="text-center">
           <GlassCardContent className="p-12">
-            <div className="w-16 h-16 bg-gradient-to-br from-arsd-red/20 to-red-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <div className="w-16 h-16 bg-primary/10 rounded-md flex items-center justify-center mx-auto mb-6">
               <FileText className="h-8 w-8 text-arsd-red" />
             </div>
             <h3 className="text-xl font-bold text-glass-primary mb-3">No Assigned Projects</h3>
@@ -325,7 +325,7 @@ export default function AssignedProjectsList({ itemsPerPage = 6 }: AssignedProje
                 refetchProjects();
               }, 100);
             }}
-            className="glass-button bg-gradient-to-r from-arsd-red/20 to-red-500/20 text-arsd-red border-arsd-red/30 hover:from-arsd-red/30 hover:to-red-500/30"
+            className="border border-border bg-card text-foreground hover:bg-muted"
           >
             <RotateCcw className="h-4 w-4 mr-1" />
             Refresh
@@ -334,7 +334,7 @@ export default function AssignedProjectsList({ itemsPerPage = 6 }: AssignedProje
       </div>
 
       {/* Weekly Reminder Note */}
-      <GlassCard variant="elevated" className="bg-gradient-to-r from-arsd-red/5 to-red-500/5 border-arsd-red/20">
+      <GlassCard variant="elevated" className="bg-card border border-border">
         <GlassCardContent className="p-1">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -381,7 +381,7 @@ export default function AssignedProjectsList({ itemsPerPage = 6 }: AssignedProje
 
       {/* Rejected Reports Alert */}
       {weeklyStatus.some(status => status.report?.status === 'rejected') && (
-        <GlassCard variant="elevated" className="bg-gradient-to-r from-red-500/5 to-rose-500/5 border-red-200/50">
+        <GlassCard variant="elevated" className="bg-destructive/5 border border-destructive/20">
           <GlassCardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-red-100/50 rounded-xl flex items-center justify-center">
@@ -403,7 +403,7 @@ export default function AssignedProjectsList({ itemsPerPage = 6 }: AssignedProje
                   const firstRejected = document.querySelector('[data-status="rejected"]');
                   firstRejected?.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className="glass-button bg-gradient-to-r from-red-500/20 to-rose-500/20 text-red-700 border-red-300/50 hover:from-red-500/30 hover:to-rose-500/30"
+                className="border border-destructive/30 bg-destructive/5 text-destructive hover:bg-destructive/10"
               >
                 <MessageSquare className="h-4 w-4 mr-2" />
                 View Details
@@ -446,7 +446,7 @@ export default function AssignedProjectsList({ itemsPerPage = 6 }: AssignedProje
                         variant="outline"
                         size="sm"
                         onClick={() => handleViewRejectionDetails(uploadStatus)}
-                        className="glass-button bg-gradient-to-r from-red-500/20 to-rose-500/20 text-red-700 border-red-300/50 hover:from-red-500/30 hover:to-rose-500/30"
+                        className="border border-destructive/30 bg-destructive/5 text-destructive hover:bg-destructive/10"
                       >
                         <MessageSquare className="h-3 w-3 mr-1" />
                         Details
@@ -487,7 +487,7 @@ export default function AssignedProjectsList({ itemsPerPage = 6 }: AssignedProje
                             <Button
                               onClick={() => handleUploadClick(project)}
                               size="sm"
-                              className="glass-button bg-gradient-to-r from-arsd-red/100 to-red-500/100 text-white border-arsd-red/50 hover:from-arsd-red/80 hover:to-red-500/80"
+                              className="bg-primary text-primary-foreground hover:bg-[hsl(var(--arsd-red-hover))]"
                             >
                               <RefreshCw className="h-4 w-4 mr-2" />
                               Resubmit Report
@@ -508,7 +508,7 @@ export default function AssignedProjectsList({ itemsPerPage = 6 }: AssignedProje
                         <Button
                           onClick={() => handleUploadClick(project)}
                           size="lg"
-                          className="glass-button bg-gradient-to-r from-arsd-red/100 to-red-500/100 text-white border-arsd-red/50 hover:from-arsd-red/80 hover:to-red-500/80"
+                          className="bg-primary text-primary-foreground hover:bg-[hsl(var(--arsd-red-hover))]"
                         >
                           <Upload className="h-4 w-4 mr-2" />
                           Upload Report
@@ -520,7 +520,7 @@ export default function AssignedProjectsList({ itemsPerPage = 6 }: AssignedProje
                         onClick={() => handlePhotosUploadClick(project)}
                         size="lg"
                         variant="outline"
-                        className="glass-button bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-blue-700 border-blue-300/50 hover:from-blue-500/30 hover:to-cyan-500/30"
+                        className="border border-border bg-card text-foreground hover:bg-muted"
                       >
                         <Camera className="h-4 w-4 mr-2" />
                         Upload Progress Photos
@@ -549,7 +549,7 @@ export default function AssignedProjectsList({ itemsPerPage = 6 }: AssignedProje
                   size="sm"
                   onClick={goToPreviousPage}
                   disabled={currentPage === 1}
-                  className="glass-button bg-gradient-to-r from-arsd-red/20 to-red-500/20 text-arsd-red border-arsd-red/30 hover:from-arsd-red/30 hover:to-red-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="border border-border bg-card text-foreground hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <ChevronLeft className="h-4 w-4 mr-1" />
                   Previous
@@ -564,8 +564,8 @@ export default function AssignedProjectsList({ itemsPerPage = 6 }: AssignedProje
                       onClick={() => goToPage(page)}
                       className={
                         currentPage === page
-                          ? "glass-button bg-gradient-to-r from-arsd-red/100 to-red-500/100 text-white border-arsd-red/50"
-                          : "glass-button bg-gradient-to-r from-arsd-red/20 to-red-500/20 text-arsd-red border-arsd-red/30 hover:from-arsd-red/30 hover:to-red-500/30"
+                          ? "bg-primary text-primary-foreground hover:bg-[hsl(var(--arsd-red-hover))]"
+                          : "border border-border bg-card text-foreground hover:bg-muted"
                       }
                     >
                       {page}
@@ -578,7 +578,7 @@ export default function AssignedProjectsList({ itemsPerPage = 6 }: AssignedProje
                   size="sm"
                   onClick={goToNextPage}
                   disabled={currentPage === totalPages}
-                  className="glass-button bg-gradient-to-r from-arsd-red/20 to-red-500/20 text-arsd-red border-arsd-red/30 hover:from-arsd-red/30 hover:to-red-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="border border-border bg-card text-foreground hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Next
                   <ChevronRight className="h-4 w-4 ml-1" />
@@ -673,7 +673,7 @@ export default function AssignedProjectsList({ itemsPerPage = 6 }: AssignedProje
                   <Button
                     variant="outline"
                     onClick={() => setIsRejectionModalOpen(false)}
-                    className="glass-button bg-gradient-to-r from-gray-500/20 to-gray-600/20 text-glass-primary border-gray-400/50 hover:from-gray-500/30 hover:to-gray-600/30"
+                    className="border border-border bg-card text-foreground hover:bg-muted"
                   >
                     Close
                   </Button>
@@ -684,7 +684,7 @@ export default function AssignedProjectsList({ itemsPerPage = 6 }: AssignedProje
                       // This would trigger the upload form
                       alert('Please use the "Resubmit Report" button to upload a corrected report.');
                     }}
-                    className="glass-button bg-gradient-to-r from-arsd-red/100 to-red-500/100 text-white border-arsd-red/50 hover:from-arsd-red/80 hover:to-red-500/80"
+                    className="bg-primary text-primary-foreground hover:bg-[hsl(var(--arsd-red-hover))]"
                   >
                     <RefreshCw className="h-4 w-4 mr-2" />
                     Upload Corrected Report

@@ -4,33 +4,81 @@
 
 @layer base {
   :root {
-    /* Shadcn tokens — dark industrial theme */
-    --background: 0 0% 7%;          /* #111111 */
-    --foreground: 30 20% 94%;       /* #f0ede8 warm off-white */
-    --card: 0 0% 11%;               /* #1c1c1c */
+    /* Light — industrial paper */
+    --background: 36 20% 97%;         /* #f7f5f1 warm paper */
+    --foreground: 0 0% 10%;           /* #1a1a1a ink */
+    --card: 0 0% 100%;                /* #ffffff surface */
+    --card-foreground: 0 0% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
+    --primary: 0 72% 45%;             /* #c71f1f ARSD red on paper */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 36 15% 94%;          /* #eeebe6 cream */
+    --secondary-foreground: 0 0% 10%;
+    --muted: 36 15% 94%;
+    --muted-foreground: 30 8% 38%;    /* #635f58 warm mid */
+    --accent: 36 15% 94%;
+    --accent-foreground: 0 0% 10%;
+    --destructive: 0 72% 45%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 30 10% 88%;             /* #e2ded8 hairline */
+    --input: 30 10% 88%;
+    --ring: 0 72% 45%;
+    --radius: 0.625rem;               /* 10px — cards, tables */
+
+    /* ARSD brand */
+    --arsd-red: 0 72% 45%;
+    --arsd-red-hover: 0 72% 38%;
+    --arsd-surface: 0 0% 100%;
+    --arsd-paper: 36 20% 97%;
+    --arsd-border: 30 10% 88%;
+    --arsd-ink: 0 0% 10%;
+    --arsd-ink-secondary: 30 8% 38%;
+    --arsd-ink-muted: 30 6% 58%;
+
+    /* Tinted warm shadows (not pure black) */
+    --shadow-xs: 0 1px 2px 0 rgb(48 40 28 / 0.04);
+    --shadow-sm: 0 1px 3px 0 rgb(48 40 28 / 0.06), 0 1px 2px -1px rgb(48 40 28 / 0.06);
+    --shadow-md: 0 4px 12px -2px rgb(48 40 28 / 0.08);
+    --shadow-lg: 0 12px 24px -6px rgb(48 40 28 / 0.10);
+    --shadow-red: 0 6px 20px -4px rgb(199 31 31 / 0.18);
+  }
+
+  .dark {
+    --background: 0 0% 7%;
+    --foreground: 30 20% 94%;
+    --card: 0 0% 11%;
     --card-foreground: 30 20% 94%;
     --popover: 0 0% 11%;
     --popover-foreground: 30 20% 94%;
-    --primary: 0 84% 60%;           /* arsd-red */
+    --primary: 0 84% 60%;
     --primary-foreground: 0 0% 100%;
     --secondary: 0 0% 11%;
     --secondary-foreground: 30 20% 94%;
     --muted: 0 0% 14%;
-    --muted-foreground: 15 8% 63%;  /* #a09890 muted warm */
+    --muted-foreground: 15 8% 63%;
     --accent: 0 0% 14%;
     --accent-foreground: 30 20% 94%;
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 5% 16%;             /* #2a2626 */
+    --border: 0 5% 16%;
     --input: 0 5% 16%;
     --ring: 0 84% 60%;
-    --radius: 0.5rem;
 
-    /* ARSD Brand */
     --arsd-red: 0 84% 60%;
+    --arsd-red-hover: 0 72% 50%;
     --arsd-surface: 0 0% 11%;
+    --arsd-paper: 0 0% 7%;
     --arsd-border: 0 5% 16%;
-    --arsd-text-secondary: 15 8% 63%;
+    --arsd-ink: 30 20% 94%;
+    --arsd-ink-secondary: 15 8% 63%;
+    --arsd-ink-muted: 15 4% 48%;
+
+    --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.20);
+    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.25), 0 1px 2px -1px rgb(0 0 0 / 0.25);
+    --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.35);
+    --shadow-lg: 0 12px 24px -6px rgb(0 0 0 / 0.45);
+    --shadow-red: 0 6px 20px -4px rgb(239 68 68 / 0.30);
   }
 }
 
@@ -38,282 +86,208 @@
   * {
     @apply border-border;
   }
+  html {
+    scroll-behavior: smooth;
+  }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
     font-family: var(--font-body), sans-serif;
+    font-feature-settings: "ss01", "cv11";
+  }
+  h1, h2, h3 {
+    text-wrap: balance;
+    font-family: var(--font-display), sans-serif;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  .nums, [data-nums] {
+    font-variant-numeric: tabular-nums;
+  }
+  /* Global Lucide icon refinement — thinner, more modern stroke + clean joints.
+     Any inline strokeWidth on <Icon /> will still win. */
+  svg.lucide {
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
   }
 }
 
+/*
+ * DEPRECATED glass-* aliases.
+ * Kept so existing callsites still compile during the staged rebrand.
+ * New code must use direct Tailwind (bg-card, border, shadow-sm, etc.).
+ * These will be removed after Phase 10 sweeps the codebase.
+ */
 @layer components {
-  /* Glassmorphism Styles with ARSD Red Theme */
   .glass {
-    @apply bg-red-50/15 backdrop-blur-md border border-red-200/25;
+    @apply bg-card border border-border;
   }
-
   .glass-elevated {
-    @apply bg-red-50/25 backdrop-blur-lg border border-red-200/35 shadow-xl;
+    @apply bg-card border border-border shadow-sm;
   }
-
   .glass-subtle {
-    @apply bg-red-50/5 backdrop-blur-sm border border-red-200/15;
+    @apply bg-card/60 border border-border/60;
   }
-
   .glass-card {
-    @apply glass rounded-2xl p-6 transition-all duration-300 hover:bg-red-50/20 hover:shadow-2xl hover:scale-[1.02];
+    @apply bg-card border border-border rounded-[10px] p-6 shadow-xs transition-colors duration-150;
   }
-
   .glass-card-neutral {
-    @apply bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-2xl p-6 transition-all duration-300 hover:bg-gray-50/90 hover:shadow-xl hover:scale-[1.02];
+    @apply bg-card border border-border rounded-[10px] p-6 shadow-xs;
   }
-
   .glass-button {
-    @apply glass rounded-xl px-6 py-3 font-medium transition-all duration-300 hover:bg-red-50/25 hover:scale-105 active:scale-95;
+    @apply bg-card border border-border rounded-md px-4 py-2 font-medium transition-colors duration-150 hover:bg-muted;
   }
-
   .glass-input {
-    @apply glass rounded-xl px-4 py-3 placeholder:text-red-600/60 focus:bg-red-50/25 focus:outline-none focus:ring-2 focus:ring-red-300/40;
+    @apply bg-card border border-border rounded-md px-3 py-2 placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40;
   }
-
   .glass-table {
-    @apply glass rounded-2xl overflow-hidden;
+    @apply bg-card border border-border rounded-[10px] overflow-hidden;
   }
-
   .glass-table-header {
-    @apply bg-red-50/20 backdrop-blur-sm border-b border-red-200/30;
+    @apply bg-muted/50 border-b border-border;
   }
-
   .glass-table-row {
-    @apply border-b border-red-200/15 hover:bg-red-50/10 transition-all duration-200;
+    @apply border-b border-border hover:bg-muted/30 transition-colors duration-150;
   }
-
   .glass-table-cell {
-    @apply px-3 py-2 sm:py-3 text-gray-800;
+    @apply px-3 py-3 text-foreground;
   }
-
   .glass-table-header-cell {
-    @apply px-3 py-2 sm:py-3 font-semibold text-red-800 text-xs uppercase tracking-wider;
+    @apply px-3 py-3 font-semibold text-foreground text-xs uppercase tracking-wider;
   }
 
-  /* Glass text color utilities */
-  .text-glass-primary {
-    @apply text-gray-900;
-  }
+  .text-glass-primary { @apply text-foreground; }
+  .text-glass-secondary { @apply text-muted-foreground; }
+  .text-glass-muted { @apply text-muted-foreground/70; }
+  .text-glass-accent { @apply text-primary; }
 
-  .text-glass-secondary {
-    @apply text-gray-600;
-  }
+  .text-arsd-primary { @apply text-foreground; }
+  .text-arsd-secondary { @apply text-muted-foreground; }
+  .text-arsd-muted { @apply text-muted-foreground/70; }
+  .text-arsd-accent { @apply text-primary; }
+  .text-arsd-success { @apply text-emerald-600 dark:text-emerald-400; }
+  .text-arsd-warning { @apply text-amber-600 dark:text-amber-400; }
+  .text-arsd-error { @apply text-destructive; }
 
-  .text-glass-muted {
-    @apply text-gray-400;
-  }
-
-  .text-glass-accent {
-    @apply text-red-700;
-  }
-
-  /* ARSD Text color utilities */
-  .text-arsd-primary {
-    @apply text-red-800;
-  }
-
-  .text-arsd-secondary {
-    @apply text-red-600;
-  }
-
-  .text-arsd-muted {
-    @apply text-red-500;
-  }
-
-  .text-arsd-accent {
-    @apply text-red-600;
-  }
-
-  .text-arsd-success {
-    @apply text-green-600;
-  }
-
-  .text-arsd-warning {
-    @apply text-yellow-600;
-  }
-
-  .text-arsd-error {
-    @apply text-red-700;
-  }
-
-  /* ARSD Button variants */
   .btn-arsd-primary {
-    @apply bg-red-600 text-white hover:bg-red-700 border-red-600;
+    @apply bg-primary text-primary-foreground hover:bg-[hsl(var(--arsd-red-hover))] border border-primary;
   }
-
   .btn-arsd-secondary {
-    @apply bg-red-50 text-red-800 hover:bg-red-100 border-red-200;
+    @apply bg-secondary text-secondary-foreground hover:bg-muted border border-border;
   }
-
   .btn-arsd-outline {
-    @apply border-red-600 text-red-600 hover:bg-red-50;
+    @apply border border-primary text-primary hover:bg-primary/5;
   }
-
   .btn-arsd-glass {
-    @apply glass-button bg-red-500/20 text-red-800 border-red-300/50 hover:bg-red-500/30;
+    @apply bg-card border border-border text-foreground hover:bg-muted;
   }
 
-  /* ARSD Badge variants */
   .badge-arsd-primary {
-    @apply bg-red-100 text-red-800 border-red-200;
+    @apply bg-primary/10 text-primary border border-primary/20;
   }
-
   .badge-arsd-secondary {
-    @apply bg-red-50 text-red-600 border-red-100;
+    @apply bg-muted text-muted-foreground border border-border;
   }
-
   .badge-arsd-glass {
-    @apply glass-subtle text-red-800 border-red-200/20 hover:bg-red-50/15;
+    @apply bg-card text-foreground border border-border;
   }
 }
 
-/* ARSD Animated Background */
 @layer utilities {
-  .bg-gradient-arsd {
-    background: linear-gradient(135deg, 
-      rgba(239, 68, 68, 0.1) 0%, 
-      rgba(220, 38, 38, 0.1) 25%, 
-      rgba(185, 28, 28, 0.1) 50%, 
-      rgba(153, 27, 27, 0.1) 75%, 
-      rgba(127, 29, 29, 0.1) 100%);
-  }
-  
-  .bg-gradient-arsd-dark {
-    background: linear-gradient(135deg, 
-      rgba(239, 68, 68, 0.2) 0%, 
-      rgba(220, 38, 38, 0.2) 25%, 
-      rgba(185, 28, 28, 0.2) 50%, 
-      rgba(153, 27, 27, 0.2) 75%, 
-      rgba(127, 29, 29, 0.2) 100%);
-  }
-  
-  .animate-float {
-    animation: float 6s ease-in-out infinite;
-  }
-  
-  .animate-float-delayed {
-    animation: float 6s ease-in-out infinite 2s;
-  }
-  
-  .animate-float-slow {
-    animation: float 8s ease-in-out infinite 4s;
-  }
-}
+  /* Elevation scale using tinted warm shadows */
+  .shadow-xs   { box-shadow: var(--shadow-xs); }
+  .shadow-sm-tinted { box-shadow: var(--shadow-sm); }
+  .shadow-md-tinted { box-shadow: var(--shadow-md); }
+  .shadow-lg-tinted { box-shadow: var(--shadow-lg); }
+  .shadow-red  { box-shadow: var(--shadow-red); }
 
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px) rotate(0deg);
+  /* Subtle paper grain overlay — apply as pseudo or wrapper */
+  .grain {
+    position: relative;
   }
-  50% {
-    transform: translateY(-20px) rotate(5deg);
-  }
-}
-
-/* Custom scrollbar for ARSD theme */
-@layer utilities {
-  .scrollbar-arsd::-webkit-scrollbar {
-    width: 8px;
-  }
-  
-  .scrollbar-arsd::-webkit-scrollbar-track {
-    @apply bg-red-50/10 rounded-full;
-  }
-  
-  .scrollbar-arsd::-webkit-scrollbar-thumb {
-    @apply bg-red-300/30 rounded-full hover:bg-red-400/50;
+  .grain::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.035;
+    z-index: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    mix-blend-mode: multiply;
   }
 
-  /* Glass scrollbar */
-  .scrollbar-glass {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(239, 68, 68, 0.3) transparent;
-  }
-
+  /* Token-aware scrollbars */
+  .scrollbar-arsd::-webkit-scrollbar,
   .scrollbar-glass::-webkit-scrollbar {
-    height: 6px;
-    width: 6px;
+    width: 8px;
+    height: 8px;
   }
-
+  .scrollbar-arsd::-webkit-scrollbar-track,
   .scrollbar-glass::-webkit-scrollbar-track {
     background: transparent;
   }
-
+  .scrollbar-arsd::-webkit-scrollbar-thumb,
   .scrollbar-glass::-webkit-scrollbar-thumb {
-    @apply bg-red-300/30 rounded-full hover:bg-red-400/50;
+    background-color: hsl(var(--border));
+    border-radius: 9999px;
+  }
+  .scrollbar-arsd::-webkit-scrollbar-thumb:hover,
+  .scrollbar-glass::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground) / 0.6);
+  }
+  .scrollbar-glass {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
   }
 
-  /* Responsive utility classes */
+  /* Responsive helpers — used in many places */
   .responsive-container {
     @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
-  
   .responsive-text {
     @apply text-sm sm:text-sm lg:text-base;
   }
-  
   .responsive-heading {
     @apply text-lg sm:text-xl lg:text-2xl xl:text-3xl;
   }
-  
   .responsive-padding {
     @apply p-4 sm:p-6 lg:p-8;
   }
-  
   .responsive-margin {
     @apply m-4 sm:m-6 lg:m-8;
   }
-  
   .responsive-grid {
     @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8;
   }
-  
   .responsive-flex {
     @apply flex flex-col sm:flex-row gap-4 sm:gap-6;
   }
-  
-  /* Mobile-first responsive spacing */
   .mobile-padding {
     @apply px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8;
   }
-  
   .mobile-margin {
     @apply mx-4 my-4 sm:mx-6 sm:my-6 lg:mx-8 lg:my-8;
   }
-  
-  /* Mobile-specific utilities */
   .mobile-text-truncate {
     @apply truncate text-ellipsis overflow-hidden;
   }
-  
   .mobile-scroll-horizontal {
-    @apply overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100;
+    @apply overflow-x-auto;
   }
-  
   .mobile-touch-target {
     @apply min-h-[44px] min-w-[44px];
   }
-  
-  /* Prevent horizontal scroll on mobile */
   .mobile-container {
     @apply w-full max-w-full overflow-x-hidden;
   }
-  
-  /* Responsive image scaling */
   .responsive-image {
     @apply w-full h-auto max-w-full;
   }
-  
-  /* Mobile-friendly forms */
   .mobile-form-input {
-    @apply w-full px-4 py-3 text-base border rounded-lg focus:ring-2 focus:ring-arsd-red focus:border-transparent;
+    @apply w-full px-4 py-3 text-base border border-border bg-card rounded-md focus:ring-2 focus:ring-ring/40 focus:border-transparent;
   }
-  
-  /* Mobile-friendly buttons */
   .mobile-button {
-    @apply w-full sm:w-auto px-6 py-3 text-base font-medium rounded-lg transition-colors;
+    @apply w-full sm:w-auto px-6 py-3 text-base font-medium rounded-md transition-colors;
   }
 }

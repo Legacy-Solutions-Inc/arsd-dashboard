@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, ComposedChart
 } from 'recharts';
-import { useState, useMemo } from 'react';
+import { memo, useState, useMemo } from 'react';
 import { Calendar, BarChart3 } from 'lucide-react';
 import { 
   processCostAnalysisData,
@@ -64,46 +64,46 @@ export function CostAnalysis({ costData, costItemsData = [], manHoursData = [], 
   }, [sortedCostData, currentPage]);
 
 // Subcomponents
-const CostItemsChart = ({ data }: { data: any }) => {
+const CostItemsChart = memo(({ data }: { data: any }) => {
   // Custom tooltip formatter to improve display
   const customTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       const combinedCost = (data.equipment || 0) + (data.labor || 0) + (data.materials || 0);
       
       return (
-        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
+        <div className="bg-card p-3 border border-border rounded-md shadow-sm-tinted text-foreground">
           <p className="font-semibold text-sm mb-2">{label}</p>
           <div className="space-y-1">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-600"></div>
-                <span className="text-sm">Target Cost:</span>
+                <div className="w-2.5 h-2.5 rounded-full bg-primary" aria-hidden></div>
+                <span className="text-sm text-muted-foreground">Target Cost</span>
               </div>
-              <span className="font-medium text-sm">{formatCurrency(data.target || 0)}</span>
+              <span className="font-medium text-sm nums">{formatCurrency(data.target || 0)}</span>
             </div>
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-pink-500"></div>
-                <span className="text-sm">SWA Cost:</span>
+                <div className="w-2.5 h-2.5 rounded-full bg-rose-400 dark:bg-rose-500" aria-hidden></div>
+                <span className="text-sm text-muted-foreground">SWA Cost</span>
               </div>
-              <span className="font-medium text-sm">{formatCurrency(data.swa || 0)}</span>
+              <span className="font-medium text-sm nums">{formatCurrency(data.swa || 0)}</span>
             </div>
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-gray-600"></div>
-                <span className="text-sm">Billed Cost:</span>
+                <div className="w-2.5 h-2.5 rounded-full bg-muted-foreground" aria-hidden></div>
+                <span className="text-sm text-muted-foreground">Billed Cost</span>
               </div>
-              <span className="font-medium text-sm">{formatCurrency(data.billed || 0)}</span>
+              <span className="font-medium text-sm nums">{formatCurrency(data.billed || 0)}</span>
             </div>
-            <div className="border-t pt-1 mt-2">
+            <div className="border-t border-border pt-1 mt-2">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-orange-500"></div>
-                  <span className="text-sm">Combined Direct Costs:</span>
+                  <div className="w-2.5 h-2.5 rounded-full bg-amber-500" aria-hidden></div>
+                  <span className="text-sm text-muted-foreground">Combined Direct</span>
                 </div>
-                <span className="font-medium text-sm">{formatCurrency(combinedCost)}</span>
+                <span className="font-medium text-sm nums">{formatCurrency(combinedCost)}</span>
               </div>
-              <div className="ml-5 text-xs text-gray-600 mt-1">
+              <div className="ml-4 text-xs text-muted-foreground mt-1 nums">
                 <div>• Equipment: {formatCurrency(data.equipment || 0)}</div>
                 <div>• Labor: {formatCurrency(data.labor || 0)}</div>
                 <div>• Materials: {formatCurrency(data.materials || 0)}</div>
@@ -117,8 +117,8 @@ const CostItemsChart = ({ data }: { data: any }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg p-3 lg:p-4 shadow-sm border">
-      <h3 className="font-semibold text-sm lg:text-base mb-2 text-arsd-red">Cost Items Breakdown</h3>
+    <div className="bg-card rounded-md p-3 lg:p-4 border border-border">
+      <h3 className="font-semibold text-sm text-foreground mb-2">Cost Items Breakdown</h3>
       <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
         <BarChart 
           data={[
@@ -151,9 +151,10 @@ const CostItemsChart = ({ data }: { data: any }) => {
       </ResponsiveContainer>
     </div>
   );
-};
+});
+CostItemsChart.displayName = 'CostItemsChart';
 
-const ManHoursChart = ({ 
+const ManHoursChart = memo(({
   monthlyData, 
   dailyData, 
   view, 
@@ -190,12 +191,12 @@ const ManHoursChart = ({
   }));
 
   return (
-    <div className="bg-white rounded-lg p-3 lg:p-4 shadow-sm border">
+    <div className="bg-card rounded-md p-3 lg:p-4 border border-border">
       <div className="flex items-center justify-between mb-2">
-        <h3 className="font-semibold text-sm lg:text-base text-arsd-red">
+        <h3 className="font-semibold text-sm text-foreground">
           Man Hours Tracking ({isMonthly ? 'Cumulative' : 'Daily Basis'})
         </h3>
-        <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+        <div className="flex items-center gap-1 bg-muted border border-border rounded-md p-0.5">
           <Button
             variant={view === 'monthly' ? 'default' : 'ghost'}
             size="sm"
@@ -263,11 +264,12 @@ const ManHoursChart = ({
       </ResponsiveContainer>
     </div>
   );
-};
+});
+ManHoursChart.displayName = 'ManHoursChart';
 
-const MonthlyCostChart = ({ data }: { data: any[] }) => (
-  <div className="bg-white rounded-lg p-3 lg:p-4 shadow-sm border">
-    <h3 className="font-semibold text-sm lg:text-base mb-2 text-arsd-red">Monthly Cost Comparison</h3>
+const MonthlyCostChart = memo(({ data }: { data: any[] }) => (
+  <div className="bg-card rounded-md p-3 lg:p-4 border border-border">
+    <h3 className="font-semibold text-sm text-foreground mb-2">Monthly Cost Comparison</h3>
     <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
       <BarChart data={data} margin={CHART_MARGIN}>
         <XAxis
@@ -293,7 +295,8 @@ const MonthlyCostChart = ({ data }: { data: any[] }) => (
       </BarChart>
     </ResponsiveContainer>
   </div>
-);
+));
+MonthlyCostChart.displayName = 'MonthlyCostChart';
 
 
 const MonthlyCostBreakdown = ({ 
@@ -309,36 +312,36 @@ const MonthlyCostBreakdown = ({
   
   return (
   <div>
-    <h3 className="font-semibold text-sm lg:text-base mb-3 text-arsd-red">Monthly Cost Breakdown</h3>
+    <h3 className="font-semibold text-sm text-foreground mb-3">Monthly Cost Breakdown</h3>
     <div className="space-y-3">
       {data.map((month, index) => {
         const total = month.target + month.swa + month.billed + month.direct;
         return (
-          <div key={month.id} className="bg-gray-50 rounded-lg p-3 lg:p-4 flex flex-col sm:flex-row sm:items-center justify-between shadow-sm border gap-2">
+          <div key={month.id} className="bg-muted/40 rounded-md p-3 lg:p-4 flex flex-col sm:flex-row sm:items-center justify-between border border-border gap-2">
             <div className="flex-1">
-              <div className="font-semibold text-sm lg:text-base text-black mb-1">
+              <div className="font-semibold text-sm lg:text-base text-foreground mb-1">
                 {month.month || `Month ${paginationData.startIndex + index + 1}`}
               </div>
-              <div className="flex flex-wrap gap-2 lg:gap-4 text-xs lg:text-sm">
-                <span className="flex items-center gap-1 text-red-600">
-                  <span className="w-1.5 h-1.5 lg:w-2 lg:h-2 rounded-full bg-red-600 inline-block" />
-                  Target: {formatCurrency(month.target)}
+              <div className="flex flex-wrap gap-2 lg:gap-4 text-xs lg:text-sm text-muted-foreground">
+                <span className="flex items-center gap-1.5 nums">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block" aria-hidden />
+                  Target: <span className="text-foreground">{formatCurrency(month.target)}</span>
                 </span>
-                <span className="flex items-center gap-1 text-pink-500">
-                  <span className="w-1.5 h-1.5 lg:w-2 lg:h-2 rounded-full bg-pink-500 inline-block" />
-                  SWA: {formatCurrency(month.swa)}
+                <span className="flex items-center gap-1.5 nums">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-400 dark:bg-rose-500 inline-block" aria-hidden />
+                  SWA: <span className="text-foreground">{formatCurrency(month.swa)}</span>
                 </span>
-                <span className="flex items-center gap-1 text-gray-600">
-                  <span className="w-1.5 h-1.5 lg:w-2 lg:h-2 rounded-full bg-gray-600 inline-block" />
-                  Billed: {formatCurrency(month.billed)}
+                <span className="flex items-center gap-1.5 nums">
+                  <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground inline-block" aria-hidden />
+                  Billed: <span className="text-foreground">{formatCurrency(month.billed)}</span>
                 </span>
-                <span className="flex items-center gap-1 text-green-600">
-                  <span className="w-1.5 h-1.5 lg:w-2 lg:h-2 rounded-full bg-green-600 inline-block" />
-                  Direct: {formatCurrency(month.direct)}
+                <span className="flex items-center gap-1.5 nums">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" aria-hidden />
+                  Direct: <span className="text-foreground">{formatCurrency(month.direct)}</span>
                 </span>
               </div>
             </div>
-            <div className="font-bold text-sm lg:text-base">{formatCurrency(total)}</div>
+            <div className="font-semibold text-sm lg:text-base text-foreground nums">{formatCurrency(total)}</div>
           </div>
         );
       })}
@@ -346,8 +349,8 @@ const MonthlyCostBreakdown = ({
 
     {/* Pagination Controls */}
     {paginationData.totalPages > 1 && (
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-3 pt-3 border-t gap-2">
-        <div className="text-xs text-gray-600">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-3 pt-3 border-t border-border gap-2">
+        <div className="text-xs text-muted-foreground nums">
           Showing {paginationData.startIndex + 1} to {Math.min(paginationData.endIndex, data.length)} of {data.length} months
         </div>
         <div className="flex items-center gap-2">
@@ -360,7 +363,7 @@ const MonthlyCostBreakdown = ({
           >
             Previous
           </Button>
-          <span className="text-xs text-gray-600">
+          <span className="text-xs text-muted-foreground nums">
             Page {currentPage} of {paginationData.totalPages}
           </span>
           <Button
@@ -381,36 +384,35 @@ const MonthlyCostBreakdown = ({
 
 const CostItemsSummary = ({ data, projectStats }: { data: any[], projectStats?: any }) => (
   <div>
-    <h3 className="font-semibold text-sm lg:text-base mb-3 text-arsd-red">Cost Items Summary</h3>
+    <h3 className="font-semibold text-sm text-foreground mb-3">Cost Items Summary</h3>
     <div className="space-y-3">
       {/* SWA Cost and Billed Cost Section */}
-      <div className="bg-pink-50 border-l-4 border-pink-400 rounded-lg p-3 lg:p-4">
-        <div className="font-bold text-pink-600 mb-2 text-sm lg:text-base">Project Costs</div>
-        <div className="space-y-2">
-        <div className="flex justify-between items-center text-xs lg:text-sm">
-            <span className="text-pink-700">Target Cost</span>
-            <span className="font-semibold text-pink-800">{formatCurrency(projectStats?.targetCostTotal || 0)}</span>
+      <div className="bg-muted/40 border border-border rounded-md p-3 lg:p-4">
+        <div className="font-semibold text-foreground mb-2 text-sm">Project costs</div>
+        <div className="space-y-1.5">
+          <div className="flex justify-between items-center text-sm">
+            <span className="text-muted-foreground">Target cost</span>
+            <span className="font-semibold text-foreground nums">{formatCurrency(projectStats?.targetCostTotal || 0)}</span>
           </div>
-          <div className="flex justify-between items-center text-xs lg:text-sm">
-            <span className="text-pink-700">SWA Cost</span>
-            <span className="font-semibold text-pink-800">{formatCurrency(projectStats?.swaCostTotal || 0)}</span>
+          <div className="flex justify-between items-center text-sm">
+            <span className="text-muted-foreground">SWA cost</span>
+            <span className="font-semibold text-foreground nums">{formatCurrency(projectStats?.swaCostTotal || 0)}</span>
           </div>
-          <div className="flex justify-between items-center text-xs lg:text-sm">
-            <span className="text-pink-700">Billed Cost</span>
-            <span className="font-semibold text-pink-800">{formatCurrency(projectStats?.billedCostTotal || 0)}</span>
+          <div className="flex justify-between items-center text-sm">
+            <span className="text-muted-foreground">Billed cost</span>
+            <span className="font-semibold text-foreground nums">{formatCurrency(projectStats?.billedCostTotal || 0)}</span>
           </div>
         </div>
       </div>
 
-      {/* Cost Items Breakdown Section */}
       {data.length > 0 && (
-        <div className="bg-purple-50 border-l-4 border-purple-400 rounded-lg p-3 lg:p-4">
-          <div className="font-bold text-purple-600 mb-2 text-sm lg:text-base">Cost Items Breakdown</div>
-          <div className="space-y-2">
+        <div className="bg-muted/40 border border-border rounded-md p-3 lg:p-4">
+          <div className="font-semibold text-foreground mb-2 text-sm">Cost items breakdown</div>
+          <div className="space-y-1.5">
             {data.slice(0, 8).map((item, index) => (
-              <div key={`cost-item-${item.type}-${index}`} className="flex justify-between items-center text-xs lg:text-sm">
-                <span className="text-purple-700">{item.type}</span>
-                <span className="font-semibold text-purple-800">{formatCurrency(item.cost)}</span>
+              <div key={`cost-item-${item.type}-${index}`} className="flex justify-between items-center text-sm">
+                <span className="text-muted-foreground">{item.type}</span>
+                <span className="font-semibold text-foreground nums">{formatCurrency(item.cost)}</span>
               </div>
             ))}
           </div>
@@ -438,31 +440,31 @@ const ProgressAnalysis = ({
 
   return (
     <div>
-      <h3 className="font-semibold text-sm lg:text-base mb-3 text-arsd-red">Progress Analysis</h3>
+      <h3 className="font-semibold text-sm text-foreground mb-3">Progress Analysis</h3>
       <div className="space-y-3">
-        <div className="bg-red-50 border-l-4 border-red-400 rounded-lg p-3 lg:p-4">
-          <div className="font-bold text-red-600 mb-2 text-sm lg:text-base">Project Progress</div>
-          <ul className="list-disc ml-4 lg:ml-5 text-xs lg:text-sm text-red-700 space-y-1">
-            <li>Current progress: {projectData.actualProgress.toFixed(2)}%</li>
-            <li>Target progress: {projectData.targetProgress.toFixed(2)}%</li>
-            <li>Variance: {progressVariance.toFixed(2)}%</li>
+        <div className="bg-muted/40 border border-border rounded-md p-3 lg:p-4">
+          <div className="font-semibold text-foreground mb-2 text-sm">Project progress</div>
+          <ul className="list-disc ml-5 text-sm text-muted-foreground space-y-1 nums">
+            <li>Current progress: <span className="text-foreground">{projectData.actualProgress.toFixed(2)}%</span></li>
+            <li>Target progress: <span className="text-foreground">{projectData.targetProgress.toFixed(2)}%</span></li>
+            <li>Variance: <span className="text-foreground">{progressVariance.toFixed(2)}%</span></li>
           </ul>
         </div>
-        <div className="bg-blue-50 border-l-4 border-blue-400 rounded-lg p-3 lg:p-4">
-          <div className="font-bold text-blue-600 mb-2 text-sm lg:text-base">Cost Performance</div>
-          <ul className="list-disc ml-4 lg:ml-5 text-xs lg:text-sm text-blue-700 space-y-1">
-            <li>Projected savings: {formatCurrency(projectData.savings)}</li>
-            <li>Cost efficiency: {costEfficiency}</li>
-            <li>Budget utilization: {budgetUtilization.toFixed(2)}%</li>
+        <div className="bg-muted/40 border border-border rounded-md p-3 lg:p-4">
+          <div className="font-semibold text-foreground mb-2 text-sm">Cost performance</div>
+          <ul className="list-disc ml-5 text-sm text-muted-foreground space-y-1 nums">
+            <li>Projected savings: <span className="text-foreground">{formatCurrency(projectData.savings)}</span></li>
+            <li>Cost efficiency: <span className="text-foreground">{costEfficiency}</span></li>
+            <li>Budget utilization: <span className="text-foreground">{budgetUtilization.toFixed(2)}%</span></li>
           </ul>
         </div>
         {manHoursData.length > 0 && (
-          <div className="bg-green-50 border-l-4 border-green-400 rounded-lg p-3 lg:p-4">
-            <div className="font-bold text-green-600 mb-2 text-sm lg:text-base">Man Hours Summary</div>
-            <ul className="list-disc ml-4 lg:ml-5 text-xs lg:text-sm text-green-700 space-y-1">
-              <li>Total actual hours: {totalActualHours.toFixed(1)}h</li>
-              <li>Total projected hours: {totalProjectedHours.toFixed(2)}h</li>
-              <li>Efficiency: {efficiency.toFixed(2)}%</li>
+          <div className="bg-muted/40 border border-border rounded-md p-3 lg:p-4">
+            <div className="font-semibold text-foreground mb-2 text-sm">Man hours summary</div>
+            <ul className="list-disc ml-5 text-sm text-muted-foreground space-y-1 nums">
+              <li>Total actual hours: <span className="text-foreground">{totalActualHours.toFixed(1)}h</span></li>
+              <li>Total projected hours: <span className="text-foreground">{totalProjectedHours.toFixed(2)}h</span></li>
+              <li>Efficiency: <span className="text-foreground">{efficiency.toFixed(2)}%</span></li>
             </ul>
           </div>
         )}
@@ -474,9 +476,9 @@ const ProgressAnalysis = ({
   // Data is already processed above
 
   return (
-    <Card className="border-l-4 border-l-arsd-red mt-4 lg:mt-6">
+    <Card>
       <CardHeader>
-        <CardTitle className="text-arsd-red text-sm lg:text-lg font-bold">Cost Analysis Dashboard</CardTitle>
+        <CardTitle className="text-base font-semibold text-foreground">Cost analysis</CardTitle>
       </CardHeader>
 
       <CardContent>

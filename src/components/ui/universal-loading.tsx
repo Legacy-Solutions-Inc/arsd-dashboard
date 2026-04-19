@@ -139,83 +139,72 @@ export function UniversalLoading({
   const sizeStyles = sizeConfig[size];
 
   const LoadingContent = () => (
-    <div className={cn(
-      "relative",
-      fullScreen ? "min-h-screen flex items-center justify-center" : "",
-      className
-    )}>
-      {/* Background gradient for full screen */}
-      {fullScreen && (
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20" />
+    <div
+      className={cn(
+        "relative",
+        fullScreen
+          ? "min-h-[60vh] flex items-center justify-center bg-background"
+          : "",
+        className,
       )}
-      
-      <div className={cn(
-        "relative bg-white/90 backdrop-blur-sm rounded-2xl border shadow-xl",
-        sizeStyles.card,
-        config.borderColor,
-        fullScreen ? "mx-4" : ""
-      )}>
-        <div className={cn(
-          "text-center",
-          sizeStyles.container
-        )}>
-          {/* ARSD Logo */}
-          <div className="flex items-center justify-center mb-4">
-            <div className="relative">
-              <div className={cn(
-                "relative flex items-center justify-center rounded-full shadow-lg border-2 border-white/20",
-                size === 'sm' ? 'w-12 h-12' : size === 'md' ? 'w-16 h-16' : 'w-20 h-20'
-              )}>
-                <Image
-                  src="/images/arsd-logo.png"
-                  alt="ARSD Construction Corporation"
-                  width={size === 'sm' ? 24 : size === 'md' ? 32 : 40}
-                  height={size === 'sm' ? 24 : size === 'md' ? 32 : 40}
-                  className="rounded-full object-contain"
-                />
-              </div>
+    >
+      <div
+        className={cn(
+          "relative bg-card border border-border rounded-lg shadow-sm-tinted",
+          sizeStyles.card,
+          fullScreen ? "mx-4" : "",
+        )}
+      >
+        <div className={cn("text-center", sizeStyles.container)}>
+          <div className="flex items-center justify-center mb-3">
+            <div
+              className={cn(
+                "relative flex items-center justify-center rounded-full bg-background border border-border",
+                size === 'sm' ? 'w-10 h-10' : size === 'md' ? 'w-12 h-12' : 'w-14 h-14',
+              )}
+            >
+              <Image
+                src="/images/arsd-logo.png"
+                alt="ARSD"
+                width={size === 'sm' ? 20 : size === 'md' ? 24 : 28}
+                height={size === 'sm' ? 20 : size === 'md' ? 24 : 28}
+                className="object-contain"
+              />
             </div>
           </div>
 
-          {/* Title and Message */}
-          <div className="space-y-2 mb-4">
-            <h3 className={cn(
-              "font-bold text-gray-900",
-              sizeStyles.title
-            )}>
+          <div className="space-y-1 mb-3">
+            <h3
+              className={cn(
+                "font-semibold text-foreground font-display",
+                sizeStyles.title,
+              )}
+            >
               {message || config.title}
             </h3>
-            <p className={cn(
-              "text-gray-600",
-              sizeStyles.subtitle
-            )}>
+            <p className={cn("text-muted-foreground", sizeStyles.subtitle)}>
               {subtitle || config.subtitle}
             </p>
           </div>
 
-          {/* Progress Bar */}
           {showProgress && (
-            <div className="mb-4">
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
-                  className={cn(
-                    "h-2 rounded-full transition-all duration-500 ease-out",
-                    `bg-gradient-to-r ${config.color}`
-                  )}
+            <div className="mb-3">
+              <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
+                <div
+                  className="h-full bg-primary rounded-full transition-all duration-500 ease-out"
                   style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
                 />
               </div>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-muted-foreground mt-1 nums">
                 {progress.toFixed(0)}% complete
               </p>
             </div>
           )}
 
-          {/* Animated Dots */}
-          <div className="flex items-center justify-center space-x-1">
-            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+          <div className="flex items-center justify-center space-x-1" aria-hidden>
+            <div className="w-1.5 h-1.5 bg-muted-foreground/60 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+            <div className="w-1.5 h-1.5 bg-muted-foreground/60 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+            <div className="w-1.5 h-1.5 bg-muted-foreground/60 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
           </div>
         </div>
       </div>
@@ -277,25 +266,16 @@ export function DataLoading({ message, subtitle, size = 'md', fullScreen = true,
 }
 
 // Inline loading component for smaller spaces
-export function InlineLoading({ message = "Loading...", size = 'sm' }: { message?: string; size?: 'sm' | 'md' }) {
+export function InlineLoading({ message = "Loading…", size = 'sm' }: { message?: string; size?: 'sm' | 'md' }) {
   return (
-    <div className="flex items-center justify-center space-x-3 py-4">
-      {/* ARSD Logo with spinner */}
-      <div className="relative">
-        <Image
-          src="/images/arsd-logo.png"
-          alt="ARSD"
-          width={size === 'sm' ? 16 : 20}
-          height={size === 'sm' ? 16 : 20}
-          className="rounded-full object-contain"
-        />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <Loader2 className={cn(
-            "animate-spin text-arsd-red/60",
-            size === 'sm' ? 'h-3 w-3' : 'h-4 w-4'
-          )} />
-        </div>
-      </div>
+    <div className="flex items-center justify-center space-x-2 py-3" role="status" aria-live="polite">
+      <Loader2
+        className={cn(
+          "animate-spin text-primary",
+          size === 'sm' ? 'h-3.5 w-3.5' : 'h-4 w-4',
+        )}
+               aria-hidden
+      />
       
       <span className={cn(
         "text-gray-600 font-medium",
@@ -310,22 +290,24 @@ export function InlineLoading({ message = "Loading...", size = 'sm' }: { message
 // Skeleton loading for content placeholders
 export function SkeletonCard({ className }: { className?: string }) {
   return (
-    <div className={cn(
-      "animate-pulse bg-white rounded-lg border p-4 space-y-3",
-      className
-    )}>
+    <div
+      className={cn(
+        "animate-pulse bg-card border border-border rounded-lg p-4 space-y-3",
+        className,
+      )}
+    >
       <div className="flex items-center space-x-3">
-        <div className="w-8 h-8 bg-gray-200 rounded-lg" />
+        <div className="w-8 h-8 bg-muted rounded-md" />
         <div className="space-y-2 flex-1">
-          <div className="h-4 bg-gray-200 rounded w-3/4" />
-          <div className="h-3 bg-gray-200 rounded w-1/2" />
+          <div className="h-4 bg-muted rounded w-3/4" />
+          <div className="h-3 bg-muted rounded w-1/2" />
         </div>
       </div>
       <div className="space-y-2">
-        <div className="h-3 bg-gray-200 rounded" />
-        <div className="h-3 bg-gray-200 rounded w-5/6" />
+        <div className="h-3 bg-muted rounded" />
+        <div className="h-3 bg-muted rounded w-5/6" />
       </div>
-      <div className="h-1 bg-gray-200 rounded-full" />
+      <div className="h-1 bg-muted rounded-full" />
     </div>
   );
 }
@@ -333,17 +315,19 @@ export function SkeletonCard({ className }: { className?: string }) {
 export function SkeletonTable({ rows = 5, columns = 4 }: { rows?: number; columns?: number }) {
   return (
     <div className="animate-pulse space-y-3">
-      {/* Header */}
       <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
         {Array.from({ length: columns }).map((_, i) => (
-          <div key={i} className="h-4 bg-gray-200 rounded" />
+          <div key={i} className="h-4 bg-muted rounded" />
         ))}
       </div>
-      {/* Rows */}
       {Array.from({ length: rows }).map((_, rowIndex) => (
-        <div key={rowIndex} className="grid gap-3" style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
+        <div
+          key={rowIndex}
+          className="grid gap-3"
+          style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}
+        >
           {Array.from({ length: columns }).map((_, colIndex) => (
-            <div key={colIndex} className="h-3 bg-gray-200 rounded" />
+            <div key={colIndex} className="h-3 bg-muted rounded" />
           ))}
         </div>
       ))}

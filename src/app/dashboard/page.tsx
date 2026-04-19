@@ -9,10 +9,48 @@ import { Project, ProjectManager, ProjectInspector, Warehouseman } from '@/types
 import { ProjectService } from '@/services/projects/project.service';
 import { useRBAC } from '@/hooks/useRBAC';
 import { useRouter } from 'next/navigation';
-import { GlassCard, GlassCardContent, GlassCardHeader, GlassCardTitle } from '@/components/ui/glass-card';
-import { TrendingUp, Users, Calendar, BarChart3, Sparkles, Medal } from 'lucide-react';
-import { DashboardLoading, InlineLoading } from '@/components/ui/universal-loading';
+import { Button } from '@/components/ui/button';
+import { TrendingUp, Users, Calendar, BarChart3, Medal, AlertCircle } from 'lucide-react';
+import { DashboardLoading } from '@/components/ui/universal-loading';
 import { useWarehouseAuth } from '@/hooks/warehouse/useWarehouseAuth';
+import { cn } from '@/lib/utils';
+
+type StatCardProps = {
+  icon: React.ReactNode;
+  label: string;
+  value: number;
+  ratio?: number;
+  delay?: number;
+};
+
+function StatCard({ icon, label, value, ratio, delay = 0 }: StatCardProps) {
+  const pct = ratio == null ? 100 : Math.round(ratio * 100);
+  return (
+    <div
+      className="bg-card border border-border rounded-lg p-4 transition-colors hover:border-foreground/15 animate-fade-up"
+      style={{ animationDelay: `${delay}ms` }}
+    >
+      <div className="flex items-center justify-between mb-3">
+        <div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center text-muted-foreground">
+          {icon}
+        </div>
+        <span className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground nums">
+          {pct}%
+        </span>
+      </div>
+      <div className="text-display-2 font-display font-bold text-foreground leading-none nums">
+        {value}
+      </div>
+      <div className="mt-1 text-xs text-muted-foreground">{label}</div>
+      <div className="mt-3 h-[2px] w-full bg-muted rounded-full overflow-hidden">
+        <div
+          className="h-full bg-primary rounded-full transition-all duration-500 ease-out"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </div>
+  );
+}
 
 export default function DashboardPage() {
   const { projects, loading, error, refetch } = useProjects();
@@ -24,13 +62,12 @@ export default function DashboardPage() {
   const [projectManagers, setProjectManagers] = useState<ProjectManager[]>([]);
   const [projectInspectors, setProjectInspectors] = useState<ProjectInspector[]>([]);
   const [warehousemen, setWarehousemen] = useState<Warehouseman[]>([]);
-  const [loadingManagers, setLoadingManagers] = useState(false);
+  const [, setLoadingManagers] = useState(false);
 
   const { user: warehouseUser, loading: warehouseAuthLoading } = useWarehouseAuth();
 
   const projectService = new ProjectService();
 
-  // Load project managers, inspectors, and warehousemen when component mounts
   useEffect(() => {
     const loadAssignees = async () => {
       try {
@@ -38,252 +75,188 @@ export default function DashboardPage() {
         const [managers, inspectors, wh] = await Promise.all([
           projectService.getAvailableProjectManagers(),
           projectService.getAvailableProjectInspectors(),
-          projectService.getAvailableWarehousemen()
+          projectService.getAvailableWarehousemen(),
         ]);
         setProjectManagers(managers);
         setProjectInspectors(inspectors);
         setWarehousemen(wh);
-      } catch (error) {
-        console.error('Failed to load project managers/inspectors/warehousemen:', error);
+      } catch (err) {
+        console.error('Failed to load project assignees:', err);
       } finally {
         setLoadingManagers(false);
       }
     };
-
     loadAssignees();
   }, []);
 
-  // Redirect warehouseman role directly to warehouse dashboard
   useEffect(() => {
     if (!warehouseAuthLoading && warehouseUser?.role === 'warehouseman') {
       router.replace('/dashboard/warehouse');
     }
   }, [warehouseAuthLoading, warehouseUser, router]);
 
-  // Listen for project report approval events to refresh projects
   useEffect(() => {
-    const handleProjectReportApproved = () => {
-      refetch(); // Refresh projects when a report is approved
-    };
-
+    const handleProjectReportApproved = () => refetch();
     window.addEventListener('projectReportApproved', handleProjectReportApproved);
-
     return () => {
       window.removeEventListener('projectReportApproved', handleProjectReportApproved);
     };
   }, [refetch]);
 
-  const handleViewProject = (project: any) => {
+  const handleViewProject = (project: Project) => {
     router.push(`/dashboard/projects/${project.id}`);
   };
 
-  const handleCreateProject = () => {
-    setIsCreateFormOpen(true);
-  };
-
-  const handleEditProject = (project: Project) => {
-    setEditingProject(project);
-    setIsEditFormOpen(true);
-  };
-
-  const handleCreateSuccess = () => {
-    refetch(); // Refresh the projects list
-  };
-
-  const handleEditSuccess = () => {
-    refetch(); // Refresh the projects list
-  };
-
-  const handleCloseEditForm = () => {
-    setIsEditFormOpen(false);
-    setEditingProject(null);
-  };
-
-  // Function to check if a project has reports and parsed data
-  const hasReports = (project: Project): boolean => {
-    return project.latest_accomplishment_update !== null && project.has_parsed_data === true;
-  };
+  const hasReports = (project: Project): boolean =>
+    project.latest_accomplishment_update !== null && project.has_parsed_data === true;
 
   const [canCreateProjects, setCanCreateProjects] = useState(false);
   const [canEditProjects, setCanEditProjects] = useState(false);
 
   useEffect(() => {
     const checkPermissions = async () => {
-      const hasCreatePermission = await hasPermission('create_projects');
-      const hasEditPermission = await hasPermission('edit_all_projects');
-      setCanCreateProjects(hasCreatePermission);
-      setCanEditProjects(hasEditPermission);
+      const [createPerm, editPerm] = await Promise.all([
+        hasPermission('create_projects'),
+        hasPermission('edit_all_projects'),
+      ]);
+      setCanCreateProjects(createPerm);
+      setCanEditProjects(editPerm);
     };
     checkPermissions();
   }, [hasPermission]);
 
-  // Calculate stats
   const totalProjects = projects.length;
-  const activeProjects = projects.filter(p => p.status === 'in_progress').length;
-  const completedProjects = projects.filter(p => p.status === 'completed').length;
-  const projectsWithReports = projects.filter(p => hasReports(p)).length;
+  const activeProjects = projects.filter((p) => p.status === 'in_progress').length;
+  const completedProjects = projects.filter((p) => p.status === 'completed').length;
+  const projectsWithReports = projects.filter((p) => hasReports(p)).length;
 
   if (loading) {
-    return <DashboardLoading 
-      message="Loading Dashboard"
-      subtitle="Preparing your project overview and statistics"
-      size="lg"
-      fullScreen={true}
-    />;
+    return (
+      <DashboardLoading
+        message="Loading dashboard"
+        subtitle="Preparing your project overview"
+        size="lg"
+        fullScreen={true}
+      />
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
-      <div className="space-y-4 sm:space-y-6 lg:space-y-8 p-4 sm:p-6 lg:p-8">
-        {/* Header Section */}
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-arsd-red/5 via-blue-500/5 to-purple-500/5 rounded-2xl blur-3xl"></div>
-          <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-white/20 shadow-xl">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="space-y-2">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-arsd-red to-red-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <BarChart3 className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-arsd-red to-red-600 bg-clip-text text-transparent">
-                      <span className="hidden sm:inline">ARSD Project Dashboard</span>
-                      <span className="sm:hidden">Dashboard</span>
-                    </h1>
-                    <p className="text-gray-600 text-sm sm:text-base font-medium">
-                      Construction Project Management Hub
-                    </p>
-                  </div>
-                </div>
-              </div>
-              {isSuperAdmin && (
-                <button
-                  onClick={() => router.push('/dashboard/leaderboard')}
-                  className="inline-flex items-center gap-2 rounded-xl px-4 py-2 bg-gradient-to-r from-amber-500 to-yellow-500 text-white shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all border-0"
-                >
-                  <Medal className="h-4 w-4" />
-                  <span className="hidden sm:inline">View Performance Leaderboard</span>
-                  <span className="sm:hidden">Leaderboard</span>
-                </button>
-              )}
-            </div>
+    <div className="space-y-6 lg:space-y-8">
+      {/* Header */}
+      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+        <div>
+          <div className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.1em] text-muted-foreground mb-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary" aria-hidden />
+            ARSD Construction
           </div>
+          <h1 className="text-display-2 font-display text-foreground leading-none">
+            Projects
+          </h1>
+          <p className="mt-2 text-sm text-muted-foreground max-w-xl">
+            Overview of every ongoing and completed project. Stats update as reports are approved.
+          </p>
         </div>
+        {isSuperAdmin && (
+          <Button
+            variant="outline"
+            onClick={() => router.push('/dashboard/leaderboard')}
+          >
+            <Medal className="h-4 w-4" />
+            <span className="hidden sm:inline">Performance leaderboard</span>
+            <span className="sm:hidden">Leaderboard</span>
+          </Button>
+        )}
+      </header>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          <div className="group">
-            <GlassCard variant="elevated" className="text-center hover:scale-[1.02] transition-all duration-200 hover:shadow-lg border-l-4 border-l-blue-500">
-              <GlassCardContent className="p-3 sm:p-4">
-                <div className="flex items-center justify-center w-6 h-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg mb-2 mx-auto shadow-md group-hover:shadow-blue-500/25">
-                  <BarChart3 className="h-3 w-3 text-white" />
-                </div>
-                <div className="text-lg sm:text-xl font-bold text-gray-900 mb-1">{totalProjects}</div>
-                <div className="text-gray-600 text-xs font-medium">Total Projects</div>
-                <div className="w-full bg-blue-100 rounded-full h-0.5 mt-1">
-                  <div className="bg-gradient-to-r from-blue-500 to-blue-600 h-0.5 rounded-full" style={{width: '100%'}}></div>
-                </div>
-              </GlassCardContent>
-            </GlassCard>
-          </div>
-
-          <div className="group">
-            <GlassCard variant="elevated" className="text-center hover:scale-[1.02] transition-all duration-200 hover:shadow-lg border-l-4 border-l-green-500">
-              <GlassCardContent className="p-3 sm:p-4">
-                <div className="flex items-center justify-center w-6 h-6 bg-gradient-to-br from-green-500 to-green-600 rounded-lg mb-2 mx-auto shadow-md group-hover:shadow-green-500/25">
-                  <TrendingUp className="h-3 w-3 text-white" />
-                </div>
-                <div className="text-lg sm:text-xl font-bold text-gray-900 mb-1">{activeProjects}</div>
-                <div className="text-gray-600 text-xs font-medium">Active Projects</div>
-                <div className="w-full bg-green-100 rounded-full h-0.5 mt-1">
-                  <div className="bg-gradient-to-r from-green-500 to-green-600 h-0.5 rounded-full" style={{width: `${totalProjects > 0 ? (activeProjects / totalProjects) * 100 : 0}%`}}></div>
-                </div>
-              </GlassCardContent>
-            </GlassCard>
-          </div>
-
-          <div className="group">
-            <GlassCard variant="elevated" className="text-center hover:scale-[1.02] transition-all duration-200 hover:shadow-lg border-l-4 border-l-purple-500">
-              <GlassCardContent className="p-3 sm:p-4">
-                <div className="flex items-center justify-center w-6 h-6 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg mb-2 mx-auto shadow-md group-hover:shadow-purple-500/25">
-                  <Calendar className="h-3 w-3 text-white" />
-                </div>
-                <div className="text-lg sm:text-xl font-bold text-gray-900 mb-1">{completedProjects}</div>
-                <div className="text-gray-600 text-xs font-medium">Completed</div>
-                <div className="w-full bg-purple-100 rounded-full h-0.5 mt-1">
-                  <div className="bg-gradient-to-r from-purple-500 to-purple-600 h-0.5 rounded-full" style={{width: `${totalProjects > 0 ? (completedProjects / totalProjects) * 100 : 0}%`}}></div>
-                </div>
-              </GlassCardContent>
-            </GlassCard>
-          </div>
-
-          <div className="group">
-            <GlassCard variant="elevated" className="text-center hover:scale-[1.02] transition-all duration-200 hover:shadow-lg border-l-4 border-l-pink-500">
-              <GlassCardContent className="p-3 sm:p-4">
-                <div className="flex items-center justify-center w-6 h-6 bg-gradient-to-br from-pink-500 to-pink-600 rounded-lg mb-2 mx-auto shadow-md group-hover:shadow-pink-500/25">
-                  <Users className="h-3 w-3 text-white" />
-                </div>
-                <div className="text-lg sm:text-xl font-bold text-gray-900 mb-1">{projectsWithReports}</div>
-                <div className="text-gray-600 text-xs font-medium">With Reports</div>
-                <div className="w-full bg-pink-100 rounded-full h-0.5 mt-1">
-                  <div className="bg-gradient-to-r from-pink-500 to-pink-600 h-0.5 rounded-full" style={{width: `${totalProjects > 0 ? (projectsWithReports / totalProjects) * 100 : 0}%`}}></div>
-                </div>
-              </GlassCardContent>
-            </GlassCard>
-          </div>
-        </div>
-
-        {/* Project List Section */}
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-arsd-red/5 via-blue-500/5 to-purple-500/5 rounded-2xl blur-3xl"></div>
-          <div className="relative bg-white/90 backdrop-blur-sm rounded-2xl border border-white/20 shadow-xl overflow-hidden">
-            {error ? (
-              <div className="p-8 text-center">
-                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-lg font-bold">!</span>
-                  </div>
-                </div>
-                <div className="text-red-600 text-lg font-semibold mb-2">Error Loading Projects</div>
-                <div className="text-gray-600 text-sm">{error}</div>
-              </div>
-            ) : (
-              <ProjectsTable
-                projects={projects}
-                loading={loading}
-                onViewProject={handleViewProject}
-                onEditProject={handleEditProject}
-                onCreateProject={handleCreateProject}
-                canCreate={canCreateProjects}
-                canEdit={canEditProjects}
-                hasReports={hasReports}
-                itemsPerPage={5}
-              />
-            )}
-          </div>
-        </div>
-
-        {/* Project Creation Form */}
-        <ProjectCreateForm
-          isOpen={isCreateFormOpen}
-          onClose={() => setIsCreateFormOpen(false)}
-          onSuccess={handleCreateSuccess}
-          projectManagers={projectManagers}
-          projectInspectors={projectInspectors}
-          projectWarehousemen={warehousemen}
+      {/* Stat cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <StatCard
+          icon={<BarChart3 className="h-4 w-4" />}
+          label="Total projects"
+          value={totalProjects}
+          delay={0}
         />
-
-        {/* Project Edit Form */}
-        <ProjectEditForm
-          project={editingProject}
-          isOpen={isEditFormOpen}
-          onClose={handleCloseEditForm}
-          onSuccess={handleEditSuccess}
-          projectManagers={projectManagers}
-          projectInspectors={projectInspectors}
-          projectWarehousemen={warehousemen}
+        <StatCard
+          icon={<TrendingUp className="h-4 w-4" />}
+          label="Active"
+          value={activeProjects}
+          ratio={totalProjects ? activeProjects / totalProjects : 0}
+          delay={50}
+        />
+        <StatCard
+          icon={<Calendar className="h-4 w-4" />}
+          label="Completed"
+          value={completedProjects}
+          ratio={totalProjects ? completedProjects / totalProjects : 0}
+          delay={100}
+        />
+        <StatCard
+          icon={<Users className="h-4 w-4" />}
+          label="With reports"
+          value={projectsWithReports}
+          ratio={totalProjects ? projectsWithReports / totalProjects : 0}
+          delay={150}
         />
       </div>
+
+      {/* Table / error */}
+      {error ? (
+        <div className="bg-card border border-border rounded-lg p-8 text-center">
+          <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center mx-auto mb-3">
+            <AlertCircle className="h-5 w-5 text-destructive" />
+          </div>
+          <div className="text-base font-semibold text-foreground">
+            We couldn't load your projects
+          </div>
+          <div className="mt-1 text-sm text-muted-foreground">{error}</div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-4"
+            onClick={() => refetch()}
+          >
+            Try again
+          </Button>
+        </div>
+      ) : (
+        <ProjectsTable
+          projects={projects}
+          loading={loading}
+          onViewProject={handleViewProject}
+          onEditProject={(p) => {
+            setEditingProject(p);
+            setIsEditFormOpen(true);
+          }}
+          onCreateProject={() => setIsCreateFormOpen(true)}
+          canCreate={canCreateProjects}
+          canEdit={canEditProjects}
+          hasReports={hasReports}
+          itemsPerPage={5}
+        />
+      )}
+
+      {/* Forms */}
+      <ProjectCreateForm
+        isOpen={isCreateFormOpen}
+        onClose={() => setIsCreateFormOpen(false)}
+        onSuccess={() => refetch()}
+        projectManagers={projectManagers}
+        projectInspectors={projectInspectors}
+        projectWarehousemen={warehousemen}
+      />
+      <ProjectEditForm
+        project={editingProject}
+        isOpen={isEditFormOpen}
+        onClose={() => {
+          setIsEditFormOpen(false);
+          setEditingProject(null);
+        }}
+        onSuccess={() => refetch()}
+        projectManagers={projectManagers}
+        projectInspectors={projectInspectors}
+        projectWarehousemen={warehousemen}
+      />
     </div>
   );
 }

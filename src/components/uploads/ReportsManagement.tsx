@@ -374,7 +374,7 @@ export default function ReportsManagement() {
               // Force refresh of reports list
               refetch();
             }}
-            className="glass-button bg-gradient-to-r from-arsd-red/20 to-red-500/20 text-arsd-red border-arsd-red/30 hover:from-arsd-red/30 hover:to-red-500/30"
+            className="border border-border bg-card text-foreground hover:bg-muted"
           >
             <RefreshCw className="h-4 w-4 mr-1" />
             Refresh
@@ -384,7 +384,7 @@ export default function ReportsManagement() {
 
       {/* Filters */}
       <GlassCard variant="elevated">
-        <GlassCardHeader className="bg-gradient-to-r from-arsd-red/5 to-red-500/5 border-b border-arsd-red/10 py-3">
+        <GlassCardHeader className="bg-muted/40 border-b border-border py-3">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 bg-arsd-red/20 rounded-md flex items-center justify-center">
               <Filter className="h-3 w-3 text-arsd-red" />
@@ -441,7 +441,7 @@ export default function ReportsManagement() {
         <GlassCardContent className="p-0">
           {filteredReports.length === 0 ? (
             <div className="p-12 text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-arsd-red/20 to-red-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <div className="w-16 h-16 bg-primary/10 rounded-md flex items-center justify-center mx-auto mb-6">
                 <FileText className="h-8 w-8 text-arsd-red" />
               </div>
               <h3 className="text-xl font-bold text-glass-primary mb-3">No Reports Found</h3>
@@ -522,7 +522,7 @@ export default function ReportsManagement() {
                               variant="outline"
                               size="sm"
                               onClick={() => handleViewRejectionDetails(report)}
-                              className="glass-button bg-gradient-to-r from-red-500/20 to-rose-500/20 text-red-700 border-red-300/50 hover:from-red-500/30 hover:to-rose-500/30"
+                              className="border border-destructive/30 bg-destructive/5 text-destructive hover:bg-destructive/10"
                             >
                               <MessageSquare className="h-3 w-3 mr-1" />
                               Details
@@ -541,7 +541,7 @@ export default function ReportsManagement() {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="glass-button bg-gradient-to-r from-arsd-red/20 to-red-500/20 text-arsd-red border-arsd-red/30 hover:from-arsd-red/30 hover:to-red-500/30 flex items-center gap-1"
+                              className="border border-border bg-card text-foreground hover:bg-muted flex items-center gap-1"
                             >
                               Actions
                               <ChevronDown className="h-3.5 w-3.5" />
@@ -730,14 +730,14 @@ export default function ReportsManagement() {
                   <Button
                     variant="outline"
                     onClick={() => setIsRejectionModalOpen(false)}
-                    className="glass-button bg-gradient-to-r from-gray-500/20 to-gray-600/20 text-glass-primary border-gray-400/50 hover:from-gray-500/30 hover:to-gray-600/30"
+                    className="border border-border bg-card text-foreground hover:bg-muted"
                   >
                     Close
                   </Button>
                   <Button
                     onClick={() => handleResubmitReport(selectedRejectedReport)}
                     disabled={updatingStatus === selectedRejectedReport.id || isResubmitting}
-                    className="glass-button bg-gradient-to-r from-arsd-red/100 to-red-500/100 text-white border-arsd-red/50 hover:from-arsd-red/80 hover:to-red-500/80"
+                    className="bg-primary text-primary-foreground hover:bg-[hsl(var(--arsd-red-hover))]"
                   >
                     {updatingStatus === selectedRejectedReport.id || isResubmitting ? (
                       <>
@@ -797,7 +797,7 @@ export default function ReportsManagement() {
                 setRejectingReport(null);
               }}
               disabled={!!updatingStatus || statusLoading || isRejecting}
-              className="glass-button bg-gradient-to-r from-red-500/20 to-rose-500/20 text-red-700 border-red-300/50 hover:from-red-500/30 hover:to-rose-500/30"
+              className="border border-destructive/30 bg-destructive/5 text-destructive hover:bg-destructive/10"
             >
               {updatingStatus || isRejecting ? (
                 <>

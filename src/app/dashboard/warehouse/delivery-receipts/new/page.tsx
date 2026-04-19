@@ -188,13 +188,13 @@ export default function CreateDRPage() {
 
   if (!loading && !user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 flex items-center justify-center">
-        <div className="glass-card text-center max-w-md">
+      <div className="min-h-[calc(100vh-6rem)] bg-background flex items-center justify-center">
+        <div className="bg-card border border-border rounded-lg p-6 text-center max-w-md shadow-sm-tinted">
           <h2 className="text-xl font-bold text-gray-900 mb-2">Sign in required</h2>
           <p className="text-gray-600 mb-4">You need to sign in to create a delivery receipt.</p>
           <button
             onClick={() => router.push('/dashboard/warehouse/delivery-receipts')}
-            className="btn-arsd-primary mobile-button"
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-[hsl(var(--arsd-red-hover))] transition-colors"
           >
             Back to list
           </button>
@@ -204,12 +204,12 @@ export default function CreateDRPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 pb-24 w-full">
+    <div className="min-h-[calc(100vh-6rem)] bg-background pb-24 w-full">
       <div className="w-full mx-4 sm:mx-6 lg:mx-8 space-y-4 sm:space-y-6 lg:space-y-8 py-4 sm:py-6 lg:py-8">
         {/* Header */}
         <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-arsd-red/5 via-blue-500/5 to-purple-500/5 rounded-2xl blur-3xl"></div>
-          <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-white/20 shadow-xl">
+          <div className="absolute inset-0 hidden"></div>
+          <div className="relative bg-card border border-border rounded-lg p-4 sm:p-6 shadow-xs">
             <div className="flex items-center gap-3 mb-4">
               <button
                 onClick={() => router.push('/dashboard/warehouse/delivery-receipts')}
@@ -218,7 +218,7 @@ export default function CreateDRPage() {
                 <ArrowLeft className="h-5 w-5 text-gray-600" />
               </button>
               <div className="flex-1">
-                <h1 className="responsive-heading font-bold bg-gradient-to-r from-arsd-red to-red-600 bg-clip-text text-transparent">
+                <h1 className="text-h1 font-display text-foreground leading-none">
                   Create Delivery Receipt
                 </h1>
                 <p className="text-gray-600 responsive-text">Fill in the details below</p>
@@ -226,44 +226,56 @@ export default function CreateDRPage() {
             </div>
 
             {/* Progress Steps */}
-            <div className="flex items-center justify-between mt-6 gap-2">
-              {[1, 2, 3, 4].map((section) => (
+            <ol className="flex items-center justify-between mt-6 gap-2" aria-label="Form progress">
+              {[1, 2, 3, 4].map((section) => {
+                const label = section === 1 ? 'Details' : section === 2 ? 'Items' : section === 3 ? 'Attachments' : 'Review';
+                const isActive = currentSection === section;
+                const isComplete = currentSection > section;
+                return (
                 <React.Fragment key={section}>
+                  <li className="contents">
                   <button
+                    type="button"
                     onClick={() => {
-                      // Only allow going back or to completed sections
                       if (section <= currentSection || currentSection > section) {
                         setCurrentSection(section);
                       }
                     }}
                     disabled={section > currentSection && currentSection < section}
-                    className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 flex-1 sm:flex-none ${
-                      currentSection === section
-                        ? 'bg-arsd-red text-white shadow-md scale-105'
-                        : currentSection > section
-                        ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                        : 'bg-gray-100 text-gray-600 opacity-60 cursor-not-allowed'
+                    aria-current={isActive ? 'step' : undefined}
+                    aria-label={`Step ${section} of 4: ${label}${isComplete ? ' (complete)' : isActive ? ' (current)' : ''}`}
+                    className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors duration-150 flex-1 sm:flex-none ${
+                      isActive
+                        ? 'bg-primary text-primary-foreground shadow-xs'
+                        : isComplete
+                        ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300'
+                        : 'bg-muted text-muted-foreground opacity-60 cursor-not-allowed'
                     }`}
                   >
-                    {currentSection > section ? (
-                      <CheckCircle className="h-4 w-4 flex-shrink-0" />
+                    {isComplete ? (
+                      <CheckCircle className="h-4 w-4 flex-shrink-0" aria-hidden />
                     ) : (
-                      <span className="w-5 h-5 rounded-full bg-current flex items-center justify-center text-[10px] font-bold flex-shrink-0">
+                      <span className="w-5 h-5 rounded-full bg-current flex items-center justify-center text-[10px] font-bold flex-shrink-0" aria-hidden>
                         {section}
                       </span>
                     )}
                     <span className="hidden sm:inline whitespace-nowrap">
-                      {section === 1 ? 'Details' : section === 2 ? 'Items' : section === 3 ? 'Attachments' : 'Review'}
+                      {label}
                     </span>
                   </button>
+                  </li>
                   {section < totalSections && (
-                    <div className={`flex-1 h-0.5 mx-1 sm:mx-2 transition-colors duration-200 ${
-                      currentSection > section ? 'bg-green-500' : 'bg-gray-200'
-                    }`} />
+                    <div
+                      aria-hidden
+                      className={`flex-1 h-0.5 mx-1 sm:mx-2 transition-colors duration-150 ${
+                        currentSection > section ? 'bg-emerald-500' : 'bg-border'
+                      }`}
+                    />
                   )}
                 </React.Fragment>
-              ))}
-            </div>
+                );
+              })}
+            </ol>
           </div>
         </div>
 
@@ -271,11 +283,11 @@ export default function CreateDRPage() {
         {currentSection === 1 && (
           <ARSDCard>
             <div className="space-y-5">
-              <div className="flex items-center gap-2 mb-6 pb-4 border-b border-red-200/30">
-                <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                  <FileText className="h-5 w-5 text-arsd-red" />
+              <div className="flex items-center gap-2 mb-6 pb-4 border-b border-border">
+                <div className="w-9 h-9 rounded-md bg-primary/10 flex items-center justify-center">
+                  <FileText className="h-5 w-5 text-primary" />
                 </div>
-                <h2 className="text-lg sm:text-xl font-bold text-arsd-primary">Basic Details</h2>
+                <h2 className="text-lg sm:text-xl font-bold text-foreground">Basic Details</h2>
               </div>
 
               <div>
@@ -368,11 +380,11 @@ export default function CreateDRPage() {
         {currentSection === 2 && (
           <ARSDCard>
             <div className="space-y-5">
-              <div className="flex items-center gap-2 mb-6 pb-4 border-b border-red-200/30">
-                <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                  <Package className="h-5 w-5 text-arsd-red" />
+              <div className="flex items-center gap-2 mb-6 pb-4 border-b border-border">
+                <div className="w-9 h-9 rounded-md bg-primary/10 flex items-center justify-center">
+                  <Package className="h-5 w-5 text-primary" />
                 </div>
-                <h2 className="text-lg sm:text-xl font-bold text-arsd-primary">Items</h2>
+                <h2 className="text-lg sm:text-xl font-bold text-foreground">Items</h2>
               </div>
 
               <ItemsRepeater
@@ -392,11 +404,11 @@ export default function CreateDRPage() {
         {currentSection === 3 && (
           <ARSDCard>
             <div className="space-y-6">
-              <div className="flex items-center gap-2 mb-6 pb-4 border-b border-red-200/30">
-                <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                  <UploadIcon className="h-5 w-5 text-arsd-red" />
+              <div className="flex items-center gap-2 mb-6 pb-4 border-b border-border">
+                <div className="w-9 h-9 rounded-md bg-primary/10 flex items-center justify-center">
+                  <UploadIcon className="h-5 w-5 text-primary" />
                 </div>
-                <h2 className="text-lg sm:text-xl font-bold text-arsd-primary">Attachments</h2>
+                <h2 className="text-lg sm:text-xl font-bold text-foreground">Attachments</h2>
               </div>
 
               <FileUploader
@@ -420,15 +432,15 @@ export default function CreateDRPage() {
         {currentSection === 4 && (
           <ARSDCard>
             <div className="space-y-6">
-              <div className="flex items-center gap-2 mb-4 pb-4 border-b border-red-200/30">
+              <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border">
                 <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                   <CheckCircle className="h-5 w-5 text-green-600" />
                 </div>
-                <h2 className="text-lg sm:text-xl font-bold text-arsd-primary">Review Summary</h2>
+                <h2 className="text-lg sm:text-xl font-bold text-foreground">Review Summary</h2>
               </div>
 
               <section>
-                <h3 className="text-sm font-semibold text-arsd-primary mb-3">Details</h3>
+                <h3 className="text-sm font-semibold text-foreground mb-3">Details</h3>
                 <dl className="space-y-3 text-sm">
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-red-200/20">
                     <dt className="text-gray-600 shrink-0">DR No</dt>
@@ -458,7 +470,7 @@ export default function CreateDRPage() {
               </section>
 
               <section>
-                <h3 className="text-sm font-semibold text-arsd-primary mb-3">Attachments</h3>
+                <h3 className="text-sm font-semibold text-foreground mb-3">Attachments</h3>
                 <dl className="space-y-3 text-sm">
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-red-200/20">
                     <dt className="text-gray-600 shrink-0">DR Photo</dt>
@@ -486,7 +498,7 @@ export default function CreateDRPage() {
             <button
               onClick={() => setCurrentSection(prev => prev - 1)}
               disabled={submitLoading}
-              className="btn-arsd-outline mobile-button mobile-touch-target min-h-[44px] flex-1 sm:flex-none sm:min-w-[120px] flex items-center justify-center disabled:opacity-50"
+              className="inline-flex items-center justify-center rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors duration-150 mobile-touch-target min-h-[44px] flex-1 sm:flex-none sm:min-w-[120px] disabled:opacity-50"
             >
               Previous
             </button>
@@ -496,7 +508,7 @@ export default function CreateDRPage() {
             <button
               onClick={() => setCurrentSection(prev => prev + 1)}
               disabled={!canProceed() || submitLoading}
-              className="btn-arsd-primary mobile-button mobile-touch-target min-h-[44px] flex-1 sm:flex-none sm:min-w-[120px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-[hsl(var(--arsd-red-hover))] transition-colors duration-150 active:scale-[0.98] mobile-touch-target min-h-[44px] flex-1 sm:flex-none sm:min-w-[120px] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Next
             </button>
@@ -504,7 +516,7 @@ export default function CreateDRPage() {
             <button
               onClick={handleSubmit}
               disabled={submitLoading}
-              className="btn-arsd-primary mobile-button mobile-touch-target min-h-[44px] flex-1 sm:flex-none sm:min-w-[180px] px-6 py-3 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-6 py-3 text-base font-semibold text-primary-foreground shadow-red hover:bg-[hsl(var(--arsd-red-hover))] transition-colors duration-150 active:scale-[0.98] mobile-touch-target min-h-[44px] flex-1 sm:flex-none sm:min-w-[180px] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submitLoading ? (
                 <>

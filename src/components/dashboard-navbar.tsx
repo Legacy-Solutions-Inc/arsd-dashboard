@@ -30,7 +30,12 @@ export default function DashboardNavbar() {
         <div className="flex gap-4 items-center">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-white hover:bg-arsd-red-dark">
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Open account menu"
+                className="text-white hover:bg-arsd-red-dark"
+              >
                 <UserCircle className="h-6 w-6" />
               </Button>
             </DropdownMenuTrigger>

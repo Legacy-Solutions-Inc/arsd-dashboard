@@ -60,37 +60,39 @@ export function ScheduleTasks({ tasks, costItemsSecondaryData = [], targetCostTo
   }, [weeklyAccomplishments, currentAccomplishmentsPage, itemsPerPage]);
 
   return (
-    <Card className="border-l-4 border-l-arsd-red mt-4 lg:mt-6">
-      <CardHeader>
-        <CardTitle className="text-arsd-red text-sm lg:text-base">Project Gantt Chart & Schedule</CardTitle>
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base font-semibold text-foreground">
+          Gantt chart & schedule
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="gantt" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="gantt">Gantt Chart</TabsTrigger>
-            <TabsTrigger value="table">Table View</TabsTrigger>
+            <TabsTrigger value="gantt">Gantt chart</TabsTrigger>
+            <TabsTrigger value="table">Table view</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="gantt" className="space-y-4 lg:space-y-6">
+          <TabsContent value="gantt" className="space-y-4 lg:space-y-6 mt-4">
             {ganttTasks.length > 0 ? (
               <div className="space-y-4 lg:space-y-6">
-                {/* Project Summary */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 p-4 lg:p-6 bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg border">
-                  <div className="text-center">
-                    <div className="text-base lg:text-xl font-bold text-arsd-red">₱{totalProjectCost.toLocaleString()}</div>
-                    <div className="text-xs lg:text-sm text-gray-600 font-medium">Total Project Cost</div>
+                {/* Project summary */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 p-4 bg-muted/40 rounded-md border border-border">
+                  <div>
+                    <div className="text-sm font-semibold text-foreground nums">₱{totalProjectCost.toLocaleString()}</div>
+                    <div className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground">Total project cost</div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-base lg:text-xl font-bold text-arsd-red">{ganttTasks.length}</div>
-                    <div className="text-xs lg:text-sm text-gray-600 font-medium">Total Tasks</div>
+                  <div>
+                    <div className="text-sm font-semibold text-foreground nums">{ganttTasks.length}</div>
+                    <div className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground">Total tasks</div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-base lg:text-xl font-bold text-arsd-red">{weeklyTimeline.length}</div>
-                    <div className="text-xs lg:text-sm text-gray-600 font-medium">Project Duration (Weeks)</div>
+                  <div>
+                    <div className="text-sm font-semibold text-foreground nums">{weeklyTimeline.length}</div>
+                    <div className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground">Duration (weeks)</div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-base lg:text-xl font-bold text-arsd-red">{totalWeight.toFixed(2)}%</div>
-                    <div className="text-xs lg:text-sm text-gray-600 font-medium">Project Weight</div>
+                  <div>
+                    <div className="text-sm font-semibold text-foreground nums">{totalWeight.toFixed(2)}%</div>
+                    <div className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground">Project weight</div>
                   </div>
                 </div>
 
@@ -113,7 +115,7 @@ export function ScheduleTasks({ tasks, costItemsSecondaryData = [], targetCostTo
                     {/* Task Details for each task */}
                     {ganttTasks.map((task, index) => (
                       <div key={task.id} className={`border-b border-gray-200 hover:bg-gray-50 transition-colors ${
-                        selectedTask === task.id ? 'bg-blue-50' : ''
+                        selectedTask === task.id ? 'bg-muted/60' : ''
                       }`}>
                         <div className="grid grid-cols-6 gap-1 lg:gap-2 p-2 lg:p-3 text-xs items-center text-center">
                           <div className="font-medium text-gray-900 truncate" title={task.item}>{task.item}</div>
@@ -135,23 +137,23 @@ export function ScheduleTasks({ tasks, costItemsSecondaryData = [], targetCostTo
 
                     {/* Accomplishment Rows (Left part) */}
                     <div className="space-y-0">
-                      <div className="hover:bg-blue-50 transition-colors">
-                        <div className="p-2 lg:p-3 text-xs lg:text-sm bg-blue-50 font-medium text-blue-800 min-w-[200px] lg:min-w-[300px]">
+                      <div className="hover:bg-muted/40 transition-colors">
+                        <div className="p-2 lg:p-3 text-xs lg:text-sm bg-sky-50 text-sky-800 dark:bg-sky-950/40 dark:text-sky-300 font-medium min-w-[200px] lg:min-w-[300px]">
                           PERIODIC PHYSICAL ACCOMPLISHMENT (%)
                         </div>
                       </div>
-                      <div className="hover:bg-green-50 transition-colors">
-                        <div className="p-2 lg:p-3 text-xs lg:text-sm bg-green-50 font-medium text-green-800 min-w-[200px] lg:min-w-[300px]">
+                      <div className="hover:bg-muted/40 transition-colors">
+                        <div className="p-2 lg:p-3 text-xs lg:text-sm bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 font-medium min-w-[200px] lg:min-w-[300px]">
                           PERIODIC FINANCIAL ACCOMPLISHMENT (PHP)
                         </div>
                       </div>
-                      <div className="hover:bg-yellow-50 transition-colors">
-                        <div className="p-2 lg:p-3 text-xs lg:text-sm bg-yellow-50 font-medium text-yellow-800 min-w-[200px] lg:min-w-[300px]">
+                      <div className="hover:bg-muted/40 transition-colors">
+                        <div className="p-2 lg:p-3 text-xs lg:text-sm bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 font-medium min-w-[200px] lg:min-w-[300px]">
                           ACCUMULATIVE PHYSICAL ACCOMPLISHMENT (%)
                         </div>
                       </div>
-                      <div className="hover:bg-purple-50 transition-colors">
-                        <div className="p-2 lg:p-3 text-xs lg:text-sm bg-purple-50 font-medium text-purple-800 min-w-[200px] lg:min-w-[300px]">
+                      <div className="hover:bg-muted/40 transition-colors">
+                        <div className="p-2 lg:p-3 text-xs lg:text-sm bg-violet-50 text-violet-800 dark:bg-violet-950/40 dark:text-violet-300 font-medium min-w-[200px] lg:min-w-[300px]">
                           ACCUMULATIVE FINANCIAL ACCOMPLISHMENT (PHP)
                         </div>
                       </div>
@@ -174,7 +176,7 @@ export function ScheduleTasks({ tasks, costItemsSecondaryData = [], targetCostTo
                       {/* Timeline Bars for each task */}
                       {ganttTasks.map((task, index) => (
                         <div key={task.id} className={`relative h-8 lg:h-10 border-b border-gray-200 hover:bg-gray-50 transition-colors ${
-                          selectedTask === task.id ? 'bg-blue-50' : ''
+                          selectedTask === task.id ? 'bg-muted/60' : ''
                         }`}>
                           <div className="flex h-full">
                             {weeklyTimeline.map((week, weekIndex) => {
@@ -211,28 +213,28 @@ export function ScheduleTasks({ tasks, costItemsSecondaryData = [], targetCostTo
 
                       {/* Accomplishment Rows (Right part) */}
                       <div className="space-y-0">
-                        <div className="flex hover:bg-blue-50 transition-colors">
+                        <div className="flex hover:bg-muted/40 transition-colors">
                           {weeklyAccomplishments.map((acc, index) => (
                             <div key={index} className="w-16 lg:w-20 flex-shrink-0 text-center p-2 lg:p-4 text-xs border-r border-gray-200 font-medium bg-blue-50 text-blue-800">
                               {acc.periodicPhysical.toFixed(2)}
                             </div>
                           ))}
                         </div>
-                        <div className="flex hover:bg-green-50 transition-colors">
+                        <div className="flex hover:bg-muted/40 transition-colors">
                           {weeklyAccomplishments.map((acc, index) => (
                             <div key={index} className="w-16 lg:w-20 flex-shrink-0 text-center p-2 lg:p-3 text-xs border-r border-gray-200 font-medium bg-green-50 text-green-800">
                               ₱{acc.periodicFinancial.toLocaleString()}
                             </div>
                           ))}
                         </div>
-                        <div className="flex hover:bg-yellow-50 transition-colors">
+                        <div className="flex hover:bg-muted/40 transition-colors">
                           {weeklyAccomplishments.map((acc, index) => (
                             <div key={index} className="w-16 lg:w-20 flex-shrink-0 text-center p-2 lg:p-3 text-xs border-r border-gray-200 font-medium bg-yellow-50 text-yellow-800">
                               {acc.accumulativePhysical.toFixed(2)}
                             </div>
                           ))}
                         </div>
-                        <div className="flex hover:bg-purple-50 transition-colors">
+                        <div className="flex hover:bg-muted/40 transition-colors">
                           {weeklyAccomplishments.map((acc, index) => (
                             <div key={index} className="w-16 lg:w-20 flex-shrink-0 text-center p-2 lg:p-3 text-xs border-r border-gray-200 font-medium bg-purple-50 text-purple-800">
                               ₱{acc.accumulativeFinancial.toLocaleString()}
@@ -246,47 +248,30 @@ export function ScheduleTasks({ tasks, costItemsSecondaryData = [], targetCostTo
 
                 {/* Selected Task Details */}
                 {selectedTask && (
-                  <div className="p-4 lg:p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                  <div className="p-4 lg:p-6 bg-muted/40 rounded-md border border-border">
                     {(() => {
                       const task = ganttTasks.find(t => t.id === selectedTask);
                       if (!task) return null;
                       
                       return (
                         <div>
-                          <h4 className="text-base lg:text-lg font-bold text-blue-800 mb-3 lg:mb-4">{task.description}</h4>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 text-xs lg:text-sm">
-                            <div className="bg-white p-2 lg:p-3 rounded border">
-                              <div className="text-blue-600 font-medium">Item</div>
-                              <div className="text-gray-900">{task.item}</div>
-                            </div>
-                            <div className="bg-white p-2 lg:p-3 rounded border">
-                              <div className="text-blue-600 font-medium">Type</div>
-                              <Badge variant="outline" className="text-blue-600 text-xs">{task.type}</Badge>
-                            </div>
-                            <div className="bg-white p-2 lg:p-3 rounded border">
-                              <div className="text-blue-600 font-medium">Start Date</div>
-                              <div className="text-gray-900">{new Date(task.startDate).toLocaleDateString()}</div>
-                            </div>
-                            <div className="bg-white p-2 lg:p-3 rounded border">
-                              <div className="text-blue-600 font-medium">End Date</div>
-                              <div className="text-gray-900">{new Date(task.endDate).toLocaleDateString()}</div>
-                            </div>
-                            <div className="bg-white p-2 lg:p-3 rounded border">
-                              <div className="text-blue-600 font-medium">Duration</div>
-                              <div className="text-gray-900">{task.duration} days</div>
-                            </div>
-                            <div className="bg-white p-2 lg:p-3 rounded border">
-                              <div className="text-blue-600 font-medium">Cost</div>
-                              <div className="text-green-600 font-semibold">₱{task.cost.toLocaleString()}</div>
-                            </div>
-                            <div className="bg-white p-2 lg:p-3 rounded border">
-                              <div className="text-blue-600 font-medium">Weight</div>
-                              <div className="text-gray-900">{task.weight?.toFixed(2) || '0.00'}%</div>
-                            </div>
-                            <div className="bg-white p-2 lg:p-3 rounded border">
-                              <div className="text-blue-600 font-medium">Manpower</div>
-                              <div className="text-gray-900">{task.manpower || 0}</div>
-                            </div>
+                          <h4 className="text-base font-semibold text-foreground mb-3">{task.description}</h4>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs sm:text-sm">
+                            {[
+                              { label: 'Item', value: task.item },
+                              { label: 'Type', value: <Badge variant="outline">{task.type}</Badge> },
+                              { label: 'Start date', value: new Date(task.startDate).toLocaleDateString() },
+                              { label: 'End date', value: new Date(task.endDate).toLocaleDateString() },
+                              { label: 'Duration', value: `${task.duration} days` },
+                              { label: 'Cost', value: <span className="font-semibold nums">₱{task.cost.toLocaleString()}</span> },
+                              { label: 'Weight', value: `${task.weight?.toFixed(2) || '0.00'}%` },
+                              { label: 'Manpower', value: task.manpower || 0 },
+                            ].map((f) => (
+                              <div key={f.label} className="bg-card border border-border rounded-md p-3">
+                                <div className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground">{f.label}</div>
+                                <div className="text-sm text-foreground mt-0.5 nums">{f.value}</div>
+                              </div>
+                            ))}
                           </div>
                         </div>
                       );
@@ -311,10 +296,9 @@ export function ScheduleTasks({ tasks, costItemsSecondaryData = [], targetCostTo
                 </div>
               </div>
             ) : (
-              <div className="text-center py-8 lg:py-12">
-                <div className="text-gray-400 text-4xl lg:text-6xl mb-3 lg:mb-4">📊</div>
-                <h3 className="text-base lg:text-lg font-semibold text-gray-600 mb-2">No Task Data Available</h3>
-                <p className="text-sm lg:text-base text-gray-500">Upload accomplishment reports to see the Gantt chart</p>
+              <div className="text-center py-10">
+                <h3 className="text-sm font-semibold text-foreground mb-1">No task data yet</h3>
+                <p className="text-sm text-muted-foreground">Upload accomplishment reports to see the Gantt chart.</p>
               </div>
             )}
           </TabsContent>
@@ -322,37 +306,37 @@ export function ScheduleTasks({ tasks, costItemsSecondaryData = [], targetCostTo
           <TabsContent value="table" className="space-y-4">
             {ganttTasks.length > 0 ? (
               <div className="space-y-4">
-                {/* Project Summary */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg border">
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-arsd-red">₱{totalProjectCost.toLocaleString()}</div>
-                    <div className="text-xs text-gray-600 font-medium">Total Project Cost</div>
+                {/* Project summary */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-4 bg-muted/40 rounded-md border border-border">
+                  <div>
+                    <div className="text-sm font-semibold text-foreground nums">₱{totalProjectCost.toLocaleString()}</div>
+                    <div className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground">Total project cost</div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-arsd-red">{ganttTasks.length}</div>
-                    <div className="text-xs text-gray-600 font-medium">Total Tasks</div>
+                  <div>
+                    <div className="text-sm font-semibold text-foreground nums">{ganttTasks.length}</div>
+                    <div className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground">Total tasks</div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-arsd-red">{weeklyTimeline.length}</div>
-                    <div className="text-xs text-gray-600 font-medium">Project Duration (Weeks)</div>
+                  <div>
+                    <div className="text-sm font-semibold text-foreground nums">{weeklyTimeline.length}</div>
+                    <div className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground">Duration (weeks)</div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-arsd-red">{totalWeight.toFixed(2)}%</div>
-                    <div className="text-xs text-gray-600 font-medium">Project Weight</div>
+                  <div>
+                    <div className="text-sm font-semibold text-foreground nums">{totalWeight.toFixed(2)}%</div>
+                    <div className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground">Project weight</div>
                   </div>
                 </div>
 
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-arsd-red text-xs">Item Type</TableHead>
-                      <TableHead className="text-arsd-red text-xs">Description</TableHead>
-                      <TableHead className="text-arsd-red text-xs">Weight %</TableHead>
-                      <TableHead className="text-arsd-red text-xs">Cost</TableHead>
-                      <TableHead className="text-arsd-red text-xs">Start Date</TableHead>
-                      <TableHead className="text-arsd-red text-xs">End Date</TableHead>
-                      <TableHead className="text-arsd-red text-xs">Duration (Days)</TableHead>
-                      <TableHead className="text-arsd-red text-xs">Type</TableHead>
+                      <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Item Type</TableHead>
+                      <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Description</TableHead>
+                      <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Weight %</TableHead>
+                      <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Cost</TableHead>
+                      <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Start Date</TableHead>
+                      <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">End Date</TableHead>
+                      <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Duration (Days)</TableHead>
+                      <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Type</TableHead>
                     </TableRow>
                   </TableHeader>
 
@@ -434,8 +418,8 @@ export function ScheduleTasks({ tasks, costItemsSecondaryData = [], targetCostTo
                 {/* S-Curve Chart */}
                 {sCurveData.length > 0 && (
                   <div className="mt-6">
-                    <h3 className="text-sm font-semibold text-arsd-red mb-3">Project Progress S-Curve</h3>
-                    <div className="bg-white rounded-lg p-4 shadow-sm border">
+                    <h3 className="text-sm font-semibold text-foreground mb-3">Project progress (S-curve)</h3>
+                    <div className="bg-card rounded-md p-4 border border-border">
                       <ResponsiveContainer width="100%" height={300}>
                         <LineChart data={sCurveData} margin={{ top: 20, right: 30, left: 60, bottom: 60 }}>
                           <XAxis 
@@ -479,16 +463,16 @@ export function ScheduleTasks({ tasks, costItemsSecondaryData = [], targetCostTo
                 {/* Weekly Accomplishments Table */}
                 {weeklyAccomplishments.length > 0 && (
                   <div className="mt-6">
-                    <h3 className="text-sm font-semibold text-arsd-red mb-3">Weekly Accomplishments</h3>
+                    <h3 className="text-sm font-semibold text-foreground mb-3">Weekly accomplishments</h3>
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="text-arsd-red text-xs">Week</TableHead>
-                          <TableHead className="text-arsd-red text-xs">Week Start</TableHead>
-                          <TableHead className="text-arsd-red text-xs">Periodic Physical (%)</TableHead>
-                          <TableHead className="text-arsd-red text-xs">Periodic Financial (₱)</TableHead>
-                          <TableHead className="text-arsd-red text-xs">Accumulative Physical (%)</TableHead>
-                          <TableHead className="text-arsd-red text-xs">Accumulative Financial (₱)</TableHead>
+                          <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Week</TableHead>
+                          <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Week Start</TableHead>
+                          <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Periodic Physical (%)</TableHead>
+                          <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Periodic Financial (₱)</TableHead>
+                          <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Accumulative Physical (%)</TableHead>
+                          <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Accumulative Financial (₱)</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -552,10 +536,9 @@ export function ScheduleTasks({ tasks, costItemsSecondaryData = [], targetCostTo
                 )}
               </div>
             ) : (
-              <div className="text-center py-12">
-                <div className="text-gray-400 text-6xl mb-4">📊</div>
-                <h3 className="text-lg font-semibold text-gray-600 mb-2">No Task Data Available</h3>
-                <p className="text-gray-500">Upload accomplishment reports to see the table view</p>
+              <div className="text-center py-10">
+                <h3 className="text-sm font-semibold text-foreground mb-1">No task data yet</h3>
+                <p className="text-sm text-muted-foreground">Upload accomplishment reports to see the table view.</p>
               </div>
             )}
           </TabsContent>

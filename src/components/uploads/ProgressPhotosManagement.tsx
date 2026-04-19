@@ -255,7 +255,7 @@ export default function ProgressPhotosManagement() {
               // Force refresh of photos list
               refetch();
             }}
-            className="glass-button bg-gradient-to-r from-arsd-red/20 to-red-500/20 text-arsd-red border-arsd-red/30 hover:from-arsd-red/30 hover:to-red-500/30"
+            className="border border-border bg-card text-foreground hover:bg-muted"
           >
             <RefreshCw className="h-4 w-4 mr-1" />
             Refresh
@@ -265,7 +265,7 @@ export default function ProgressPhotosManagement() {
 
       {/* Filters */}
       <GlassCard variant="elevated">
-        <GlassCardHeader className="bg-gradient-to-r from-arsd-red/5 to-red-500/5 border-b border-arsd-red/10 py-2">
+        <GlassCardHeader className="bg-muted/40 border-b border-border py-2">
           <div className="flex items-center gap-2">
             <div className="w-5 h-5 bg-arsd-red/20 rounded flex items-center justify-center">
               <Filter className="h-3 w-3 text-arsd-red" />
@@ -308,7 +308,7 @@ export default function ProgressPhotosManagement() {
         {paginatedGroups.length === 0 ? (
           <GlassCard variant="elevated">
             <GlassCardContent className="p-12 text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-arsd-red/20 to-red-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <div className="w-16 h-16 bg-primary/10 rounded-md flex items-center justify-center mx-auto mb-6">
                 <Camera className="h-8 w-8 text-arsd-red" />
               </div>
               <h3 className="text-xl font-bold text-glass-primary mb-3">No Progress Photos Found</h3>
@@ -502,7 +502,7 @@ export default function ProgressPhotosManagement() {
                     size="sm"
                     onClick={() => downloadPhoto(selectedPhoto)}
                     disabled={isDownloading === selectedPhoto.id}
-                    className="glass-button bg-gradient-to-r from-arsd-red/20 to-red-500/20 text-arsd-red border-arsd-red/30 hover:from-arsd-red/30 hover:to-red-500/30"
+                    className="border border-border bg-card text-foreground hover:bg-muted"
                   >
                     {isDownloading === selectedPhoto.id ? (
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-arsd-red mr-2" />

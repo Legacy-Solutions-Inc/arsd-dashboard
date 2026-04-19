@@ -134,7 +134,7 @@ export function ItemsRepeater({
           <div className="space-y-3 pr-8">
             {ipowItems.length > 0 && (
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-foreground mb-1">
                   <List className="inline h-3.5 w-3.5 mr-1" aria-hidden /> From IPOW
                 </label>
                 <select
@@ -162,11 +162,11 @@ export function ItemsRepeater({
               </div>
             )}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-foreground mb-1">
                 Item Description
               </label>
               {ipowItems.length > 0 && isIpowMatched(item, ipowItems) ? (
-                <div className="mobile-form-input w-full bg-gray-50 cursor-not-allowed">
+                <div className="mobile-form-input w-full bg-muted cursor-not-allowed">
                   {item.itemDescription}
                 </div>
               ) : (
@@ -181,17 +181,17 @@ export function ItemsRepeater({
               {ipowItems.length > 0 && (() => {
                 const resource = getResourceForEntry(item, ipowItems);
                 return resource ? (
-                  <div className="mt-2 rounded-md bg-gray-50/80 px-3 py-2">
-                    <span className="block text-[10px] uppercase tracking-wide text-gray-500 mb-0.5">Resource</span>
-                    <p className="text-sm text-gray-600 break-words">{resource}</p>
+                  <div className="mt-2 rounded-md bg-muted/60 border border-border px-3 py-2">
+                    <span className="block text-[10px] uppercase tracking-wide text-muted-foreground mb-0.5">Resource</span>
+                    <p className="text-sm text-foreground break-words">{resource}</p>
                   </div>
                 ) : null;
               })()}
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-foreground mb-1">
                   {showPOQty ? 'Qty in DR' : 'Quantity'}
                 </label>
                 <input
@@ -208,7 +208,7 @@ export function ItemsRepeater({
 
               {showPOQty && (
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                  <label className="block text-xs font-medium text-foreground mb-1">
                     Total Qty in PO
                   </label>
                   <div className="mobile-form-input w-full bg-gray-50 cursor-not-allowed text-right">
@@ -218,7 +218,7 @@ export function ItemsRepeater({
               )}
 
               <div className={showPOQty ? 'col-span-2' : ''}>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-foreground mb-1">
                   Unit
                 </label>
                 <select
@@ -239,7 +239,7 @@ export function ItemsRepeater({
 
       <button
         onClick={onAdd}
-        className="w-full glass-button text-arsd-primary border-dashed border-2 border-red-300/50 hover:border-red-400/70 mobile-button"
+        className="w-full inline-flex items-center justify-center rounded-md border-2 border-dashed border-border bg-muted/30 px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted hover:border-foreground/20 transition-colors"
       >
         + Add Item
       </button>

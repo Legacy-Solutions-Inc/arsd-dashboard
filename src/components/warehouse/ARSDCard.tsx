@@ -8,7 +8,10 @@ interface ARSDCardProps {
 }
 
 export function ARSDCard({ children, className = '', onClick, variant = 'default' }: ARSDCardProps) {
-  const baseClass = variant === 'neutral' ? 'glass-card-neutral' : 'glass-card';
+  const baseClass =
+    variant === 'neutral'
+      ? 'bg-card border border-border rounded-lg p-6 shadow-xs'
+      : 'bg-card border border-border rounded-lg p-6 shadow-xs transition-colors duration-150 hover:border-foreground/15';
   return (
     <div
       className={`${baseClass} ${className} ${onClick ? 'cursor-pointer' : ''}`}
@@ -18,4 +21,3 @@ export function ARSDCard({ children, className = '', onClick, variant = 'default
     </div>
   );
 }
-
