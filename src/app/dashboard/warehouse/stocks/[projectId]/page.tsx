@@ -297,7 +297,7 @@ export default function StockMonitoringPage() {
               className="p-2 rounded-md border border-border bg-card hover:bg-muted transition-colors mobile-touch-target"
               aria-label="Back to warehouse"
             >
-              <ArrowLeft className="h-4 w-4 text-foreground" strokeWidth={1.75} />
+              <ArrowLeft className="h-4 w-4 text-foreground" />
             </button>
             <div>
               <div className="text-[11px] uppercase tracking-[0.1em] text-muted-foreground">

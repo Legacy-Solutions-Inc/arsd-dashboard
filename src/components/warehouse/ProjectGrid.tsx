@@ -16,13 +16,13 @@ export function ProjectGrid({ projects }: ProjectGridProps) {
   const getStatusIcon = (status: ProjectStatus) => {
     switch (status) {
       case 'in_progress':
-        return <CheckCircle className="h-3.5 w-3.5" strokeWidth={1.75} />;
+        return <CheckCircle className="h-3.5 w-3.5" />;
       case 'completed':
-        return <CheckCircle className="h-3.5 w-3.5" strokeWidth={1.75} />;
+        return <CheckCircle className="h-3.5 w-3.5" />;
       case 'in_planning':
-        return <AlertCircle className="h-3.5 w-3.5" strokeWidth={1.75} />;
+        return <AlertCircle className="h-3.5 w-3.5" />;
       default:
-        return <Clock className="h-3.5 w-3.5" strokeWidth={1.75} />;
+        return <Clock className="h-3.5 w-3.5" />;
     }
   };
 
@@ -60,7 +60,7 @@ export function ProjectGrid({ projects }: ProjectGridProps) {
             <div className="space-y-3 min-w-0">
               <div className="flex items-start gap-3 min-w-0">
                 <div className="w-9 h-9 flex-shrink-0 bg-primary/10 text-primary rounded-md flex items-center justify-center">
-                  <Building2 className="h-4 w-4" strokeWidth={1.75} />
+                  <Building2 className="h-4 w-4" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-foreground text-sm line-clamp-2">
@@ -71,11 +71,11 @@ export function ProjectGrid({ projects }: ProjectGridProps) {
 
               <div className="space-y-1.5 text-xs">
                 <div className="flex items-center gap-2 text-muted-foreground min-w-0">
-                  <MapPin className="h-3.5 w-3.5 flex-shrink-0" strokeWidth={1.75} />
+                  <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
                   <span className="truncate">{project.location}</span>
                 </div>
                 <div className="flex items-center gap-2 min-w-0">
-                  <User className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" strokeWidth={1.75} />
+                  <User className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
                   <span className={`truncate ${isUnassigned ? 'text-muted-foreground italic' : 'text-foreground'}`}>
                     {warehousemanLabel}
                   </span>

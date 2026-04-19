@@ -103,12 +103,12 @@ const ErrorState = ({
   <div className="min-h-screen bg-background flex items-center justify-center px-4">
     <div className="w-full max-w-md bg-card border border-border rounded-lg shadow-sm-tinted p-6 text-center">
       <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center mx-auto mb-3">
-        <AlertCircle className="h-5 w-5 text-destructive" strokeWidth={1.75} />
+        <AlertCircle className="h-5 w-5 text-destructive" />
       </div>
       <h2 className="text-h3 text-foreground mb-1">We couldn't load this project</h2>
       <p className="text-sm text-muted-foreground mb-5">{error}</p>
       <Button variant="outline" onClick={onBack} className="w-full">
-        <ArrowLeft className="h-4 w-4" strokeWidth={1.75} />
+        <ArrowLeft className="h-4 w-4" />
         Go back
       </Button>
     </div>
@@ -127,7 +127,7 @@ const ProjectHeader = ({
   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-border">
     <div className="flex items-center gap-3 min-w-0">
       <Button variant="outline" onClick={onBack} size="sm">
-        <ArrowLeft className="h-4 w-4" strokeWidth={1.75} />
+        <ArrowLeft className="h-4 w-4" />
         Back
       </Button>
       <div className="min-w-0">
@@ -205,7 +205,7 @@ const StatCard = ({
           {label}
         </span>
         {Icon && (
-          <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" strokeWidth={1.75} />
+          <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
         )}
       </div>
       <div className={cn('text-sm font-semibold nums', toneClass[tone])}>
@@ -246,7 +246,7 @@ const ProjectStatsGrid = ({
     <section className="bg-card border border-border rounded-lg p-4 sm:p-5">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <h2 className="text-h3 text-foreground flex items-center gap-2">
-          <BarChart3 className="h-4 w-4 text-primary" strokeWidth={1.75} />
+          <BarChart3 className="h-4 w-4 text-primary" />
           Financial overview
         </h2>
         <div className="flex items-center gap-2">

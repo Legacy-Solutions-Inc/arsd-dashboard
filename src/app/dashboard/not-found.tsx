@@ -7,7 +7,7 @@ export default function DashboardNotFound() {
     <div className="min-h-[60vh] flex items-center justify-center">
       <div className="max-w-md w-full bg-card border border-border rounded-lg shadow-sm-tinted p-6 text-center">
         <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
-          <FileQuestion className="h-5 w-5 text-muted-foreground" strokeWidth={1.75} />
+          <FileQuestion className="h-5 w-5 text-muted-foreground" />
         </div>
         <div className="text-display-2 font-display text-foreground leading-none mb-1">
           404

@@ -75,7 +75,7 @@ export default function ReleasesListPage() {
             className="p-2 rounded-md border border-border bg-card hover:bg-muted transition-colors mobile-touch-target"
             aria-label="Back to warehouse"
           >
-            <ArrowLeft className="h-4 w-4 text-foreground" strokeWidth={1.75} />
+            <ArrowLeft className="h-4 w-4 text-foreground" />
           </button>
           <div>
             <div className="text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
@@ -94,7 +94,7 @@ export default function ReleasesListPage() {
             onClick={() => router.push('/dashboard/warehouse/releases/new')}
             className="inline-flex items-center gap-2 rounded-md bg-primary text-primary-foreground px-4 py-2 text-sm font-medium hover:bg-[hsl(var(--arsd-red-hover))] transition-colors"
           >
-            <Plus className="h-4 w-4" strokeWidth={1.75} />
+            <Plus className="h-4 w-4" />
             Create release
           </button>
         )}
@@ -116,13 +116,13 @@ export default function ReleasesListPage() {
       <div className="sticky top-0 z-40 bg-card border border-border rounded-md shadow-xs p-4">
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-muted-foreground" strokeWidth={1.75} />
+            <Filter className="h-4 w-4 text-muted-foreground" />
             <h2 className="text-sm font-semibold text-foreground">Filters</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <div className="sm:col-span-2">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" strokeWidth={1.75} />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <input
                   type="text"
                   value={searchQuery}
@@ -218,7 +218,7 @@ export default function ReleasesListPage() {
                       onClick={() => router.push(`/dashboard/warehouse/releases/${rel.id}`)}
                       className="flex-1 inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-[hsl(var(--arsd-red-hover))] transition-colors mobile-touch-target min-h-[44px]"
                     >
-                      <Eye className="h-4 w-4" strokeWidth={1.75} />
+                      <Eye className="h-4 w-4" />
                       View
                     </button>
                     {canUnlock && rel.locked && (
@@ -227,7 +227,7 @@ export default function ReleasesListPage() {
                         className="inline-flex items-center justify-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800 hover:bg-amber-100 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-300 transition-colors mobile-touch-target min-h-[44px] min-w-[110px]"
                         title="Unlock (Site Engineer / Project Manager only)"
                       >
-                        <Unlock className="h-4 w-4" strokeWidth={1.75} />
+                        <Unlock className="h-4 w-4" />
                         Unlock
                       </button>
                     )}
@@ -237,7 +237,7 @@ export default function ReleasesListPage() {
                         className="inline-flex items-center justify-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-300 transition-colors mobile-touch-target min-h-[44px] min-w-[110px]"
                         title="Lock again (Site Engineer / Project Manager only)"
                       >
-                        <Lock className="h-4 w-4" strokeWidth={1.75} />
+                        <Lock className="h-4 w-4" />
                         Lock
                       </button>
                     )}
@@ -342,7 +342,7 @@ export default function ReleasesListPage() {
                           onClick={() => router.push(`/dashboard/warehouse/releases/${rel.id}`)}
                           className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors mobile-touch-target min-h-[44px]"
                         >
-                          <Eye className="h-3.5 w-3.5" strokeWidth={1.75} />
+                          <Eye className="h-3.5 w-3.5" />
                           View
                         </button>
                         {canUnlock && rel.locked && (
@@ -354,7 +354,7 @@ export default function ReleasesListPage() {
                             className="inline-flex items-center gap-1.5 rounded-md border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-800 hover:bg-amber-100 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-300 transition-colors mobile-touch-target min-h-[44px]"
                             title="Unlock (Site Engineer / Project Manager only)"
                           >
-                            <Unlock className="h-3.5 w-3.5" strokeWidth={1.75} />
+                            <Unlock className="h-3.5 w-3.5" />
                             Unlock
                           </button>
                         )}
@@ -367,7 +367,7 @@ export default function ReleasesListPage() {
                             className="inline-flex items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-300 transition-colors mobile-touch-target min-h-[44px]"
                             title="Lock again (Site Engineer / Project Manager only)"
                           >
-                            <Lock className="h-3.5 w-3.5" strokeWidth={1.75} />
+                            <Lock className="h-3.5 w-3.5" />
                             Lock
                           </button>
                         )}

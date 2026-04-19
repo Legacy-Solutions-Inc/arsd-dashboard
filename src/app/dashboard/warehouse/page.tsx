@@ -69,7 +69,7 @@ export default function WarehouseDashboardPage() {
       <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-border">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-md bg-primary/10 text-primary flex items-center justify-center">
-            <Package className="h-5 w-5" strokeWidth={1.75} />
+            <Package className="h-5 w-5" />
           </div>
           <div>
             <div className="text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
@@ -93,7 +93,7 @@ export default function WarehouseDashboardPage() {
         >
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-md bg-muted flex items-center justify-center">
-              <FileText className="h-4 w-4 text-muted-foreground" strokeWidth={1.75} />
+              <FileText className="h-4 w-4 text-muted-foreground" />
             </div>
             <div className="flex-1">
               <h3 className="text-sm font-semibold text-foreground">
@@ -103,7 +103,7 @@ export default function WarehouseDashboardPage() {
                 View all delivery receipts
               </p>
             </div>
-            <List className="h-4 w-4 text-muted-foreground" strokeWidth={1.75} />
+            <List className="h-4 w-4 text-muted-foreground" />
           </div>
         </button>
 
@@ -113,7 +113,7 @@ export default function WarehouseDashboardPage() {
         >
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-md bg-muted flex items-center justify-center">
-              <Package className="h-4 w-4 text-muted-foreground" strokeWidth={1.75} />
+              <Package className="h-4 w-4 text-muted-foreground" />
             </div>
             <div className="flex-1">
               <h3 className="text-sm font-semibold text-foreground">
@@ -123,7 +123,7 @@ export default function WarehouseDashboardPage() {
                 View all release forms
               </p>
             </div>
-            <List className="h-4 w-4 text-muted-foreground" strokeWidth={1.75} />
+            <List className="h-4 w-4 text-muted-foreground" />
           </div>
         </button>
       </div>
@@ -134,14 +134,14 @@ export default function WarehouseDashboardPage() {
             onClick={() => router.push('/dashboard/warehouse/delivery-receipts/new')}
             className="inline-flex items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground px-4 py-2.5 text-sm font-medium hover:bg-[hsl(var(--arsd-red-hover))] transition-colors"
           >
-            <Plus className="h-4 w-4" strokeWidth={1.75} />
+            <Plus className="h-4 w-4" />
             Create delivery receipt
           </button>
           <button
             onClick={() => router.push('/dashboard/warehouse/releases/new')}
             className="inline-flex items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground px-4 py-2.5 text-sm font-medium hover:bg-[hsl(var(--arsd-red-hover))] transition-colors"
           >
-            <Plus className="h-4 w-4" strokeWidth={1.75} />
+            <Plus className="h-4 w-4" />
             Create release form
           </button>
         </div>
@@ -161,7 +161,7 @@ export default function WarehouseDashboardPage() {
         {accessibleProjects.length > 0 ? (
           <>
             <div className="relative max-w-xl">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" strokeWidth={1.75} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
               <input
                 type="text"
                 value={searchQuery}
@@ -208,7 +208,7 @@ export default function WarehouseDashboardPage() {
               </>
             ) : (
               <div className="bg-card border border-border rounded-md text-center py-10">
-                <Search className="h-6 w-6 text-muted-foreground mx-auto mb-2" strokeWidth={1.75} />
+                <Search className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
                 <p className="text-sm font-medium text-foreground">No projects match your search</p>
                 <p className="text-sm text-muted-foreground mt-1">Try a different search term.</p>
               </div>
@@ -216,7 +216,7 @@ export default function WarehouseDashboardPage() {
           </>
         ) : (
           <div className="bg-card border border-border rounded-md text-center py-10">
-            <Package className="h-6 w-6 text-muted-foreground mx-auto mb-2" strokeWidth={1.75} />
+            <Package className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
             <p className="text-sm font-medium text-foreground">No projects available</p>
             <p className="text-sm text-muted-foreground mt-1">
               {canViewAll ? 'No projects found in the system.' : 'You are not assigned to any projects.'}

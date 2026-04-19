@@ -10,7 +10,7 @@ export default function WebsiteDetails() {
       <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 pb-4 border-b border-border">
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-md bg-primary/10 text-primary flex items-center justify-center">
-            <FolderOpen className="h-5 w-5" strokeWidth={1.75} />
+            <FolderOpen className="h-5 w-5" />
           </div>
           <div>
             <div className="text-[11px] uppercase tracking-[0.1em] text-muted-foreground">

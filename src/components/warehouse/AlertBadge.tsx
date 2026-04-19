@@ -37,7 +37,7 @@ export function AlertBadge({ type }: AlertBadgeProps) {
     <span
       className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium border ${className}`}
     >
-      <Icon className="h-3 w-3" strokeWidth={1.75} />
+      <Icon className="h-3 w-3" />
       {label}
     </span>
   );

@@ -104,6 +104,13 @@
   .nums, [data-nums] {
     font-variant-numeric: tabular-nums;
   }
+  /* Global Lucide icon refinement — thinner, more modern stroke + clean joints.
+     Any inline strokeWidth on <Icon /> will still win. */
+  svg.lucide {
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
 }
 
 /*

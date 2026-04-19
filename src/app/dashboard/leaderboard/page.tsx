@@ -298,7 +298,7 @@ export default function LeaderboardPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-border">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-md bg-primary/10 text-primary flex items-center justify-center">
-                <Trophy className="h-5 w-5" strokeWidth={1.75} />
+                <Trophy className="h-5 w-5" />
               </div>
               <div>
                 <div className="text-[11px] uppercase tracking-[0.1em] text-muted-foreground">

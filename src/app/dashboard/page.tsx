@@ -162,7 +162,7 @@ export default function DashboardPage() {
             variant="outline"
             onClick={() => router.push('/dashboard/leaderboard')}
           >
-            <Medal className="h-4 w-4" strokeWidth={1.75} />
+            <Medal className="h-4 w-4" />
             <span className="hidden sm:inline">Performance leaderboard</span>
             <span className="sm:hidden">Leaderboard</span>
           </Button>
@@ -172,27 +172,27 @@ export default function DashboardPage() {
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatCard
-          icon={<BarChart3 className="h-4 w-4" strokeWidth={1.75} />}
+          icon={<BarChart3 className="h-4 w-4" />}
           label="Total projects"
           value={totalProjects}
           delay={0}
         />
         <StatCard
-          icon={<TrendingUp className="h-4 w-4" strokeWidth={1.75} />}
+          icon={<TrendingUp className="h-4 w-4" />}
           label="Active"
           value={activeProjects}
           ratio={totalProjects ? activeProjects / totalProjects : 0}
           delay={50}
         />
         <StatCard
-          icon={<Calendar className="h-4 w-4" strokeWidth={1.75} />}
+          icon={<Calendar className="h-4 w-4" />}
           label="Completed"
           value={completedProjects}
           ratio={totalProjects ? completedProjects / totalProjects : 0}
           delay={100}
         />
         <StatCard
-          icon={<Users className="h-4 w-4" strokeWidth={1.75} />}
+          icon={<Users className="h-4 w-4" />}
           label="With reports"
           value={projectsWithReports}
           ratio={totalProjects ? projectsWithReports / totalProjects : 0}
@@ -204,7 +204,7 @@ export default function DashboardPage() {
       {error ? (
         <div className="bg-card border border-border rounded-lg p-8 text-center">
           <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center mx-auto mb-3">
-            <AlertCircle className="h-5 w-5 text-destructive" strokeWidth={1.75} />
+            <AlertCircle className="h-5 w-5 text-destructive" />
           </div>
           <div className="text-base font-semibold text-foreground">
             We couldn't load your projects

@@ -18,12 +18,12 @@ export function BadgeStatus({ locked }: BadgeStatusProps) {
     >
       {locked ? (
         <>
-          <Lock className="h-3 w-3" strokeWidth={1.75} />
+          <Lock className="h-3 w-3" />
           Locked
         </>
       ) : (
         <>
-          <Unlock className="h-3 w-3" strokeWidth={1.75} />
+          <Unlock className="h-3 w-3" />
           Unlocked
         </>
       )}

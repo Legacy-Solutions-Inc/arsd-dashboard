@@ -36,7 +36,7 @@ export function StickyBottomBar({
             disabled={primaryDisabled}
             className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-[hsl(var(--arsd-red-hover))] transition-colors active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex-1 sm:flex-none sm:min-w-[180px]"
           >
-            <Send className="h-4 w-4" strokeWidth={1.75} />
+            <Send className="h-4 w-4" />
             {primaryLabel}
           </button>
         </div>

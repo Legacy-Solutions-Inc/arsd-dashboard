@@ -49,7 +49,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
                     size="sm"
                     aria-label={`View photos for ${project.name}`}
                   >
-                    <Eye className="h-4 w-4" strokeWidth={1.75} />
+                    <Eye className="h-4 w-4" />
                     View photos
                   </Button>
                 </div>
@@ -93,7 +93,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
             <div className="h-56 bg-muted flex items-center justify-center">
               <div className="text-center">
                 <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <MapPin className="h-5 w-5 text-primary" strokeWidth={1.75} />
+                  <MapPin className="h-5 w-5 text-primary" />
                 </div>
                 <p className="text-muted-foreground text-sm">No photos available</p>
               </div>
@@ -106,7 +106,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
             {project.name}
           </CardTitle>
           <div className="flex items-center gap-1.5 text-muted-foreground mt-1">
-            <MapPin className="h-3.5 w-3.5 flex-shrink-0" strokeWidth={1.75} />
+            <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
             <span className="text-sm">{project.location}</span>
           </div>
         </CardHeader>
@@ -119,7 +119,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
               size="sm"
               aria-label={`Open gallery for ${project.name}`}
             >
-              <Eye className="h-3.5 w-3.5" strokeWidth={1.75} />
+              <Eye className="h-3.5 w-3.5" />
               Gallery
             </Button>
           )}

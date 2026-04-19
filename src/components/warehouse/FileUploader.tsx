@@ -53,7 +53,7 @@ export function FileUploader({
           {value ? (
             <div className="flex flex-col items-center gap-2 p-4">
               <div className="w-10 h-10 bg-emerald-50 dark:bg-emerald-950/40 rounded-full flex items-center justify-center">
-                <FileCheck2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" strokeWidth={1.75} />
+                <FileCheck2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
               </div>
               <span className="text-sm font-medium text-foreground truncate max-w-full px-2">
                 {value.name}
@@ -65,7 +65,7 @@ export function FileUploader({
           ) : (
             <div className="flex flex-col items-center gap-2 p-4">
               <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                <Upload className="h-5 w-5 text-primary" strokeWidth={1.75} />
+                <Upload className="h-5 w-5 text-primary" />
               </div>
               <span className="text-sm font-medium text-foreground">
                 Click to upload
@@ -83,7 +83,7 @@ export function FileUploader({
             className="absolute top-2 right-2 inline-flex items-center justify-center rounded-full bg-card border border-border p-1.5 text-muted-foreground hover:text-destructive hover:border-destructive/30 transition-colors mobile-touch-target"
             aria-label="Remove file"
           >
-            <X className="h-4 w-4" strokeWidth={1.75} />
+            <X className="h-4 w-4" />
           </button>
         )}
       </div>

@@ -274,8 +274,7 @@ export function InlineLoading({ message = "Loading…", size = 'sm' }: { message
           "animate-spin text-primary",
           size === 'sm' ? 'h-3.5 w-3.5' : 'h-4 w-4',
         )}
-        strokeWidth={1.75}
-        aria-hidden
+               aria-hidden
       />
       
       <span className={cn(

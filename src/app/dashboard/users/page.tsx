@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { UserWithRole, UserRole, UserStatus } from '@/types/rbac';
 import { rbacClient } from '@/services/role-based/rbac';
-import { Plus, Edit, Save, X, Users, ChevronLeft, ChevronRight, Sparkles, User as UserIcon, Mail, Calendar, Shield, UserCheck, UserPlus, Clock, CheckCircle2, XCircle, RefreshCw } from 'lucide-react';
+import { Plus, Edit, Save, X, Users, ChevronLeft, ChevronRight, User as UserIcon, Mail, Calendar, UserCog, UserCheck, UserPlus, Clock, CheckCircle2, XCircle, RefreshCw } from 'lucide-react';
 import { GlassCard, GlassCardContent, GlassCardHeader, GlassCardTitle } from '@/components/ui/glass-card';
 import { UniversalLoading, InlineLoading } from '@/components/ui/universal-loading';
 
@@ -301,7 +301,7 @@ export default function UserManagementPage() {
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 pb-4 border-b border-border">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-md bg-primary/10 text-primary flex items-center justify-center">
-              <Users className="h-5 w-5" strokeWidth={1.75} />
+              <Users className="h-5 w-5" />
             </div>
             <div>
               <div className="text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
@@ -614,96 +614,85 @@ export default function UserManagementPage() {
         )}
 
         {/* Existing Users Table */}
-        <GlassCard variant="elevated" className="overflow-hidden">
-          <GlassCardHeader className="bg-transparent border-arsd-red/20">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-primary/10 rounded-md flex items-center justify-center border border-primary/20">
-                <Shield className="h-6 w-6 text-arsd-red" />
+        <div className="bg-card border border-border rounded-lg overflow-hidden">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-5 py-4 border-b border-border bg-muted/30">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-md bg-primary/10 text-primary flex items-center justify-center">
+                <UserCog className="h-4 w-4" />
               </div>
               <div>
-                <GlassCardTitle className="text-2xl font-bold text-arsd-red flex items-center gap-2">
-                  Dashboard Users
-                </GlassCardTitle>
-                <p className="text-glass-secondary text-sm mt-1">Manage user roles and permissions</p>
+                <h2 className="text-h3 text-foreground">Dashboard Users</h2>
+                <p className="text-sm text-muted-foreground">Manage user roles and permissions</p>
               </div>
             </div>
-          </GlassCardHeader>
-          
-          <GlassCardContent className="p-0">
+          </div>
+          <div className="p-0">
             <div className="overflow-x-auto scrollbar-glass">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-muted/40 border-b border-border">
-                    <TableHead className="px-6 py-4 font-semibold text-arsd-red text-sm uppercase tracking-wider">
+                  <TableRow className="bg-muted/40 border-b border-border hover:bg-muted/40">
+                    <TableHead className="px-6 py-3 font-semibold text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
                       Name
                     </TableHead>
-                    <TableHead className="px-6 py-4 font-semibold text-arsd-red text-sm uppercase tracking-wider">
+                    <TableHead className="px-6 py-3 font-semibold text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
                       Email
                     </TableHead>
-                    <TableHead className="px-6 py-4 font-semibold text-arsd-red text-sm uppercase tracking-wider">
+                    <TableHead className="px-6 py-3 font-semibold text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
                       Role
                     </TableHead>
-                    <TableHead className="px-6 py-4 font-semibold text-arsd-red text-sm uppercase tracking-wider">
+                    <TableHead className="px-6 py-3 font-semibold text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
                       Status
                     </TableHead>
-                    <TableHead className="px-6 py-4 font-semibold text-arsd-red text-sm uppercase tracking-wider">
+                    <TableHead className="px-6 py-3 font-semibold text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
                       Created
                     </TableHead>
-                    <TableHead className="px-6 py-4 font-semibold text-arsd-red text-sm uppercase tracking-wider">
+                    <TableHead className="px-6 py-3 font-semibold text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
                       Actions
                     </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paginatedExistingUsers.map((user, index) => (
-                    <TableRow 
-                      key={user.id} 
-                      className={`border-b border-white/10 hover:bg-muted/30 transition-colors duration-150 ${
-                        index % 2 === 0 ? 'bg-white/2' : 'bg-white/5'
-                      }`}
+                  {paginatedExistingUsers.map((user) => (
+                    <TableRow
+                      key={user.id}
+                      className="border-b border-border hover:bg-muted/30 transition-colors duration-150"
                     >
-                      <TableCell className="px-6 py-4">
+                      <TableCell className="px-6 py-3">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center border border-primary/20">
-                            <UserIcon className="h-5 w-5 text-arsd-red" />
+                          <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
+                            <UserIcon className="h-4 w-4 text-muted-foreground" />
                           </div>
-                          <div>
-                            <div className="font-semibold text-glass-primary text-md">
-                              {user.full_name || user.name || 'N/A'}
-                            </div>
+                          <div className="font-medium text-foreground text-sm">
+                            {user.full_name || user.name || 'N/A'}
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-transparent rounded-lg flex items-center justify-center">
-                            <Mail className="h-4 w-4 text-arsd-red" />
-                          </div>
-                          <span className="text-glass-primary font-medium">{user.email}</span>
+                      <TableCell className="px-6 py-3">
+                        <div className="flex items-center gap-2">
+                          <Mail className="h-3.5 w-3.5 text-muted-foreground" />
+                          <span className="text-foreground text-sm">{user.email}</span>
                         </div>
                       </TableCell>
-                      <TableCell className="px-6 py-4">
-                        <Badge 
-                          variant="glass" 
-                          className={`${getRoleBadgeColor(user.role)} font-semibold px-3 py-1 rounded-full`}
+                      <TableCell className="px-6 py-3">
+                        <Badge
+                          variant="secondary"
+                          className={`${getRoleBadgeColor(user.role)} font-medium`}
                         >
                           {getDisplayRoleName(user.role)}
                         </Badge>
                       </TableCell>
-                      <TableCell className="px-6 py-4">
-                        <Badge 
-                          variant="glass" 
-                          className={`${getStatusBadgeColor(user.status)} font-semibold px-3 py-1 rounded-full`}
+                      <TableCell className="px-6 py-3">
+                        <Badge
+                          variant="secondary"
+                          className={`${getStatusBadgeColor(user.status)} font-medium`}
                         >
                           {user.status.toUpperCase()}
                         </Badge>
                       </TableCell>
-                      <TableCell className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-transparent rounded-lg flex items-center justify-center">
-                            <Calendar className="h-4 w-4 text-arsd-red" />
-                          </div>
-                          <span className="text-glass-secondary font-medium">
+                      <TableCell className="px-6 py-3">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                          <span className="text-muted-foreground text-sm nums">
                             {new Date(user.created_at).toLocaleDateString()}
                           </span>
                         </div>
@@ -731,11 +720,11 @@ export default function UserManagementPage() {
                 </TableBody>
               </Table>
             </div>
-          </GlassCardContent>
-          
+          </div>
+
           {/* Existing Users Pagination */}
           {totalPages > 1 && (
-            <div className="bg-muted/30 border-t border-border p-6">
+            <div className="bg-muted/30 border-t border-border p-4">
               <div className="flex items-center justify-between">
                 <div className="text-sm text-glass-secondary font-medium">
                   Showing {startIndex + 1} to {Math.min(endIndex, sortedExistingUsers.length)} of {sortedExistingUsers.length} users
@@ -802,7 +791,7 @@ export default function UserManagementPage() {
               </div>
             </div>
           )}
-        </GlassCard>
+        </div>
 
         {/* Edit User Modal */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>

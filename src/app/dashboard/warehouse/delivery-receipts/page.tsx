@@ -74,7 +74,7 @@ export default function DeliveryReceiptsListPage() {
               className="p-2 rounded-md border border-border bg-card hover:bg-muted transition-colors mobile-touch-target"
               aria-label="Back to warehouse"
             >
-              <ArrowLeft className="h-4 w-4 text-foreground" strokeWidth={1.75} />
+              <ArrowLeft className="h-4 w-4 text-foreground" />
             </button>
             <div>
               <div className="text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
@@ -93,7 +93,7 @@ export default function DeliveryReceiptsListPage() {
               onClick={() => router.push('/dashboard/warehouse/delivery-receipts/new')}
               className="inline-flex items-center gap-2 rounded-md bg-primary text-primary-foreground px-4 py-2 text-sm font-medium hover:bg-[hsl(var(--arsd-red-hover))] transition-colors"
             >
-              <Plus className="h-4 w-4" strokeWidth={1.75} />
+              <Plus className="h-4 w-4" />
               Create DR
             </button>
           )}
@@ -115,13 +115,13 @@ export default function DeliveryReceiptsListPage() {
         <div className="sticky top-0 z-40 bg-card border border-border rounded-md shadow-xs p-4">
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-muted-foreground" strokeWidth={1.75} />
+              <Filter className="h-4 w-4 text-muted-foreground" />
               <h2 className="text-sm font-semibold text-foreground">Filters</h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <div className="sm:col-span-2">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" strokeWidth={1.75} />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <input
                     type="text"
                     value={searchQuery}

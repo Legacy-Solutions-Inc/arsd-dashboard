@@ -55,7 +55,7 @@ function SectionHeader({
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-5 py-4 border-b border-border bg-muted/30">
       <div className="flex items-center gap-3">
         <div className="w-9 h-9 rounded-md bg-primary/10 flex items-center justify-center">
-          <Building2 className="h-4 w-4 text-primary" strokeWidth={1.75} />
+          <Building2 className="h-4 w-4 text-primary" />
         </div>
         <div>
           <h2 className="text-h3 text-foreground">Project Portfolio</h2>
@@ -66,7 +66,7 @@ function SectionHeader({
       </div>
       {canCreate && onCreateProject && (
         <Button onClick={onCreateProject} className="shrink-0">
-          <Plus className="h-4 w-4" strokeWidth={1.75} />
+          <Plus className="h-4 w-4" />
           <span className="hidden sm:inline">Create project</span>
           <span className="sm:hidden">Create</span>
         </Button>
@@ -90,7 +90,7 @@ function PersonCell({
   return (
     <div className="flex items-center gap-2 min-w-0">
       <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center shrink-0">
-        <User className="h-3 w-3 text-muted-foreground" strokeWidth={1.75} />
+        <User className="h-3 w-3 text-muted-foreground" />
       </div>
       <div className="min-w-0">
         <div className="text-xs font-medium text-foreground truncate">{name}</div>
@@ -149,7 +149,7 @@ export function ProjectsTable({
       {projects.length === 0 ? (
         <div className="p-10 text-center">
           <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
-            <Building2 className="h-5 w-5 text-muted-foreground" strokeWidth={1.75} />
+            <Building2 className="h-5 w-5 text-muted-foreground" />
           </div>
           <h3 className="text-base font-semibold text-foreground">No projects yet</h3>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -157,7 +157,7 @@ export function ProjectsTable({
           </p>
           {canCreate && onCreateProject && (
             <Button onClick={onCreateProject} className="mt-4">
-              <Plus className="h-4 w-4" strokeWidth={1.75} />
+              <Plus className="h-4 w-4" />
               Create project
             </Button>
           )}
@@ -179,7 +179,7 @@ export function ProjectsTable({
                         {project.project_name}
                       </h3>
                       <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
-                        <MapPin className="h-3 w-3" strokeWidth={1.75} />
+                        <MapPin className="h-3 w-3" />
                         <span className="truncate">{project.location}</span>
                       </div>
                     </div>
@@ -222,7 +222,7 @@ export function ProjectsTable({
                         onClick={() => onEditProject(project)}
                         className="w-full sm:w-auto"
                       >
-                        <Edit className="h-3.5 w-3.5" strokeWidth={1.75} />
+                        <Edit className="h-3.5 w-3.5" />
                         Edit
                       </Button>
                     )}
@@ -238,7 +238,7 @@ export function ProjectsTable({
                           : 'No approved reports with parsed data available'
                       }
                     >
-                      <ArrowRight className="h-3.5 w-3.5" strokeWidth={1.75} />
+                      <ArrowRight className="h-3.5 w-3.5" />
                       View
                     </Button>
                   </div>
@@ -298,7 +298,7 @@ export function ProjectsTable({
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1.5 text-sm text-foreground">
-                          <MapPin className="h-3 w-3 text-muted-foreground" strokeWidth={1.75} />
+                          <MapPin className="h-3 w-3 text-muted-foreground" />
                           <span>{project.location}</span>
                         </div>
                       </TableCell>
@@ -327,7 +327,7 @@ export function ProjectsTable({
                               onClick={() => onEditProject(project)}
                               aria-label={`Edit ${project.project_name}`}
                             >
-                              <Edit className="h-3.5 w-3.5" strokeWidth={1.75} />
+                              <Edit className="h-3.5 w-3.5" />
                               Edit
                             </Button>
                           )}
@@ -343,7 +343,7 @@ export function ProjectsTable({
                             }
                             aria-label={`View ${project.project_name}`}
                           >
-                            <ArrowRight className="h-3.5 w-3.5" strokeWidth={1.75} />
+                            <ArrowRight className="h-3.5 w-3.5" />
                             View
                           </Button>
                         </div>
@@ -369,7 +369,7 @@ export function ProjectsTable({
                   disabled={currentPage === 1}
                   aria-label="Previous page"
                 >
-                  <ChevronLeft className="h-4 w-4" strokeWidth={1.75} />
+                  <ChevronLeft className="h-4 w-4" />
                   <span className="hidden sm:inline">Previous</span>
                 </Button>
                 <div className="flex items-center gap-1">
@@ -425,7 +425,7 @@ export function ProjectsTable({
                   aria-label="Next page"
                 >
                   <span className="hidden sm:inline">Next</span>
-                  <ChevronRight className="h-4 w-4" strokeWidth={1.75} />
+                  <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
             </div>

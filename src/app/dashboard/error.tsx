@@ -19,7 +19,7 @@ export default function DashboardError({
     <div className="min-h-[60vh] flex items-center justify-center">
       <div className="max-w-md w-full bg-card border border-border rounded-lg shadow-sm-tinted p-6 text-center">
         <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center mx-auto mb-3">
-          <AlertCircle className="h-5 w-5 text-destructive" strokeWidth={1.75} />
+          <AlertCircle className="h-5 w-5 text-destructive" />
         </div>
         <h2 className="text-h3 text-foreground mb-1">Something went wrong</h2>
         <p className="text-sm text-muted-foreground">

@@ -30,30 +30,30 @@ const navigationItems: NavItem[] = [
   {
     name: "Dashboard",
     href: "/dashboard",
-    icon: <LayoutDashboard className="h-4 w-4" strokeWidth={1.75} />,
+    icon: <LayoutDashboard className="h-4 w-4" />,
     permission: 'manage_system_settings' as const,
   },
   {
     name: "Website Details",
     href: "/dashboard/website-details",
-    icon: <Globe className="h-4 w-4" strokeWidth={1.75} />,
+    icon: <Globe className="h-4 w-4" />,
     permission: 'manage_website_details' as const,
   },
   {
     name: "Reports Management",
     href: "/dashboard/uploads",
-    icon: <Upload className="h-4 w-4" strokeWidth={1.75} />,
+    icon: <Upload className="h-4 w-4" />,
     permission: 'manage_uploads' as const,
   },
   {
     name: "Warehouse Management",
     href: "/dashboard/warehouse",
-    icon: <Package className="h-4 w-4" strokeWidth={1.75} />,
+    icon: <Package className="h-4 w-4" />,
   },
   {
     name: "User Management",
     href: "/dashboard/users",
-    icon: <Users className="h-4 w-4" strokeWidth={1.75} />,
+    icon: <Users className="h-4 w-4" />,
     permission: 'manage_users' as const,
   },
 ];
@@ -188,7 +188,7 @@ export default function Sidebar() {
             className="w-full inline-flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors duration-150 mobile-touch-target"
             onClick={handleLogout}
           >
-            <LogOut className="h-4 w-4" strokeWidth={1.75} />
+            <LogOut className="h-4 w-4" />
             Log out
           </button>
         </div>
