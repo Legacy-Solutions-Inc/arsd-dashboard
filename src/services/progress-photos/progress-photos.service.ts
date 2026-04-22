@@ -201,19 +201,19 @@ export class ProgressPhotosService extends BaseService {
 
       if (fetchError) throw fetchError;
 
-      // Extract file path from URL
-      const url = new URL(photo.file_url);
-      const filePath = url.pathname.split('/storage/v1/object/public/progress-photos/')[1];
-
-      // Delete from storage
-      if (filePath) {
-        const { error: storageError } = await supabase.storage
-          .from('progress-photos')
-          .remove([filePath]);
-        
-        if (storageError) {
-          console.warn('Failed to delete file from storage:', storageError);
+      // Delete from storage (Supabase or NAS depending on URL prefix)
+      try {
+        const response = await fetch('/api/storage/delete-file', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: photo.file_url }),
+        });
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          console.warn('Failed to delete file from storage:', data.error || response.statusText);
         }
+      } catch (storageError) {
+        console.warn('Failed to delete file from storage:', storageError);
       }
 
       // Delete from database

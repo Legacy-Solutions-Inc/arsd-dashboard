@@ -93,6 +93,9 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY  # Supabase anonymous key
 SUPABASE_SERVICE_ROLE_KEY      # Server-only service role key
 STRIPE_SECRET_KEY              # Stripe API key (if payments active)
 NEXT_PUBLIC_TEMPO              # Tempo devtools flag (dev only)
+NAS_S3_ENDPOINT                # NAS MinIO endpoint, e.g. https://s3.arsd.co
+NAS_S3_ACCESS_KEY_ID           # NAS MinIO service account access key (server-only)
+NAS_S3_SECRET_ACCESS_KEY       # NAS MinIO service account secret key (server-only)
 ```
 
 ## Key Patterns

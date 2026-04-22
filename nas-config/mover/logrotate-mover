@@ -1,0 +1,7 @@
+/volume1/docker/mover/logs/*.log {
+    weekly
+    rotate 8
+    compress
+    missingok
+    notifempty
+}
