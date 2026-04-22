@@ -1,0 +1,24 @@
+version: "3.8"
+
+services:
+  minio:
+    image: quay.io/minio/minio:RELEASE.2025-02-28T00-00-00Z
+    container_name: arsd-minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_BROWSER_REDIRECT_URL: https://console.arsd.co
+      MINIO_SERVER_URL: https://s3.arsd.co
+    command: server /data --console-address ":9001"
+    volumes:
+      - /volume1/docker/minio/data:/data
+      - /volume1/docker/minio/config:/root/.minio
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9000/minio/health/live || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
