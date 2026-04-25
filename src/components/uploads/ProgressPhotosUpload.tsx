@@ -12,6 +12,7 @@ import { Upload, Camera, X, CheckCircle, AlertCircle, ImageIcon, Trash2 } from '
 import { useUploadProgressPhotos } from '@/hooks/useProgressPhotos';
 import { getWeekEndingDate, formatFileSize } from '@/types/progress-photos';
 import type { Project } from '@/types/projects';
+import { compressImage } from '@/lib/image-compression';
 
 interface ProgressPhotosUploadProps {
   project: Project;
@@ -34,6 +35,7 @@ export default function ProgressPhotosUpload({ project, onUploadSuccess, onCance
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [compressionProgress, setCompressionProgress] = useState<{ done: number; total: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { uploadFiles, uploadPhotos } = useUploadProgressPhotos();
 
@@ -145,34 +147,42 @@ export default function ProgressPhotosUpload({ project, onUploadSuccess, onCance
       setUploading(true);
       setError(null);
 
-      // Upload files to storage
-      const uploadResults = await uploadFiles(files.map(f => f.file), project.id);
+      setCompressionProgress({ done: 0, total: files.length });
+      const compressed: FileWithPreview[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const original = files[i];
+        const newFile = await compressImage(original.file);
+        compressed.push({ ...original, file: newFile });
+        setCompressionProgress({ done: i + 1, total: files.length });
+      }
+      setFiles(compressed);
+      setCompressionProgress(null);
 
-      // Create photo records
+      const uploadResults = await uploadFiles(compressed.map((f) => f.file), project.id);
+
       const photosData = uploadResults.map((result, index) => ({
         project_id: project.id,
-        file_name: files[index].file.name,
-        file_size: files[index].file.size,
+        file_name: compressed[index].file.name,
+        file_size: compressed[index].file.size,
         file_url: result.url,
         week_ending_date: getWeekEndingDate(),
-        description: files[index].description.trim() || undefined
+        description: compressed[index].description.trim() || undefined,
       }));
 
       await uploadPhotos(photosData);
 
-      // Trigger a custom event to refresh the projects list
       window.dispatchEvent(new CustomEvent('progressPhotosUploaded', {
-        detail: { projectId: project.id }
+        detail: { projectId: project.id },
       }));
 
-      // Clean up previews
-      files.forEach(f => URL.revokeObjectURL(f.preview));
-      
+      compressed.forEach((f) => URL.revokeObjectURL(f.preview));
+
       onUploadSuccess();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Upload failed');
     } finally {
       setUploading(false);
+      setCompressionProgress(null);
     }
   };
 
@@ -325,7 +335,9 @@ export default function ProgressPhotosUpload({ project, onUploadSuccess, onCance
             {uploading ? (
               <>
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                Uploading...
+                {compressionProgress
+                  ? `Compressing ${compressionProgress.done}/${compressionProgress.total}...`
+                  : 'Uploading...'}
               </>
             ) : (
               <>
