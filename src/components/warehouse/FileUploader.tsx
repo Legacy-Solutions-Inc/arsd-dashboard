@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Upload, X, FileCheck2 } from 'lucide-react';
+import { compressImage } from '@/lib/image-compression';
 
 interface FileUploaderProps {
   label: string;
@@ -19,9 +20,21 @@ export function FileUploader({
   required = false,
 }: FileUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [compressing, setCompressing] = useState(false);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(e.target.files?.[0] || null);
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const picked = e.target.files?.[0] || null;
+    if (!picked) {
+      onChange(null);
+      return;
+    }
+    setCompressing(true);
+    try {
+      const processed = await compressImage(picked);
+      onChange(processed);
+    } finally {
+      setCompressing(false);
+    }
   };
 
   const handleRemove = () => {
@@ -42,15 +55,29 @@ export function FileUploader({
           type="file"
           accept={accept}
           onChange={handleFileChange}
+          disabled={compressing}
           className="hidden"
           id={`file-upload-${label.replace(/\s+/g, '-')}`}
         />
 
         <label
           htmlFor={`file-upload-${label.replace(/\s+/g, '-')}`}
-          className="flex flex-col items-center justify-center w-full h-32 sm:h-40 bg-muted/30 border-2 border-dashed border-border rounded-md cursor-pointer hover:bg-muted/50 hover:border-foreground/20 transition-colors mobile-touch-target"
+          className={`flex flex-col items-center justify-center w-full h-32 sm:h-40 bg-muted/30 border-2 border-dashed border-border rounded-md transition-colors mobile-touch-target ${
+            compressing
+              ? 'cursor-wait opacity-70'
+              : 'cursor-pointer hover:bg-muted/50 hover:border-foreground/20'
+          }`}
         >
-          {value ? (
+          {compressing ? (
+            <div className="flex flex-col items-center gap-2 p-4">
+              <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" />
+              </div>
+              <span className="text-sm font-medium text-foreground">
+                Compressing...
+              </span>
+            </div>
+          ) : value ? (
             <div className="flex flex-col items-center gap-2 p-4">
               <div className="w-10 h-10 bg-emerald-50 dark:bg-emerald-950/40 rounded-full flex items-center justify-center">
                 <FileCheck2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
