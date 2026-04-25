@@ -16,6 +16,7 @@ import {
   Trash2
 } from "lucide-react";
 import { WebsiteProjectPhoto, VALID_IMAGE_TYPES, MAX_FILE_SIZE } from "@/types/website-projects";
+import { compressImage } from "@/lib/image-compression";
 
 interface PhotoUploadSectionProps {
   photos: File[];
@@ -40,6 +41,7 @@ export function PhotoUploadSection({
 }: PhotoUploadSectionProps) {
   const [dragActive, setDragActive] = useState(false);
   const [previewUrls, setPreviewUrls] = useState<Record<string, string>>({});
+  const [compressing, setCompressing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -69,16 +71,16 @@ export function PhotoUploadSection({
     }
   };
 
-  const handleFiles = (files: File[]) => {
+  const handleFiles = async (files: File[]) => {
     const validFiles: File[] = [];
     const errors: string[] = [];
 
-    files.forEach((file, index) => {
+    files.forEach((file) => {
       if (!VALID_IMAGE_TYPES.includes(file.type as any)) {
         errors.push(`${file.name}: Invalid file type. Only JPG, PNG, WebP, and HEIC are allowed.`);
         return;
       }
-      
+
       if (file.size > MAX_FILE_SIZE) {
         errors.push(`${file.name}: File size must be less than ${MAX_FILE_SIZE / (1024 * 1024)}MB.`);
         return;
@@ -95,15 +97,23 @@ export function PhotoUploadSection({
       });
     }
 
-    if (validFiles.length > 0) {
-      const newPhotos = [...photos, ...validFiles];
-      onPhotosChange(newPhotos);
-      
-      // Create preview URLs
-      validFiles.forEach(file => {
+    if (validFiles.length === 0) return;
+
+    setCompressing(true);
+    try {
+      const compressed: File[] = [];
+      for (const f of validFiles) {
+        compressed.push(await compressImage(f));
+      }
+
+      onPhotosChange([...photos, ...compressed]);
+
+      compressed.forEach((file) => {
         const url = URL.createObjectURL(file);
-        setPreviewUrls(prev => ({ ...prev, [file.name]: url }));
+        setPreviewUrls((prev) => ({ ...prev, [file.name]: url }));
       });
+    } finally {
+      setCompressing(false);
     }
   };
 
@@ -190,9 +200,9 @@ export function PhotoUploadSection({
         <p className="text-sm text-gray-500 mb-4">
           Supports JPG, PNG, WebP, HEIC up to 10MB each
         </p>
-        <Button type="button" onClick={openFileDialog} variant="outline">
+        <Button type="button" onClick={openFileDialog} variant="outline" disabled={compressing}>
           <Upload className="h-4 w-4 mr-2" />
-          Choose Files
+          {compressing ? 'Compressing...' : 'Choose Files'}
         </Button>
         <input
           ref={fileInputRef}
@@ -200,6 +210,7 @@ export function PhotoUploadSection({
           multiple
           accept={VALID_IMAGE_TYPES.join(",")}
           onChange={handleFileInput}
+          disabled={compressing}
           className="hidden"
         />
       </div>
