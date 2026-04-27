@@ -13,14 +13,7 @@ export const maxDuration = 300;
  *
  * Triggered by Vercel Cron at 02:30 UTC daily.
  */
-export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization');
-  const expectedToken = process.env.CRON_SECRET;
-
-  if (!expectedToken || authHeader !== `Bearer ${expectedToken}`) {
-    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-  }
-
+export async function GET(_request: NextRequest) {
   try {
     const result = await runNasMover();
 

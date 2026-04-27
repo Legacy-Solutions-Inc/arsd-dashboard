@@ -12,21 +12,8 @@ import { StorageCleanupService } from '@/services/storage/storage-cleanup.servic
  * 
  * Automatically keeps only files within 1 week (current week + 1 past week).
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
-    // Verify the request is authorized (fail closed — reject if token is missing or wrong).
-    // CRON_SECRET is Vercel's convention — it auto-injects Authorization: Bearer ${CRON_SECRET}
-    // on cron-triggered requests, so the same env var works for manual triggers too.
-    const authHeader = request.headers.get('authorization');
-    const expectedToken = process.env.CRON_SECRET;
-
-    if (!expectedToken || authHeader !== `Bearer ${expectedToken}`) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
     console.log('🤖 Starting automated storage cleanup...');
 
     // Initialize cleanup service with default settings
