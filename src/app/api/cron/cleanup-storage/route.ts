@@ -14,9 +14,11 @@ import { StorageCleanupService } from '@/services/storage/storage-cleanup.servic
  */
 export async function GET(request: NextRequest) {
   try {
-    // Verify the request is authorized (fail closed — reject if token is missing or wrong)
+    // Verify the request is authorized (fail closed — reject if token is missing or wrong).
+    // CRON_SECRET is Vercel's convention — it auto-injects Authorization: Bearer ${CRON_SECRET}
+    // on cron-triggered requests, so the same env var works for manual triggers too.
     const authHeader = request.headers.get('authorization');
-    const expectedToken = process.env.CRON_SECRET_TOKEN;
+    const expectedToken = process.env.CRON_SECRET;
 
     if (!expectedToken || authHeader !== `Bearer ${expectedToken}`) {
       return NextResponse.json(
