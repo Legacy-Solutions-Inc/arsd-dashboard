@@ -8,65 +8,93 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ChevronLeft, ChevronRight, Search, Filter } from "lucide-react";
-import { 
-  processMaterialsDataComplete,
+import { ChevronLeft, ChevronRight, Search, Filter, AlertTriangle } from "lucide-react";
+import {
+  filterMaterials,
+  sortMaterials,
+  calculatePagination,
+  getPaginatedMaterials,
   getMaterialStatus,
   getStatusBadgeVariant,
   getStatusLabel,
-  getPOStatusBadgeStyling,
-  getPriorityBadgeStyling,
   calculatePercentReceived,
   generatePieData,
+  stockItemsToMaterials,
+  calculateWarehouseMaterialSummary,
   PIE_COLORS,
-  STATUS_OPTIONS
+  STATUS_OPTIONS,
 } from "@/utils/materials-utils";
-import { DatabaseMaterial, DatabasePurchaseOrder, Material, MaterialFilters } from "@/utils/materials-utils";
+import type { Material, MaterialFilters } from "@/utils/materials-utils";
+import { useStocks } from "@/hooks/warehouse/useStocks";
 
-// Constants and interfaces are now imported from utils file
 const ITEMS_PER_PAGE = 8;
 
 interface MaterialsProps {
-  materials: DatabaseMaterial[];
-  purchaseOrders: DatabasePurchaseOrder[];
+  projectId: string;
 }
 
-export function Materials({ materials, purchaseOrders }: MaterialsProps) {
+export function Materials({ projectId }: MaterialsProps) {
+  const { stockItems, loading, error } = useStocks(projectId);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedIdx, setSelectedIdx] = useState(0);
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
 
-  // Process all materials data using utility functions
-  const {
-    processedMaterials,
-    filteredMaterials,
-    paginatedMaterials,
-    paginationInfo,
-    summaryStats,
-    pieData
-  } = useMemo(() => {
-    const filters: MaterialFilters = {
-      searchTerm,
-      statusFilter,
-      typeFilter: ""
-    };
+  const rowKey = (m: Material): string => m.key ?? m.name;
 
-    const sorting = {
-      field: 'name' as const,
-      direction: 'asc' as const
-    };
+  const allMaterials = useMemo<Material[]>(
+    () => stockItemsToMaterials(stockItems),
+    [stockItems],
+  );
 
-    const selectedMaterial = materials.length > 0 ? 
-      processMaterialsDataComplete(materials, purchaseOrders, { searchTerm: "", statusFilter: "all", typeFilter: "" }, sorting, 1, 8).processedMaterials[selectedIdx] || null : 
-      null;
+  const summaryStats = useMemo(
+    () => calculateWarehouseMaterialSummary(stockItems),
+    [stockItems],
+  );
 
-    return processMaterialsDataComplete(materials, purchaseOrders, filters, sorting, currentPage, ITEMS_PER_PAGE, selectedMaterial);
-  }, [materials, purchaseOrders, searchTerm, statusFilter, currentPage, selectedIdx]);
+  const sortedMaterials = useMemo(() => {
+    const filters: MaterialFilters = { searchTerm, statusFilter, typeFilter: "" };
+    const filtered = filterMaterials(allMaterials, filters);
+    return sortMaterials(filtered, { field: "name", direction: "asc" });
+  }, [allMaterials, searchTerm, statusFilter]);
 
-  // Calculate percent received for selected material
-  const selectedMaterial = processedMaterials[selectedIdx] || processedMaterials[0];
+  const paginationInfo = useMemo(
+    () => calculatePagination(sortedMaterials.length, currentPage, ITEMS_PER_PAGE),
+    [sortedMaterials.length, currentPage],
+  );
+
+  const paginatedMaterials = useMemo(
+    () => getPaginatedMaterials(sortedMaterials, paginationInfo),
+    [sortedMaterials, paginationInfo],
+  );
+
+  const selectedMaterial =
+    sortedMaterials.find((m) => rowKey(m) === selectedKey) ??
+    sortedMaterials[0] ??
+    null;
+  const pieData = useMemo(() => generatePieData(selectedMaterial), [selectedMaterial]);
   const percentReceived = calculatePercentReceived(selectedMaterial);
+
+  const receivedOverflow = summaryStats.receivedPercentage > 100;
+  const utilizedOverflow = summaryStats.utilizedPercentage > 100;
+
+  if (loading) {
+    return (
+      <div className="space-y-4 lg:space-y-6 mt-4 lg:mt-6">
+        <div className="text-sm text-muted-foreground">Loading materials…</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-4 lg:space-y-6 mt-4 lg:mt-6">
+        <div className="text-sm text-destructive">
+          Failed to load materials: {error.message}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 lg:space-y-6 mt-4 lg:mt-6">
@@ -82,7 +110,14 @@ export function Materials({ materials, purchaseOrders }: MaterialsProps) {
         </Card>
         <Card>
           <CardContent className="p-4 lg:p-5">
-            <div className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Received</div>
+            <div className="flex items-center justify-between">
+              <div className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Received</div>
+              {receivedOverflow && (
+                <span title="Released qty exceeds received qty in the underlying data" aria-label="Over 100%">
+                  <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
+                </span>
+              )}
+            </div>
             <div className="text-h2 font-display text-foreground mt-1 nums">
               {summaryStats.receivedPercentage}%
             </div>
@@ -90,7 +125,14 @@ export function Materials({ materials, purchaseOrders }: MaterialsProps) {
         </Card>
         <Card>
           <CardContent className="p-4 lg:p-5">
-            <div className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Utilized</div>
+            <div className="flex items-center justify-between">
+              <div className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">Utilized</div>
+              {utilizedOverflow && (
+                <span title="Utilized qty exceeds received qty in the underlying data" aria-label="Over 100%">
+                  <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
+                </span>
+              )}
+            </div>
             <div className="text-h2 font-display text-foreground mt-1 nums">
               {summaryStats.utilizedPercentage}%
             </div>
@@ -107,9 +149,9 @@ export function Materials({ materials, purchaseOrders }: MaterialsProps) {
         </CardHeader>
         <CardContent>
           <div className="text-center text-sm font-semibold text-foreground mb-4">
-            {selectedMaterial?.name} — {selectedMaterial?.unit}
+            {selectedMaterial?.name ?? "—"} {selectedMaterial?.unit ? `— ${selectedMaterial.unit}` : ""}
           </div>
-          
+
           {/* Chart Section */}
           <div className="flex items-center justify-center mb-4 lg:mb-6 p-3 lg:p-4">
             <div className="relative w-48 h-48 lg:w-64 lg:h-64">
@@ -141,13 +183,13 @@ export function Materials({ materials, purchaseOrders }: MaterialsProps) {
               </div>
             </div>
           </div>
-          
+
           {/* Legend */}
           <div className="grid grid-cols-2 gap-2 mb-3 lg:mb-4">
             {pieData.map((item, index) => (
               <div key={item.name} className="flex items-center space-x-2">
-                <div 
-                  className="w-3 h-3 lg:w-4 lg:h-4 rounded" 
+                <div
+                  className="w-3 h-3 lg:w-4 lg:h-4 rounded"
                   style={{ backgroundColor: PIE_COLORS[index % PIE_COLORS.length] }}
                 ></div>
                 <span className="text-xs lg:text-sm font-medium">{item.name}</span>
@@ -157,19 +199,19 @@ export function Materials({ materials, purchaseOrders }: MaterialsProps) {
           <div className="space-y-0 text-sm divide-y divide-border rounded-md border border-border overflow-hidden">
             <div className="flex justify-between px-3 py-2 bg-card">
               <span className="text-muted-foreground">Requested</span>
-              <span className="font-semibold text-foreground nums">{selectedMaterial?.requestedQuantity} {selectedMaterial?.unit}</span>
+              <span className="font-semibold text-foreground nums">{selectedMaterial?.requestedQuantity ?? 0} {selectedMaterial?.unit}</span>
             </div>
             <div className="flex justify-between px-3 py-2 bg-card">
               <span className="text-muted-foreground">Received</span>
-              <span className="font-semibold text-foreground nums">{selectedMaterial?.receivedQuantity} {selectedMaterial?.unit}</span>
+              <span className="font-semibold text-foreground nums">{selectedMaterial?.receivedQuantity ?? 0} {selectedMaterial?.unit}</span>
             </div>
             <div className="flex justify-between px-3 py-2 bg-card">
               <span className="text-muted-foreground">Utilized</span>
-              <span className="font-semibold text-foreground nums">{selectedMaterial?.utilizedQuantity} {selectedMaterial?.unit}</span>
+              <span className="font-semibold text-foreground nums">{selectedMaterial?.utilizedQuantity ?? 0} {selectedMaterial?.unit}</span>
             </div>
             <div className="flex justify-between px-3 py-2 bg-card">
               <span className="text-muted-foreground">Pending</span>
-              <span className="font-semibold text-foreground nums">{selectedMaterial?.pendingQuantity} {selectedMaterial?.unit}</span>
+              <span className="font-semibold text-foreground nums">{selectedMaterial?.pendingQuantity ?? 0} {selectedMaterial?.unit}</span>
             </div>
           </div>
         </CardContent>
@@ -217,7 +259,7 @@ export function Materials({ materials, purchaseOrders }: MaterialsProps) {
 
           {/* Results Summary */}
           <div className="text-xs lg:text-sm text-gray-600 mb-3 lg:mb-4">
-            Showing {paginatedMaterials.length} of {filteredMaterials.length} materials
+            Showing {paginatedMaterials.length} of {sortedMaterials.length} materials
             {searchTerm && ` matching "${searchTerm}"`}
             {statusFilter !== "all" && ` with status "${statusFilter}"`}
           </div>
@@ -237,22 +279,23 @@ export function Materials({ materials, purchaseOrders }: MaterialsProps) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginatedMaterials.map((material: Material, index: number) => {
-                  const globalIndex = processedMaterials.findIndex(m => m.name === material.name);
+                {paginatedMaterials.map((material: Material) => {
+                  const key = rowKey(material);
+                  const isSelected = selectedMaterial != null && rowKey(selectedMaterial) === key;
                   return (
                   <TableRow
-                      key={material.name}
+                      key={key}
                     className={
-                        globalIndex === selectedIdx
+                        isSelected
                         ? "bg-muted/50 cursor-pointer"
                         : "hover:bg-muted/30 cursor-pointer transition-colors"
                     }
-                      onClick={() => setSelectedIdx(globalIndex)}
+                      onClick={() => setSelectedKey(key)}
                   >
                     <TableCell className="font-medium text-foreground truncate max-w-[140px] text-sm">{material.name}</TableCell>
                     <TableCell>
                       <Badge variant="outline">
-                        {material.type === 'recieved' ? 'received' : material.type}
+                        {material.type || "—"}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-foreground text-sm">{material.unit}</TableCell>
@@ -269,8 +312,8 @@ export function Materials({ materials, purchaseOrders }: MaterialsProps) {
                     <TableCell className="text-foreground font-medium text-sm nums">{material.utilizedQuantity}</TableCell>
                     <TableCell className="text-foreground font-medium text-sm nums">{material.pendingQuantity}</TableCell>
                     <TableCell>
-                      <Badge 
-                        variant="outline" 
+                      <Badge
+                        variant="outline"
                         className={`text-xs ${getStatusBadgeVariant(getMaterialStatus(material))}`}
                       >
                         {getStatusLabel(getMaterialStatus(material))}
@@ -317,76 +360,6 @@ export function Materials({ materials, purchaseOrders }: MaterialsProps) {
       </Card>
 
       </div>
-
-      {/* Purchase Orders Section */}
-      {selectedMaterial && selectedMaterial.purchaseOrders.length > 0 && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold text-foreground">
-              Purchase orders · {selectedMaterial.name}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-xs lg:text-sm">PO Number</TableHead>
-                    <TableHead className="text-xs lg:text-sm">Date Requested</TableHead>
-                    <TableHead className="text-xs lg:text-sm">Expected Delivery</TableHead>
-                    <TableHead className="text-xs lg:text-sm">Quantity</TableHead>
-                    <TableHead className="text-xs lg:text-sm">Status</TableHead>
-                    <TableHead className="text-xs lg:text-sm">Priority</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {selectedMaterial.purchaseOrders.map((po) => (
-                    <TableRow key={po.id}>
-                      <TableCell className="font-medium text-xs lg:text-sm">{po.po_number}</TableCell>
-                      <TableCell className="text-xs lg:text-sm">{new Date(po.date_requested).toLocaleDateString('en-GB')}</TableCell>
-                      <TableCell className="text-xs lg:text-sm">{new Date(po.expected_delivery_date).toLocaleDateString('en-GB')}</TableCell>
-                      <TableCell className="font-medium text-xs lg:text-sm">{po.qty} {po.unit}</TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={`text-xs ${
-                            po.status.toLowerCase().includes('delivered') ||
-                            po.status.toLowerCase().includes('received') ||
-                            po.status.toLowerCase().includes('recieved')
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/50'
-                              : po.status.toLowerCase().includes('utilized') ||
-                                po.status.toLowerCase().includes('used')
-                              ? 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/40 dark:text-sky-300 dark:border-sky-900/50'
-                              : po.status.toLowerCase().includes('pending')
-                              ? 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900/50'
-                              : 'bg-destructive/5 text-destructive border-destructive/30'
-                          }`}
-                        >
-                          {po.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={`text-xs ${
-                            po.priority_level?.toLowerCase() === 'high'
-                              ? 'bg-destructive/5 text-destructive border-destructive/30'
-                              : po.priority_level?.toLowerCase() === 'medium'
-                              ? 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900/50'
-                              : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/50'
-                          }`}
-                        >
-                          {po.priority_level || 'Normal'}
-                        </Badge>
-                      </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-      )}
     </div>
   );
 }

@@ -82,6 +82,8 @@ export async function GET(
           wbs: ipow.wbs,
           item_description: ipow.item_description,
           resource: ipow.resource ?? null,
+          unit: ipow.unit ?? '',
+          type: ipow.type ?? 'Materials',
           ipow_qty: ipow.latest_ipow_qty,
           delivered,
           utilized,
@@ -119,12 +121,15 @@ export async function GET(
     }
 
     const stockItems: StockItem[] = Array.from(descriptionByKey.entries()).map(([normKey, item_description]) => {
+      let unit: string | undefined;
       const delivered = deliveryReceipts.reduce((sum, dr) => {
         const match = dr.items?.find((item) => matchItem(normKey, item.item_description));
+        if (match && !unit) unit = match.unit;
         return sum + (match?.qty_in_dr ?? 0);
       }, 0);
       const utilized = releaseForms.reduce((sum, rel) => {
         const match = rel.items?.find((item) => matchItem(normKey, item.item_description));
+        if (match && !unit) unit = match.unit;
         return sum + (match?.qty ?? 0);
       }, 0);
       const running_balance = delivered - utilized;
@@ -139,6 +144,8 @@ export async function GET(
         wbs: null,
         item_description,
         resource: null,
+        unit: unit ?? '',
+        type: 'Materials',
         ipow_qty: 0,
         delivered,
         utilized,

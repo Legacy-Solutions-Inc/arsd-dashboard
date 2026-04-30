@@ -40,7 +40,8 @@ interface ItemsRepeaterProps {
 function formatQty(n: number): string {
   if (n === 0) return '';
   const s = String(n);
-  return s.endsWith('.') ? s : s.replace(/\.?0+$/, '') || String(n);
+  if (!s.includes('.')) return s;
+  return s.replace(/0+$/, '').replace(/\.$/, '');
 }
 
 function normalizeDescription(value: string): string {

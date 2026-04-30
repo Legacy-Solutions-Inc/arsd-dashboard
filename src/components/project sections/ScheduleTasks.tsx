@@ -4,21 +4,24 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import {
+  ComposedChart, LineChart, Line, Area, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer,
+} from 'recharts';
 import { useState, useMemo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { 
-  processScheduleTasksData, 
-  getTaskColor, 
+import {
+  processScheduleTasksData,
+  getTaskColor,
   isTaskActiveInWeek,
   calculateTaskPagination,
   calculateAccomplishmentsPagination
 } from "@/utils/schedule-tasks-utils";
+import { calculateForecastBand } from "@/utils/cost-analysis-utils";
 import { ScheduleTasksProps, Task, GanttTask, WeeklyAccomplishment } from "@/types/schedule-tasks";
 
 // Interfaces are now imported from types file
 
-export function ScheduleTasks({ tasks, costItemsSecondaryData = [], targetCostTotal = 0, projectData }: ScheduleTasksProps) {
+export function ScheduleTasks({ tasks, costItemsSecondaryData = [], targetCostTotal = 0, projectData, progressTrend = [] }: ScheduleTasksProps) {
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [currentAccomplishmentsPage, setCurrentAccomplishmentsPage] = useState(1);
@@ -58,6 +61,34 @@ export function ScheduleTasks({ tasks, costItemsSecondaryData = [], targetCostTo
   const accomplishmentsPagination = useMemo(() => {
     return calculateAccomplishmentsPagination(weeklyAccomplishments, currentAccomplishmentsPage, itemsPerPage);
   }, [weeklyAccomplishments, currentAccomplishmentsPage, itemsPerPage]);
+
+  // Forecast band for the S-curve. Computed from progressTrend (cross-tab data
+  // also used by the Cost Analysis Slippage Trend chart). Renders only when ≥6
+  // weekly reports exist; otherwise the legend shows the unblock condition.
+  const forecastBand = useMemo(
+    () => calculateForecastBand(progressTrend, projectData?.plannedEndDate),
+    [progressTrend, projectData?.plannedEndDate],
+  );
+
+  // Merged dataset for the S-curve. Each row carries either historical
+  // `progress` (Line) or forecast `forecastLow` + `forecastDelta` (stacked
+  // Area band) — never both — so the line and band don't visually overlap.
+  const sCurveSeriesData = useMemo(() => {
+    const historical = sCurveData.map((row: any) => ({
+      date: row.date,
+      progress: row.progress,
+    }));
+    if (!forecastBand.enabled) return historical;
+    const forecast = forecastBand.points.map((p) => ({
+      date: p.date,
+      forecastLow: p.forecastLow,
+      forecastDelta: p.forecastDelta,
+      forecastMid: p.forecastMid,
+    }));
+    // Stitch: historical first, then forecast points (which start at the
+    // anchorDate so the band visually attaches to the line's last point).
+    return [...historical, ...forecast];
+  }, [sCurveData, forecastBand]);
 
   return (
     <Card>
@@ -216,7 +247,7 @@ export function ScheduleTasks({ tasks, costItemsSecondaryData = [], targetCostTo
                         <div className="flex hover:bg-muted/40 transition-colors">
                           {weeklyAccomplishments.map((acc, index) => (
                             <div key={index} className="w-16 lg:w-20 flex-shrink-0 text-center p-2 lg:p-4 text-xs border-r border-gray-200 font-medium bg-blue-50 text-blue-800">
-                              {acc.periodicPhysical.toFixed(2)}
+                              {acc.periodicPhysical.toFixed(2)}%
                             </div>
                           ))}
                         </div>
@@ -230,7 +261,7 @@ export function ScheduleTasks({ tasks, costItemsSecondaryData = [], targetCostTo
                         <div className="flex hover:bg-muted/40 transition-colors">
                           {weeklyAccomplishments.map((acc, index) => (
                             <div key={index} className="w-16 lg:w-20 flex-shrink-0 text-center p-2 lg:p-3 text-xs border-r border-gray-200 font-medium bg-yellow-50 text-yellow-800">
-                              {acc.accumulativePhysical.toFixed(2)}
+                              {acc.accumulativePhysical.toFixed(2)}%
                             </div>
                           ))}
                         </div>
@@ -415,47 +446,92 @@ export function ScheduleTasks({ tasks, costItemsSecondaryData = [], targetCostTo
                   </div>
                 )}
 
-                {/* S-Curve Chart */}
+                {/* S-Curve Chart with forecast band (band renders only when ≥6 reports exist) */}
                 {sCurveData.length > 0 && (
                   <div className="mt-6">
-                    <h3 className="text-sm font-semibold text-foreground mb-3">Project progress (S-curve)</h3>
+                    <div className="flex items-baseline justify-between mb-3">
+                      <h3 className="text-sm font-semibold text-foreground">Project progress (S-curve)</h3>
+                      {!forecastBand.enabled && (
+                        <span className="text-[11px] text-muted-foreground">{forecastBand.reason}</span>
+                      )}
+                      {forecastBand.enabled && (
+                        <span className="text-[11px] text-muted-foreground">Forecast band shows ±1σ projected from history</span>
+                      )}
+                    </div>
                     <div className="bg-card rounded-md p-4 border border-border">
                       <ResponsiveContainer width="100%" height={300}>
-                        <LineChart data={sCurveData} margin={{ top: 20, right: 30, left: 60, bottom: 60 }}>
-                          <XAxis 
-                            dataKey="date" 
+                        <ComposedChart data={sCurveSeriesData} margin={{ top: 20, right: 30, left: 60, bottom: 60 }}>
+                          <XAxis
+                            dataKey="date"
                             tick={{ fontSize: 10 }}
                             angle={-45}
                             textAnchor="end"
                             height={80}
                             interval="preserveStartEnd"
                           />
-                          <YAxis 
-                            domain={[0, 100]} 
-                            tickFormatter={(v: number) => `${v.toFixed(2)}%`}
+                          <YAxis
+                            domain={[0, 100]}
+                            tickFormatter={(v: number) => `${v.toFixed(0)}%`}
                             tick={{ fontSize: 12 }}
                             tickCount={11}
                           />
-                          <Tooltip 
-                            formatter={(value) => [`${value}%`, 'Accumulative Physical Accomplishment']}
+                          <Tooltip
+                            formatter={(value: any, name: any) => {
+                              const num = typeof value === 'number' ? value : Number(value);
+                              if (!Number.isFinite(num)) return ['—', name];
+                              return [`${num.toFixed(2)}%`, name];
+                            }}
                             labelFormatter={(label) => `Date: ${label}`}
                           />
                           <Legend />
-                          <Line 
-                            type="monotone" 
-                            dataKey="progress" 
-                            name="Accumulative Physical Accomplishment" 
-                            stroke="#b91c1c" 
-                            strokeWidth={3} 
-                            dot={{ fill: '#b91c1c', strokeWidth: 2, r: 4 }} 
+                          {forecastBand.enabled && (
+                            <>
+                              {/* Two stacked Areas form the band. The first is invisible
+                                  and acts as the lower edge offset; the second renders
+                                  the height of the band on top of it. */}
+                              <Area
+                                type="monotone"
+                                dataKey="forecastLow"
+                                stackId="forecast"
+                                stroke="none"
+                                fill="transparent"
+                                isAnimationActive={false}
+                                legendType="none"
+                              />
+                              <Area
+                                type="monotone"
+                                dataKey="forecastDelta"
+                                name="Forecast band (±1σ)"
+                                stackId="forecast"
+                                stroke="none"
+                                fill="#6b7280"
+                                fillOpacity={0.2}
+                                isAnimationActive={false}
+                              />
+                              <Line
+                                type="monotone"
+                                dataKey="forecastMid"
+                                name="Forecast (current pace)"
+                                stroke="#6b7280"
+                                strokeWidth={2}
+                                strokeDasharray="5 5"
+                                dot={false}
+                                connectNulls={false}
+                                isAnimationActive={false}
+                              />
+                            </>
+                          )}
+                          <Line
+                            type="monotone"
+                            dataKey="progress"
+                            name="Accumulative Physical Accomplishment"
+                            stroke="#b91c1c"
+                            strokeWidth={3}
+                            dot={{ fill: '#b91c1c', strokeWidth: 2, r: 4 }}
                             connectNulls={false}
                           />
-                        </LineChart>
+                        </ComposedChart>
                       </ResponsiveContainer>
-                    </div>
-                    
-                    {/* S-Curve Summary */}
-                    <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                     </div>
                   </div>
                 )}

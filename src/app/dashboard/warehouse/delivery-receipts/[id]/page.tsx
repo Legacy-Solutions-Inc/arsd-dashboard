@@ -23,6 +23,7 @@ export default function DeliveryReceiptDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [previewImage, setPreviewImage] = useState<{ url: string; label: string } | null>(null);
+  const [lockError, setLockError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editItems, setEditItems] = useState<ItemEntry[]>([]);
   const [editDate, setEditDate] = useState('');
@@ -180,7 +181,8 @@ export default function DeliveryReceiptDetailPage() {
 
   const handleLockToggle = async () => {
     if (!dr) return;
-    
+
+    setLockError(null);
     try {
       const response = await fetch(`/api/warehouse/delivery-receipts/${dr.id}`, {
         method: 'PATCH',
@@ -189,13 +191,23 @@ export default function DeliveryReceiptDetailPage() {
       });
 
       if (!response.ok) throw new Error('Failed to update lock status');
-      
+
       const updated = await response.json();
       setDR(updated);
     } catch (err) {
-      alert('Failed to update lock status. Please try again.');
+      setLockError('Failed to update lock status. Please try again.');
     }
   };
+
+  // Close the image preview on Escape key.
+  useEffect(() => {
+    if (!previewImage) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setPreviewImage(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [previewImage]);
 
   if (loading) {
     return (
@@ -233,29 +245,35 @@ export default function DeliveryReceiptDetailPage() {
         <div className="relative">
           <div className="absolute inset-0 hidden"></div>
           <div className="relative bg-card border border-border rounded-lg p-4 sm:p-6 shadow-xs">
-            <div className="flex items-center gap-3">
+            {/* Title row: back button + heading + status pill (always visible). */}
+            <div className="flex items-start gap-3">
               <button
                 onClick={() => router.push('/dashboard/warehouse/delivery-receipts')}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors mobile-touch-target"
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors mobile-touch-target shrink-0"
+                aria-label="Back to delivery receipts"
               >
                 <ArrowLeft className="h-5 w-5 text-gray-600" />
               </button>
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <h1 className="text-h1 font-display text-foreground leading-none">
                   Delivery Receipt Details
                 </h1>
-                <p className="text-gray-600 responsive-text">{dr.dr_no}</p>
+                <p className="text-gray-600 responsive-text mt-0.5 truncate">{dr.dr_no}</p>
               </div>
-              <div className="flex items-center gap-2">
-                <BadgeStatus locked={dr.locked} />
+              <BadgeStatus locked={dr.locked} />
+            </div>
+
+            {/* Action row: lock + edit/save/cancel. Wraps on phones; right-aligned on tablet+. */}
+            {(canUnlock || canEdit) && (
+              <div className="mt-3 flex flex-wrap gap-2 sm:justify-end">
                 {canUnlock && (
                   <button
                     onClick={handleLockToggle}
                     disabled={isEditing}
-                    className={`btn-arsd-outline mobile-button flex items-center gap-2 ${
+                    className={`inline-flex items-center justify-center gap-2 rounded-md border px-4 py-2.5 sm:py-2 text-sm font-medium transition-colors min-h-[44px] sm:min-h-0 ${
                       dr.locked
-                        ? 'text-amber-700 border-amber-300 hover:bg-amber-50'
-                        : 'text-green-700 border-green-300 hover:bg-green-50'
+                        ? 'text-amber-700 border-amber-300 bg-amber-50/40 hover:bg-amber-50'
+                        : 'text-emerald-700 border-emerald-300 bg-emerald-50/40 hover:bg-emerald-50'
                     } ${isEditing ? 'opacity-60 cursor-not-allowed' : ''}`}
                   >
                     {dr.locked ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
@@ -266,7 +284,7 @@ export default function DeliveryReceiptDetailPage() {
                   <button
                     type="button"
                     onClick={handleEnterEdit}
-                    className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-[hsl(var(--arsd-red-hover))] transition-colors flex items-center gap-2"
+                    className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 sm:py-2 text-sm font-medium text-primary-foreground hover:bg-[hsl(var(--arsd-red-hover))] transition-colors min-h-[44px] sm:min-h-0"
                   >
                     Edit
                   </button>
@@ -277,7 +295,7 @@ export default function DeliveryReceiptDetailPage() {
                       type="button"
                       onClick={handleSave}
                       disabled={!canSave || saveLoading}
-                      className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-[hsl(var(--arsd-red-hover))] transition-colors flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                      className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 sm:py-2 text-sm font-medium text-primary-foreground hover:bg-[hsl(var(--arsd-red-hover))] transition-colors min-h-[44px] sm:min-h-0 disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                       {saveLoading ? 'Saving…' : 'Save changes'}
                     </button>
@@ -285,17 +303,29 @@ export default function DeliveryReceiptDetailPage() {
                       type="button"
                       onClick={handleCancelEdit}
                       disabled={saveLoading}
-                      className="btn-arsd-outline mobile-button flex items-center gap-2"
+                      className="inline-flex items-center justify-center gap-2 rounded-md border border-border bg-card px-4 py-2.5 sm:py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors min-h-[44px] sm:min-h-0 disabled:opacity-60"
                     >
                       Cancel
                     </button>
                   </>
                 )}
               </div>
-            </div>
+            )}
+
             {isEditing && (
               <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
                 You are editing this unlocked delivery receipt. Changes will update the existing record.
+              </div>
+            )}
+            {lockError && (
+              <div className="mt-3 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive flex items-start justify-between gap-3">
+                <span>{lockError}</span>
+                <button
+                  onClick={() => setLockError(null)}
+                  className="font-medium text-destructive/80 hover:text-destructive shrink-0"
+                >
+                  Dismiss
+                </button>
               </div>
             )}
             {saveError && (
@@ -444,7 +474,7 @@ export default function DeliveryReceiptDetailPage() {
               <div className="space-y-4">
                 {dr.items?.map((item, index) => (
                   <div key={index} className="glass-card p-4">
-                    <dl className="grid grid-cols-2 gap-3 text-sm">
+                    <dl className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 text-sm">
                       <dt className="text-gray-600">Description</dt>
                       <dd className="font-medium break-words">
                         {item.item_description}
@@ -458,7 +488,7 @@ export default function DeliveryReceiptDetailPage() {
                         })()}
                       </dd>
                       <dt className="text-gray-600">Qty in DR</dt>
-                      <dd className="font-medium">
+                      <dd className="font-medium nums">
                         {item.qty_in_dr.toLocaleString()} {item.unit}
                       </dd>
                     </dl>

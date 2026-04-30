@@ -360,15 +360,15 @@ export default function CreateReleasePage() {
         )}
 
         {/* Action Buttons */}
-        <div className="flex gap-3 sm:gap-4 pt-4">
+        <div className="flex flex-wrap gap-3 sm:gap-4 pt-4">
           <button
             onClick={handleCancel}
             disabled={submitLoading}
-            className="inline-flex items-center justify-center rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors duration-150 mobile-touch-target min-h-[44px] flex-1 sm:flex-none sm:min-w-[120px] disabled:opacity-50"
+            className="inline-flex items-center justify-center rounded-md border border-border bg-card px-4 py-2.5 sm:py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors duration-150 mobile-touch-target min-h-[44px] flex-1 sm:flex-none sm:min-w-[120px] disabled:opacity-50"
           >
             Cancel
           </button>
-          <div className="flex-1" />
+          <div className="hidden sm:block sm:flex-1" />
           <button
             onClick={handleSubmit}
             disabled={!canSubmit() || submitLoading}

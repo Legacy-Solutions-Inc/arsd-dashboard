@@ -92,7 +92,7 @@ export default function ReleasesListPage() {
         {canCreate && (
           <button
             onClick={() => router.push('/dashboard/warehouse/releases/new')}
-            className="inline-flex items-center gap-2 rounded-md bg-primary text-primary-foreground px-4 py-2 text-sm font-medium hover:bg-[hsl(var(--arsd-red-hover))] transition-colors"
+            className="inline-flex items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground px-4 py-2.5 sm:py-2 text-sm font-medium hover:bg-[hsl(var(--arsd-red-hover))] transition-colors min-h-[44px] sm:min-h-0 mobile-touch-target sm:[&]:min-w-0"
           >
             <Plus className="h-4 w-4" />
             Create release
@@ -112,8 +112,8 @@ export default function ReleasesListPage() {
         </div>
       )}
 
-      {/* Filters */}
-      <div className="sticky top-0 z-40 bg-card border border-border rounded-md shadow-xs p-4">
+      {/* Filters — desktop-only sticky (see DR list for rationale) */}
+      <div className="sm:sticky sm:top-0 sm:z-40 bg-card border border-border rounded-md shadow-xs p-4">
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-muted-foreground" />
@@ -147,20 +147,26 @@ export default function ReleasesListPage() {
               </select>
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                aria-label="From date"
-                className="w-full rounded-md border border-border bg-card px-2 py-1.5 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-ring/40"
-              />
-              <input
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                aria-label="To date"
-                className="w-full rounded-md border border-border bg-card px-2 py-1.5 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-ring/40"
-              />
+              <div>
+                <label className="block text-[11px] uppercase tracking-[0.06em] text-muted-foreground mb-1">From</label>
+                <input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                  aria-label="From date"
+                  className="w-full rounded-md border border-border bg-card px-3 py-2.5 sm:py-1.5 text-sm sm:text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-ring/40 min-h-[44px] sm:min-h-0"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] uppercase tracking-[0.06em] text-muted-foreground mb-1">To</label>
+                <input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                  aria-label="To date"
+                  className="w-full rounded-md border border-border bg-card px-3 py-2.5 sm:py-1.5 text-sm sm:text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-ring/40 min-h-[44px] sm:min-h-0"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -268,7 +274,7 @@ export default function ReleasesListPage() {
               type="button"
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={activePage === 1}
-              className="inline-flex items-center rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center justify-center rounded-md border border-border bg-card px-4 py-2.5 sm:py-1.5 text-sm sm:text-xs font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] sm:min-h-0"
             >
               Previous
             </button>
@@ -280,7 +286,7 @@ export default function ReleasesListPage() {
               type="button"
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={activePage === totalPages}
-              className="inline-flex items-center rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center justify-center rounded-md border border-border bg-card px-4 py-2.5 sm:py-1.5 text-sm sm:text-xs font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] sm:min-h-0"
             >
               Next
             </button>
