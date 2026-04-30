@@ -2,6 +2,8 @@
  * Utility functions for Materials component computations
  */
 
+import type { StockItem } from '@/types/warehouse';
+
 export interface DatabaseMaterial {
   id: string;
   material: string;
@@ -25,6 +27,12 @@ export interface DatabasePurchaseOrder {
 }
 
 export interface Material {
+  /**
+   * Stable composite identifier — populated for warehouse-sourced rows where
+   * `name` alone is not unique (multiple rows can share an item_description with
+   * different WBS or resource). Falls back to `name` for legacy callers.
+   */
+  key?: string;
   name: string;
   type: string;
   unit: string;
@@ -579,4 +587,80 @@ export const getOverduePurchaseOrders = (materials: Material[]): DatabasePurchas
   });
 
   return overduePOs;
+};
+
+// ============================================================
+// Warehouse-sourced materials (IPOW + DRs + Releases)
+// ============================================================
+
+/**
+ * Adapt warehouse StockItem rows (one per IPOW material for a project) into
+ * the Material shape the rest of this file already understands. Each StockItem
+ * already has the per-material aggregation done server-side.
+ */
+export const stockItemsToMaterials = (stockItems: StockItem[]): Material[] => {
+  return stockItems.map((s, idx) => {
+    // Requested is sourced from the manually-maintained PO field
+    // (stock_po_overrides.po) rather than the IPOW plan, so the Materials tab
+    // reflects what was actually ordered.
+    const requestedQuantity = s.po ?? 0;
+    const receivedQuantity = s.delivered;
+    const utilizedQuantity = s.utilized;
+    // Pending is what still needs to be ordered: IPOW plan minus PO already raised.
+    const pendingQuantity = Math.max(0, s.ipow_qty - (s.po ?? 0));
+    const key = `${s.wbs ?? 'null'}|${s.item_description}|${s.resource ?? ''}|${idx}`;
+    return {
+      key,
+      name: s.item_description,
+      type: s.resource?.trim() || s.type || 'Materials',
+      unit: s.unit?.trim() || '',
+      totalQuantity: requestedQuantity,
+      requestedQuantity,
+      receivedQuantity,
+      utilizedQuantity,
+      pendingQuantity,
+      purchaseOrders: [],
+    };
+  });
+};
+
+/**
+ * Compute summary stats for the warehouse-sourced Materials tab.
+ *
+ * Card semantics (project-progress lens):
+ *   - Requests   = sum(PO qty across materials) — how much has been ordered.
+ *   - Received % = sum(DR delivered) / sum(IPOW plan) × 100 — delivery progress
+ *                  against the project plan.
+ *   - Utilized % = sum(Releases)   / sum(IPOW plan) × 100 — consumption progress
+ *                  against the project plan.
+ *
+ * Both percentages share the same IPOW denominator so the cards form a coherent
+ * funnel: Utilized % ≤ Received %, and both progress toward 100% as the project
+ * delivers and consumes its planned materials.
+ *
+ * Guards against divide-by-zero / NaN / Infinity. Rounds to one decimal.
+ * Does NOT clamp percentages above 100 — callers should surface a warning when
+ * a percentage exceeds 100 (legitimately possible if releases > received, or if
+ * the team over-orders and over-delivers vs. the IPOW plan).
+ */
+export const calculateWarehouseMaterialSummary = (stockItems: StockItem[]): MaterialSummaryStats => {
+  const totalRequests = stockItems.reduce((s, it) => s + (it.po ?? 0), 0);
+  const totalIpow = stockItems.reduce((s, it) => s + (it.ipow_qty || 0), 0);
+  const totalReceived = stockItems.reduce((s, it) => s + (it.delivered || 0), 0);
+  const totalUtilized = stockItems.reduce((s, it) => s + (it.utilized || 0), 0);
+
+  const safePercent = (numerator: number, denominator: number): number => {
+    if (!Number.isFinite(numerator) || !Number.isFinite(denominator) || denominator <= 0) return 0;
+    const value = (numerator / denominator) * 100;
+    if (!Number.isFinite(value)) return 0;
+    return Math.round(value * 10) / 10;
+  };
+
+  return {
+    totalRequests,
+    receivedPercentage: safePercent(totalReceived, totalIpow),
+    utilizedPercentage: safePercent(totalUtilized, totalIpow),
+    uniqueMaterials: stockItems.length,
+    totalPurchaseOrders: 0,
+  };
 };

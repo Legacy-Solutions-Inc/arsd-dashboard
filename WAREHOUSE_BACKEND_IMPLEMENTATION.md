@@ -141,6 +141,15 @@ All routes follow REST conventions and include error handling:
 - Uses `useStocks` hook for server-side computed aggregation
 - Updated to use database field names (`item_description`, `ipow_qty`, `running_balance`, etc.)
 
+**Project Materials Tab** (`src/components/project sections/Materials.tsx`, mounted on `/dashboard/projects/[projectId]`)
+- Cross-domain consumer of the same `useStocks` hook — the project page reads warehouse aggregations to render the Materials tab.
+- Card formulas (project-progress lens):
+  - Requests = `sum(stock_po_overrides.po)` — total ordered
+  - Received % = `sum(DR delivered) / sum(IPOW qty) × 100` — delivery progress vs. plan
+  - Utilized % = `sum(Releases) / sum(IPOW qty) × 100` — consumption progress vs. plan
+- Materials list columns: Requested = PO, Received = DR, Utilized = Releases, Pending = `max(0, IPOW − PO)`.
+- Adapter and summary helpers live in `src/utils/materials-utils.ts` (`stockItemsToMaterials`, `calculateWarehouseMaterialSummary`).
+
 **Detail Pages** (NEW)
 - `src/app/dashboard/warehouse/delivery-receipts/[id]/page.tsx`: View DR details with lock/unlock
 - `src/app/dashboard/warehouse/releases/[id]/page.tsx`: View release details with lock/unlock

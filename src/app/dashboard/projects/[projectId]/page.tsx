@@ -487,10 +487,7 @@ const ProjectTabs = ({
         </TabsContent>
 
         <TabsContent value="materials" className="mt-0 space-y-4">
-          <Materials
-            materials={project.materials || []}
-            purchaseOrders={project.purchase_orders || []}
-          />
+          <Materials projectId={project.id} />
         </TabsContent>
       </div>
     </div>

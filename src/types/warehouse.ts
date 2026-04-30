@@ -166,6 +166,10 @@ export interface StockItem {
   wbs: string | null;
   item_description: string;
   resource: string | null;
+  /** Unit from the underlying IPOW row, when available. */
+  unit?: string;
+  /** IPOW classification (e.g., 'Materials'). Optional for display. */
+  type?: string;
   ipow_qty: number;
   delivered: number;
   utilized: number;
