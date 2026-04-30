@@ -54,6 +54,10 @@ export function FileUploader({
           ref={fileInputRef}
           type="file"
           accept={accept}
+          // capture="environment" hints mobile browsers to open the rear camera first
+          // — important for warehousemen photographing receipts at the gate. The user
+          // can still pick from gallery via the file-picker chooser if available.
+          capture={accept.startsWith('image/') ? 'environment' : undefined}
           onChange={handleFileChange}
           disabled={compressing}
           className="hidden"

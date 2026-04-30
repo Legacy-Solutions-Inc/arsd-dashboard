@@ -91,7 +91,7 @@ export default function DeliveryReceiptsListPage() {
           {canCreate && (
             <button
               onClick={() => router.push('/dashboard/warehouse/delivery-receipts/new')}
-              className="inline-flex items-center gap-2 rounded-md bg-primary text-primary-foreground px-4 py-2 text-sm font-medium hover:bg-[hsl(var(--arsd-red-hover))] transition-colors"
+              className="inline-flex items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground px-4 py-2.5 sm:py-2 text-sm font-medium hover:bg-[hsl(var(--arsd-red-hover))] transition-colors min-h-[44px] sm:min-h-0 mobile-touch-target sm:[&]:min-w-0"
             >
               <Plus className="h-4 w-4" />
               Create DR
@@ -111,8 +111,10 @@ export default function DeliveryReceiptsListPage() {
           </div>
         )}
 
-        {/* Filters — sticky on scroll */}
-        <div className="sticky top-0 z-40 bg-card border border-border rounded-md shadow-xs p-4">
+        {/* Filters — only stick on tablet/desktop. On phones, sticky filters
+            eat too much of the short viewport (568-tall is common); let them
+            scroll with the page. */}
+        <div className="sm:sticky sm:top-0 sm:z-40 bg-card border border-border rounded-md shadow-xs p-4">
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4 text-muted-foreground" />
@@ -152,7 +154,7 @@ export default function DeliveryReceiptsListPage() {
                     type="date"
                     value={dateFrom}
                     onChange={(e) => setDateFrom(e.target.value)}
-                    className="w-full rounded-md border border-border bg-card px-2 py-1.5 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-ring/40"
+                    className="w-full rounded-md border border-border bg-card px-3 py-2.5 sm:py-1.5 text-sm sm:text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-ring/40 min-h-[44px] sm:min-h-0"
                   />
                 </div>
                 <div>
@@ -161,7 +163,7 @@ export default function DeliveryReceiptsListPage() {
                     type="date"
                     value={dateTo}
                     onChange={(e) => setDateTo(e.target.value)}
-                    className="w-full rounded-md border border-border bg-card px-2 py-1.5 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-ring/40"
+                    className="w-full rounded-md border border-border bg-card px-3 py-2.5 sm:py-1.5 text-sm sm:text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-ring/40 min-h-[44px] sm:min-h-0"
                   />
                 </div>
               </div>
@@ -259,7 +261,7 @@ export default function DeliveryReceiptsListPage() {
                 type="button"
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={activePage === 1}
-                className="inline-flex items-center rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center justify-center rounded-md border border-border bg-card px-4 py-2.5 sm:py-1.5 text-sm sm:text-xs font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] sm:min-h-0"
               >
                 Previous
               </button>
@@ -271,7 +273,7 @@ export default function DeliveryReceiptsListPage() {
                 type="button"
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={activePage === totalPages}
-                className="inline-flex items-center rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center justify-center rounded-md border border-border bg-card px-4 py-2.5 sm:py-1.5 text-sm sm:text-xs font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] sm:min-h-0"
               >
                 Next
               </button>
