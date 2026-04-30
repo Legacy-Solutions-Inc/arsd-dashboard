@@ -96,10 +96,17 @@ export const formatDate = (dateString?: string): string => {
 };
 
 /**
- * Format number values
+ * Format number values for display in the Project Information panel.
+ *
+ * Treats `0` as "no data" (returns 'N/A') because the values rendered through
+ * this helper (calendar days, working days) are project-duration counts that
+ * are never legitimately zero — a zero almost always means the parser didn't
+ * capture the field. If a true 0 is meaningful for some new use, use a
+ * different formatter.
  */
-export const formatNumber = (value?: number): string => {
-  return value?.toString() || 'N/A';
+export const formatNumber = (value?: number | null): string => {
+  if (value == null || value === 0) return 'N/A';
+  return value.toString();
 };
 
 /**

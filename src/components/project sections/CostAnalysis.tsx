@@ -2,7 +2,7 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, ComposedChart
+  BarChart, Bar, Cell, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, ComposedChart
 } from 'recharts';
 import { memo, useState, useMemo } from 'react';
 import { Calendar, BarChart3 } from 'lucide-react';
@@ -64,51 +64,32 @@ export function CostAnalysis({ costData, costItemsData = [], manHoursData = [], 
   }, [sortedCostData, currentPage]);
 
 // Subcomponents
+//
+// Cost Items Breakdown is split into two charts so Target (typically the project's
+// largest figure) doesn't dwarf the direct-cost categories. Top chart compares
+// the project-level totals (Target / SWA / Billed). Bottom chart breaks down the
+// direct cost into Equipment / Labor / Materials on its own scale.
 const CostItemsChart = memo(({ data }: { data: any }) => {
-  // Custom tooltip formatter to improve display
-  const customTooltip = ({ active, payload, label }: any) => {
+  const projectTotalsData = [
+    { name: 'Target', value: data.target || 0, fill: CHART_COLORS.target },
+    { name: 'SWA', value: data.swa || 0, fill: CHART_COLORS.swa },
+    { name: 'Billed', value: data.billed || 0, fill: CHART_COLORS.billed },
+  ];
+
+  const directBreakdownData = [
+    { name: 'Equipment', value: data.equipment || 0, fill: CHART_COLORS.equipment },
+    { name: 'Labor', value: data.labor || 0, fill: CHART_COLORS.labor },
+    { name: 'Materials', value: data.materials || 0, fill: CHART_COLORS.materials },
+  ];
+
+  const categoryTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
-      const combinedCost = (data.equipment || 0) + (data.labor || 0) + (data.materials || 0);
-      
+      const item = payload[0];
       return (
-        <div className="bg-card p-3 border border-border rounded-md shadow-sm-tinted text-foreground">
-          <p className="font-semibold text-sm mb-2">{label}</p>
-          <div className="space-y-1">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-primary" aria-hidden></div>
-                <span className="text-sm text-muted-foreground">Target Cost</span>
-              </div>
-              <span className="font-medium text-sm nums">{formatCurrency(data.target || 0)}</span>
-            </div>
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-rose-400 dark:bg-rose-500" aria-hidden></div>
-                <span className="text-sm text-muted-foreground">SWA Cost</span>
-              </div>
-              <span className="font-medium text-sm nums">{formatCurrency(data.swa || 0)}</span>
-            </div>
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-muted-foreground" aria-hidden></div>
-                <span className="text-sm text-muted-foreground">Billed Cost</span>
-              </div>
-              <span className="font-medium text-sm nums">{formatCurrency(data.billed || 0)}</span>
-            </div>
-            <div className="border-t border-border pt-1 mt-2">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 rounded-full bg-amber-500" aria-hidden></div>
-                  <span className="text-sm text-muted-foreground">Combined Direct</span>
-                </div>
-                <span className="font-medium text-sm nums">{formatCurrency(combinedCost)}</span>
-              </div>
-              <div className="ml-4 text-xs text-muted-foreground mt-1 nums">
-                <div>• Equipment: {formatCurrency(data.equipment || 0)}</div>
-                <div>• Labor: {formatCurrency(data.labor || 0)}</div>
-                <div>• Materials: {formatCurrency(data.materials || 0)}</div>
-              </div>
-            </div>
+        <div className="bg-card p-2 border border-border rounded-md shadow-sm-tinted text-foreground">
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-sm text-muted-foreground">{item.payload.name}</span>
+            <span className="font-medium text-sm nums">{formatCurrency(item.value)}</span>
           </div>
         </div>
       );
@@ -119,36 +100,38 @@ const CostItemsChart = memo(({ data }: { data: any }) => {
   return (
     <div className="bg-card rounded-md p-3 lg:p-4 border border-border">
       <h3 className="font-semibold text-sm text-foreground mb-2">Cost Items Breakdown</h3>
-      <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
-        <BarChart 
-          data={[
-            {
-              name: 'Cost Comparison',
-              target: data.target,
-              swa: data.swa,
-              billed: data.billed,
-              equipment: data.equipment,
-              labor: data.labor,
-              materials: data.materials
-            }
-          ]} 
-          margin={COST_ITEMS_MARGIN}
-        >
-          <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-          <YAxis
-            tick={{ fontSize: 10 }}
-            tickFormatter={formatCurrencyM}
-          />
-          <Tooltip content={customTooltip} />
-          <Legend />
-          <Bar dataKey="target" name="Target Cost" stackId="target" fill={CHART_COLORS.target} />
-          <Bar dataKey="swa" name="SWA Cost" stackId="swa" fill={CHART_COLORS.swa} />
-          <Bar dataKey="billed" name="Billed Cost" stackId="billed" fill={CHART_COLORS.billed} />
-          <Bar dataKey="equipment" name="Equipment" stackId="combined" fill={CHART_COLORS.equipment} />
-          <Bar dataKey="labor" name="Labor" stackId="combined" fill={CHART_COLORS.labor} />
-          <Bar dataKey="materials" name="Materials" stackId="combined" fill={CHART_COLORS.materials} />
-        </BarChart>
-      </ResponsiveContainer>
+      <div className="space-y-3">
+        <div>
+          <div className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground mb-1">Project totals</div>
+          <ResponsiveContainer width="100%" height={CHART_HEIGHT / 2}>
+            <BarChart data={projectTotalsData} margin={COST_ITEMS_MARGIN}>
+              <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+              <YAxis tick={{ fontSize: 10 }} tickFormatter={formatCurrencyM} />
+              <Tooltip content={categoryTooltip} cursor={{ fill: 'transparent' }} />
+              <Bar dataKey="value" name="Cost">
+                {projectTotalsData.map((entry, idx) => (
+                  <Cell key={`pt-${idx}`} fill={entry.fill} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+        <div>
+          <div className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground mb-1">Direct cost breakdown</div>
+          <ResponsiveContainer width="100%" height={CHART_HEIGHT / 2}>
+            <BarChart data={directBreakdownData} margin={COST_ITEMS_MARGIN}>
+              <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+              <YAxis tick={{ fontSize: 10 }} tickFormatter={formatCurrencyM} />
+              <Tooltip content={categoryTooltip} cursor={{ fill: 'transparent' }} />
+              <Bar dataKey="value" name="Cost">
+                {directBreakdownData.map((entry, idx) => (
+                  <Cell key={`db-${idx}`} fill={entry.fill} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
     </div>
   );
 });
@@ -422,12 +405,14 @@ const CostItemsSummary = ({ data, projectStats }: { data: any[], projectStats?: 
   </div>
 );
 
-const ProgressAnalysis = ({ 
-  projectData, 
-  manHoursData 
-}: { 
-  projectData: any, 
-  manHoursData: any[] 
+const ProgressAnalysis = ({
+  projectData,
+  manHoursData,
+  projectStats
+}: {
+  projectData: any,
+  manHoursData: any[],
+  projectStats?: { contractAmount?: number; directCostTotal?: number }
 }) => {
   const {
     totalActualHours,
@@ -436,7 +421,10 @@ const ProgressAnalysis = ({
     progressVariance,
     budgetUtilization,
     costEfficiency
-  } = calculateProgressAnalysis(projectData, manHoursData);
+  } = calculateProgressAnalysis(projectData, manHoursData, {
+    contractAmount: projectStats?.contractAmount,
+    directCostTotal: projectStats?.directCostTotal,
+  });
 
   return (
     <div>
@@ -512,9 +500,10 @@ const ProgressAnalysis = ({
             onPageChange={setCurrentPage}
           />
           <CostItemsSummary data={costItemsBreakdown} projectStats={projectStats} />
-          <ProgressAnalysis 
-            projectData={projectData} 
-            manHoursData={processedManHoursData} 
+          <ProgressAnalysis
+            projectData={projectData}
+            manHoursData={processedManHoursData}
+            projectStats={projectStats}
           />
         </div>
       </CardContent>

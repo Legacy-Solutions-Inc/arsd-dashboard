@@ -276,34 +276,49 @@ export const processDailyManHoursData = (manHoursData: ManHoursData[]): any[] =>
 };
 
 /**
- * Process man hours data for monthly view
+ * Process man hours data for monthly (cumulative) view.
+ *
+ * IMPORTANT: source `actual_man_hours` and `projected_man_hours` are stored as
+ * cumulative-to-date totals (the parser captures running totals from each weekly
+ * accomplishment report). Summing them across a month — or worse, across all
+ * months — produces wildly inflated numbers (e.g., 19M projected hours).
+ *
+ * For the cumulative chart we want the LATEST cumulative value within each
+ * month, not the sum. For the daily-delta chart, see processDailyManHoursData
+ * which already handles deltas correctly.
  */
 export const processMonthlyManHoursData = (manHoursData: ManHoursData[]): any[] => {
-  const monthGroups = new Map<string, { actual: number; projected: number; count: number }>();
-  
+  const monthGroups = new Map<string, { actual: number; projected: number; tsMs: number; count: number }>();
+
   manHoursData.forEach((item: any) => {
     const dateStr = item.date || item.period || 'Unknown';
     const date = new Date(dateStr);
     if (isNaN(date.getTime())) return;
-    
+
     const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
     const actual = parseFloat(item.actual_man_hours) || 0;
     const projected = parseFloat(item.projected_man_hours) || 0;
-    
-    const existing = monthGroups.get(monthKey) || { actual: 0, projected: 0, count: 0 };
-    existing.actual += actual;
-    existing.projected += projected;
-    existing.count += 1;
-    monthGroups.set(monthKey, existing);
+
+    const existing = monthGroups.get(monthKey);
+    if (!existing || date.getTime() > existing.tsMs) {
+      monthGroups.set(monthKey, {
+        actual,
+        projected,
+        tsMs: date.getTime(),
+        count: existing ? existing.count + 1 : 1,
+      });
+    } else if (existing) {
+      existing.count += 1;
+      monthGroups.set(monthKey, existing);
+    }
   });
-  
-  // Convert to array and sort chronologically for monthly view
+
   return Array.from(monthGroups.entries())
     .map(([month, data]) => ({
       date: month,
       actual: data.actual,
       projected: data.projected,
-      count: data.count
+      count: data.count,
     }))
     .sort((a, b) => a.date.localeCompare(b.date));
 };
@@ -347,22 +362,36 @@ export const formatDateLabel = (dateStr: string, isMonthly: boolean = false): st
 };
 
 /**
- * Calculate progress analysis data
+ * Calculate progress analysis data.
+ *
+ * Man-hours totals: source values are cumulative-to-date, so the project total
+ * is the LATEST entry's cumulative value — not the sum across periods.
+ * processMonthlyManHoursData returns rows sorted ascending by month, so the
+ * last entry is authoritative.
+ *
+ * Budget utilization: realized cost (directCostTotal) as a % of contract value.
+ * Falls back to 0 when contractAmount is missing/zero.
  */
 export const calculateProgressAnalysis = (
   projectData: { actualProgress: number; targetProgress: number; savings: number },
-  manHoursData: any[]
+  manHoursData: any[],
+  costInputs?: { directCostTotal?: number; contractAmount?: number }
 ) => {
-  const totalActualHours = manHoursData.reduce((sum, item) => sum + item.actual, 0);
-  const totalProjectedHours = manHoursData.reduce((sum, item) => sum + item.projected, 0);
+  const latest = manHoursData[manHoursData.length - 1];
+  const totalActualHours = latest?.actual ?? 0;
+  const totalProjectedHours = latest?.projected ?? 0;
   const efficiency = totalProjectedHours > 0 ? (totalActualHours / totalProjectedHours) * 100 : 0;
+
+  const directCostTotal = costInputs?.directCostTotal ?? 0;
+  const contractAmount = costInputs?.contractAmount ?? 0;
+  const budgetUtilization = contractAmount > 0 ? (directCostTotal / contractAmount) * 100 : 0;
 
   return {
     totalActualHours,
     totalProjectedHours,
     efficiency,
     progressVariance: projectData.actualProgress - projectData.targetProgress,
-    budgetUtilization: (projectData.actualProgress / 100) * 100,
+    budgetUtilization,
     costEfficiency: projectData.savings > 0 ? 'Above target' : 'Below target'
   };
 };
