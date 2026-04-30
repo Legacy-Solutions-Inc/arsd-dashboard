@@ -1,5 +1,17 @@
 import { createClient } from '@/lib/supabase';
 import type { Project } from '@/types/projects';
+import {
+  parseNumericValue,
+  calculatePercentage,
+  roundToTwoDecimals,
+} from '@/utils/project-calculations';
+
+export interface ProgressTrendPoint {
+  week_ending_date: string;
+  actualProgress: number;
+  targetProgress: number;
+  slippage: number;
+}
 
 export interface ProjectDetails extends Project {
   // Accomplishment data
@@ -189,6 +201,111 @@ export class ProjectDetailsService {
     } catch (error) {
       console.error('Error fetching project details:', error);
       return null;
+    }
+  }
+
+  /**
+   * Historical progress trend across all approved+parsed accomplishment reports
+   * for a project. Returns one point per report in ascending date order.
+   *
+   * Uses three batched queries (no N+1 regardless of report count):
+   *   1. all approved+parsed reports for the project
+   *   2. project_costs WHERE accomplishment_report_id IN (...)
+   *   3. project_details WHERE accomplishment_report_id IN (...)
+   *
+   * Per-report progress mirrors calculateProjectStats:
+   *   targetProgress = target_percentage * 100
+   *   actualProgress = swa_cost_total / contract_amount * 100
+   *   slippage       = actualProgress − targetProgress
+   *
+   * Reports with missing cost or details rows are skipped silently rather than
+   * polluting the trend with zero points.
+   */
+  async getProgressTrend(projectId: string): Promise<ProgressTrendPoint[]> {
+    try {
+      const { data: reports, error: reportsError } = await this.supabase
+        .from('accomplishment_reports')
+        .select('id, week_ending_date, created_at')
+        .eq('project_id', projectId)
+        .eq('parsed_status', 'success')
+        .eq('status', 'approved')
+        .order('week_ending_date', { ascending: true })
+        .order('created_at', { ascending: true });
+
+      if (reportsError) {
+        console.error('Error fetching progress trend reports:', reportsError);
+        return [];
+      }
+      if (!reports || reports.length === 0) {
+        return [];
+      }
+
+      const reportIds = reports.map((r) => r.id);
+
+      const [costsResult, detailsResult] = await Promise.all([
+        this.supabase
+          .from('project_costs')
+          .select('accomplishment_report_id, swa_cost_total, target_percentage, created_at')
+          .in('accomplishment_report_id', reportIds)
+          .order('created_at', { ascending: false }),
+        this.supabase
+          .from('project_details')
+          .select('accomplishment_report_id, contract_amount, created_at')
+          .in('accomplishment_report_id', reportIds)
+          .order('created_at', { ascending: false }),
+      ]);
+
+      if (costsResult.error) {
+        console.error('Error fetching progress trend costs:', costsResult.error);
+        return [];
+      }
+      if (detailsResult.error) {
+        console.error('Error fetching progress trend details:', detailsResult.error);
+        return [];
+      }
+
+      // First row per report wins (ordered desc by created_at above).
+      const costByReport = new Map<string, any>();
+      for (const row of costsResult.data ?? []) {
+        if (!costByReport.has(row.accomplishment_report_id)) {
+          costByReport.set(row.accomplishment_report_id, row);
+        }
+      }
+      const detailByReport = new Map<string, any>();
+      for (const row of detailsResult.data ?? []) {
+        if (!detailByReport.has(row.accomplishment_report_id)) {
+          detailByReport.set(row.accomplishment_report_id, row);
+        }
+      }
+
+      const trend: ProgressTrendPoint[] = [];
+      for (const report of reports) {
+        if (!report.week_ending_date) continue;
+        const cost = costByReport.get(report.id);
+        const detail = detailByReport.get(report.id);
+        if (!cost || !detail) continue;
+
+        const contractAmount = parseNumericValue(detail.contract_amount);
+        const swaCostTotal = parseNumericValue(cost.swa_cost_total);
+        const targetPct = parseNumericValue(cost.target_percentage);
+        if (contractAmount <= 0) continue;
+
+        const actualProgress = roundToTwoDecimals(calculatePercentage(swaCostTotal, contractAmount));
+        const targetProgress = roundToTwoDecimals(targetPct * 100);
+        const slippage = roundToTwoDecimals(actualProgress - targetProgress);
+
+        trend.push({
+          week_ending_date: report.week_ending_date,
+          actualProgress,
+          targetProgress,
+          slippage,
+        });
+      }
+
+      return trend;
+    } catch (error) {
+      console.error('Error fetching progress trend:', error);
+      return [];
     }
   }
 

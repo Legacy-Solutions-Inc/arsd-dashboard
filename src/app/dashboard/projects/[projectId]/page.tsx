@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ProjectDetailsService,
   type ProjectDetails,
+  type ProgressTrendPoint,
 } from "@/services/projects/project-details.service";
 import {
   AlertCircle,
@@ -365,9 +366,11 @@ const ProjectStatsGrid = ({
 const ProjectTabs = ({
   project,
   stats,
+  progressTrend,
 }: {
   project: ProjectDetails;
   stats: ReturnType<typeof calculateProjectStatsData>;
+  progressTrend?: ProgressTrendPoint[];
 }) => (
   <Tabs defaultValue="overview" className="w-full">
     <div className="bg-card border border-border rounded-lg overflow-hidden">
@@ -445,7 +448,9 @@ const ProjectTabs = ({
             projectData={{
               actualProgress: stats.actualProgress,
               targetProgress: stats.targetProgress,
+              plannedEndDate: stats.latestProjectDetails.planned_end_date,
             }}
+            progressTrend={progressTrend}
           />
         </TabsContent>
 
@@ -466,6 +471,7 @@ const ProjectTabs = ({
               swaCostTotal: stats.swaCostTotal,
               billedCostTotal: stats.billedCostTotal,
             }}
+            progressTrend={progressTrend}
           />
         </TabsContent>
 
@@ -486,6 +492,7 @@ export default function ProjectProfilePage() {
   const router = useRouter();
   const projectId = params?.projectId as string;
   const [project, setProject] = useState<ProjectDetails | null>(null);
+  const [progressTrend, setProgressTrend] = useState<ProgressTrendPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -495,13 +502,18 @@ export default function ProjectProfilePage() {
       try {
         setLoading(true);
         setError(null);
-        const projectData =
-          await projectDetailsService.getProjectDetails(projectId);
+        // Fetch the project bundle and the progress trend in parallel.
+        // Trend failures don't block the page — they degrade the slippage chart only.
+        const [projectData, trend] = await Promise.all([
+          projectDetailsService.getProjectDetails(projectId),
+          projectDetailsService.getProgressTrend(projectId),
+        ]);
         if (!projectData) {
           setError('Project not found');
           return;
         }
         setProject(projectData);
+        setProgressTrend(trend);
       } catch (err) {
         console.error('Error fetching project details:', err);
         setError('Failed to load project details');
@@ -532,7 +544,7 @@ export default function ProjectProfilePage() {
         onBack={() => router.back()}
       />
       <ProjectStatsGrid stats={stats} />
-      <ProjectTabs project={project} stats={stats} />
+      <ProjectTabs project={project} stats={stats} progressTrend={progressTrend} />
     </div>
   );
 }

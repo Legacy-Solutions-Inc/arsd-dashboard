@@ -95,6 +95,283 @@ export const formatCurrency = (value: number): string =>
 export const formatCurrencyM = (value: number): string => `₱${(value / 1000000).toFixed(1)}M`;
 export const formatHours = (value: number): string => `${value}h`;
 
+// ============================================================
+// CEO-tier financial signals — derived series + summary metrics
+// ============================================================
+
+/**
+ * Forecast at Completion (EVM-derived).
+ * CPI = SWA / Direct (earned-value over actual-cost proxy).
+ * EAC = Contract / CPI (assumes current efficiency continues).
+ * VAC = Contract − EAC (positive = under budget; negative = over).
+ *
+ * Returns isFinite=false when CPI cannot be computed (no direct cost yet,
+ * or contract amount missing). Caller renders an empty-state message in
+ * that case rather than NaN/Infinity.
+ */
+export interface ForecastAtCompletion {
+  cpi: number;
+  eac: number;
+  vac: number;
+  vacPct: number;
+  isFinite: boolean;
+}
+
+export const calculateForecastAtCompletion = (
+  projectStats?: { contractAmount?: number; swaCostTotal?: number; directCostTotal?: number }
+): ForecastAtCompletion => {
+  const swa = projectStats?.swaCostTotal ?? 0;
+  const direct = projectStats?.directCostTotal ?? 0;
+  const contract = projectStats?.contractAmount ?? 0;
+
+  if (!Number.isFinite(direct) || direct <= 0 || !Number.isFinite(contract) || contract <= 0) {
+    return { cpi: 0, eac: 0, vac: 0, vacPct: 0, isFinite: false };
+  }
+
+  const cpi = swa / direct;
+  if (!Number.isFinite(cpi) || cpi <= 0) {
+    return { cpi: 0, eac: 0, vac: 0, vacPct: 0, isFinite: false };
+  }
+
+  const eac = contract / cpi;
+  const vac = contract - eac;
+  const vacPct = (vac / contract) * 100;
+
+  return { cpi, eac, vac, vacPct, isFinite: true };
+};
+
+/**
+ * CPI/SPI trend over time (one point per month).
+ * CPI(M) = sum(swa ≤ M) / sum(direct ≤ M)   — cost performance
+ * SPI(M) = sum(swa ≤ M) / sum(target ≤ M)   — schedule performance
+ * Both > 1.0 = good. Diverging lines surface the "saving money but falling
+ * behind plan" or "ahead of plan but burning cash" stories.
+ */
+export interface CPISPIDatum {
+  month: string;
+  cpi: number;
+  spi: number;
+}
+
+export const calculateCPISPITrend = (sortedCostData: CostMonth[]): CPISPIDatum[] => {
+  let cumSwa = 0;
+  let cumDirect = 0;
+  let cumTarget = 0;
+  return sortedCostData.map((row) => {
+    cumSwa += row.swa || 0;
+    cumDirect += row.direct || 0;
+    cumTarget += row.target || 0;
+    const cpi = cumDirect > 0 ? cumSwa / cumDirect : 0;
+    const spi = cumTarget > 0 ? cumSwa / cumTarget : 0;
+    return {
+      month: row.month,
+      cpi: Number.isFinite(cpi) ? cpi : 0,
+      spi: Number.isFinite(spi) ? spi : 0,
+    };
+  });
+};
+
+/**
+ * Cash conversion trend — cumulative SWA / Billed / Direct over time.
+ * The visible gap between Earned and Billed = unbilled work (admin lag).
+ * The gap between Billed and Spent ≈ working capital float / margin proxy.
+ */
+export interface CashConversionDatum {
+  month: string;
+  cumSwa: number;
+  cumBilled: number;
+  cumDirect: number;
+}
+
+export const calculateCashConversionTrend = (sortedCostData: CostMonth[]): CashConversionDatum[] => {
+  let cumSwa = 0;
+  let cumBilled = 0;
+  let cumDirect = 0;
+  return sortedCostData.map((row) => {
+    cumSwa += row.swa || 0;
+    cumBilled += row.billed || 0;
+    cumDirect += row.direct || 0;
+    return {
+      month: row.month,
+      cumSwa,
+      cumBilled,
+      cumDirect,
+    };
+  });
+};
+
+/**
+ * Labor productivity trend — pesos earned (SWA) per actual labor hour, per month.
+ *
+ * Source actual_man_hours is cumulative-to-date, so we derive each month's
+ * actual hours as the period delta (last month's cumulative − previous month's
+ * cumulative). Cost data already arrives one row per month from the parser.
+ *
+ * Returns the per-month series plus the project-to-date mean for a reference line.
+ */
+export interface ProductivityDatum {
+  month: string;
+  productivity: number;
+}
+
+/**
+ * Forecast band on the project S-curve.
+ *
+ * Path (i) of the Stage 3 Chart B spec — compute the cone of uncertainty from
+ * historical progress data without any new schema. Requires at least 6 weekly
+ * progress points (one per accomplishment report) before it renders, so the
+ * mean and standard deviation of weekly progress deltas are stable.
+ *
+ * Method: project the current trajectory forward week-by-week, clamping each
+ * point at 100% completion and stopping the projection when the midline hits
+ * 100% or when the projected date passes the planned end date. The band is
+ * ±1σ × √k wide at k weeks ahead (Wiener-process scaling), which widens
+ * gradually so near-term forecasts are tight and far-future forecasts are
+ * appropriately uncertain.
+ */
+export interface ForecastBandPoint {
+  date: string;
+  forecastLow: number;
+  forecastDelta: number; // forecastHigh − forecastLow, used by Recharts stacked Area trick
+  forecastMid: number;
+}
+
+export interface ForecastBand {
+  enabled: boolean;
+  reason?: string;
+  points: ForecastBandPoint[];
+  /**
+   * The week_ending_date of the last historical point — useful for callers
+   * that want to merge the band into a single dataset alongside historicals.
+   */
+  anchorDate?: string;
+}
+
+export const calculateForecastBand = (
+  progressTrend: Array<{ week_ending_date: string; actualProgress: number }>,
+  plannedEndDate?: string,
+): ForecastBand => {
+  if (!progressTrend || progressTrend.length < 6) {
+    return {
+      enabled: false,
+      reason: 'Forecast band appears once 6 weeks of history are available.',
+      points: [],
+    };
+  }
+
+  // Sort defensively (caller normally already sorts ascending).
+  const sorted = [...progressTrend].sort((a, b) =>
+    a.week_ending_date.localeCompare(b.week_ending_date)
+  );
+
+  // Compute week-over-week deltas.
+  const deltas: number[] = [];
+  for (let i = 1; i < sorted.length; i++) {
+    deltas.push(sorted[i].actualProgress - sorted[i - 1].actualProgress);
+  }
+  if (deltas.length === 0) {
+    return { enabled: false, reason: 'Not enough history to compute deltas.', points: [] };
+  }
+
+  const mean = deltas.reduce((s, d) => s + d, 0) / deltas.length;
+  const variance =
+    deltas.reduce((s, d) => s + (d - mean) * (d - mean), 0) / deltas.length;
+  const std = Math.sqrt(variance);
+
+  const last = sorted[sorted.length - 1];
+  const lastDate = new Date(last.week_ending_date);
+  const lastProgress = last.actualProgress;
+
+  if (isNaN(lastDate.getTime())) {
+    return { enabled: false, reason: 'Invalid latest report date.', points: [] };
+  }
+
+  const endDate = plannedEndDate ? new Date(plannedEndDate) : null;
+  const validEnd = endDate && !isNaN(endDate.getTime()) ? endDate : null;
+
+  const MAX_WEEKS = 104; // hard cap so a stalled project doesn't project for years
+  const MS_PER_WEEK = 7 * 24 * 60 * 60 * 1000;
+  const points: ForecastBandPoint[] = [];
+
+  // Anchor point — repeats the last historical so the band visually starts
+  // exactly where the historical line ends.
+  points.push({
+    date: last.week_ending_date,
+    forecastLow: lastProgress,
+    forecastDelta: 0,
+    forecastMid: lastProgress,
+  });
+
+  for (let k = 1; k <= MAX_WEEKS; k++) {
+    const projectedDate = new Date(lastDate.getTime() + k * MS_PER_WEEK);
+    if (validEnd && projectedDate.getTime() > validEnd.getTime()) break;
+
+    const mid = Math.min(100, lastProgress + k * mean);
+    const halfWidth = std * Math.sqrt(k);
+    const low = Math.max(0, mid - halfWidth);
+    const high = Math.min(100, mid + halfWidth);
+    const delta = Math.max(0, high - low);
+
+    points.push({
+      date: projectedDate.toISOString().slice(0, 10),
+      forecastLow: low,
+      forecastDelta: delta,
+      forecastMid: mid,
+    });
+
+    if (mid >= 100) break;
+  }
+
+  return {
+    enabled: true,
+    points,
+    anchorDate: last.week_ending_date,
+  };
+};
+
+export const calculateProductivityTrend = (
+  sortedCostData: CostMonth[],
+  processedManHoursData: any[]
+): { data: ProductivityDatum[]; mean: number } => {
+  // processedManHoursData is monthly with cumulative-to-end-of-month values.
+  // Build a year-month → cumulative actual hours map.
+  const cumByMonth = new Map<string, number>();
+  for (const row of processedManHoursData) {
+    if (typeof row?.date === 'string' && Number.isFinite(row.actual)) {
+      cumByMonth.set(row.date, row.actual);
+    }
+  }
+  const orderedHourMonths = Array.from(cumByMonth.keys()).sort();
+
+  // Period deltas (this month's cumulative − previous month's cumulative).
+  const deltaByMonth = new Map<string, number>();
+  let prev = 0;
+  for (const m of orderedHourMonths) {
+    const cum = cumByMonth.get(m) || 0;
+    deltaByMonth.set(m, Math.max(0, cum - prev));
+    prev = cum;
+  }
+
+  const data: ProductivityDatum[] = [];
+  let total = 0;
+  let count = 0;
+
+  for (const row of sortedCostData) {
+    const date = new Date(row.month);
+    if (isNaN(date.getTime())) continue;
+    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    const hours = deltaByMonth.get(key);
+    if (hours == null || hours <= 0) continue;
+    const productivity = (row.swa || 0) / hours;
+    if (!Number.isFinite(productivity) || productivity <= 0) continue;
+    data.push({ month: row.month, productivity });
+    total += productivity;
+    count += 1;
+  }
+
+  return { data, mean: count > 0 ? total / count : 0 };
+};
+
 /**
  * Sort data chronologically
  */

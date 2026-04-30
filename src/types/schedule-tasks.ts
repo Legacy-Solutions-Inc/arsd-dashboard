@@ -42,5 +42,17 @@ export interface ScheduleTasksProps {
   projectData?: {
     actualProgress: number;
     targetProgress: number;
+    plannedEndDate?: string;
   };
+  /**
+   * Historical progress trend across all approved+parsed accomplishment reports
+   * (one point per week_ending_date). Used by the S-curve forecast band: the
+   * band only renders when ≥6 reports exist.
+   */
+  progressTrend?: Array<{
+    week_ending_date: string;
+    actualProgress: number;
+    targetProgress: number;
+    slippage: number;
+  }>;
 }
