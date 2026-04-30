@@ -77,10 +77,11 @@ export interface ProjectFinancialInfo {
 }
 
 /**
- * Format currency values
+ * Format currency values. Rounds to whole pesos to avoid float-drift bleed.
  */
 export const formatCurrency = (amount: number): string => {
-  return `₱${amount?.toLocaleString() || 'N/A'}`;
+  if (amount == null || !Number.isFinite(amount)) return 'N/A';
+  return `₱${Math.round(amount).toLocaleString('en-PH')}`;
 };
 
 /**

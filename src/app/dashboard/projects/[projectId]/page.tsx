@@ -35,52 +35,18 @@ import {
 import { cn } from "@/lib/utils";
 
 const calculateProjectStatsData = (project: ProjectDetails) => {
-  const projectDetails = project.project_details || [];
   const projectCosts = project.project_costs || [];
-  const manHours = project.man_hours || [];
-  const costItems = project.cost_items || [];
-  const costItemsSecondary = project.cost_items_secondary || [];
-  const monthlyCosts = project.monthly_costs || [];
-  const materials = project.materials || [];
-  const purchaseOrders = project.purchase_orders || [];
+  const projectDetails = project.project_details || [];
 
   const latestProjectCost = projectCosts[0] || {};
   const latestProjectDetails = projectDetails[0] || {};
-  const latestManHours = manHours || {};
-  const latestCostItems = costItems || {};
-  const latestCostItemsSecondary = costItemsSecondary || {};
-  const latestMonthlyCosts = monthlyCosts || {};
-  const latestMaterials = materials || {};
-  const latestPurchaseOrders = purchaseOrders || {};
 
   const stats = calculateProjectStats(latestProjectCost, latestProjectDetails);
 
-  const totalCosts = projectCosts.reduce(
-    (sum, cost) => sum + parseNumericValue(cost.direct_cost_total),
-    0,
-  );
-  const totalActualHours = manHours.reduce(
-    (sum, hour) => sum + parseNumericValue(hour.actual_man_hours),
-    0,
-  );
-  const totalProjectedHours = manHours.reduce(
-    (sum, hour) => sum + parseNumericValue(hour.projected_man_hours),
-    0,
-  );
-
   return {
     ...stats,
-    totalCosts,
-    totalActualHours,
-    totalProjectedHours,
     latestProjectCost,
     latestProjectDetails,
-    latestManHours,
-    latestCostItems,
-    latestCostItemsSecondary,
-    latestMonthlyCosts,
-    latestMaterials,
-    latestPurchaseOrders,
   };
 };
 
@@ -115,35 +81,52 @@ const ErrorState = ({
   </div>
 );
 
+const formatDataAsOf = (isoDate: string | null | undefined): string | null => {
+  if (!isoDate) return null;
+  const d = new Date(isoDate);
+  if (isNaN(d.getTime())) return null;
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+};
+
 const ProjectHeader = ({
   projectName,
   projectId,
+  latestReportDate,
   onBack,
 }: {
   projectName: string;
   projectId: string;
+  latestReportDate?: string | null;
   onBack: () => void;
-}) => (
-  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-border">
-    <div className="flex items-center gap-3 min-w-0">
-      <Button variant="outline" onClick={onBack} size="sm">
-        <ArrowLeft className="h-4 w-4" />
-        Back
-      </Button>
-      <div className="min-w-0">
-        <div className="text-[11px] uppercase tracking-[0.1em] text-muted-foreground mb-0.5">
-          Project
+}) => {
+  const dataAsOf = formatDataAsOf(latestReportDate);
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-border">
+      <div className="flex items-center gap-3 min-w-0">
+        <Button variant="outline" onClick={onBack} size="sm">
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Button>
+        <div className="min-w-0">
+          <div className="text-[11px] uppercase tracking-[0.1em] text-muted-foreground mb-0.5">
+            Project
+          </div>
+          <h1 className="text-h1 font-display text-foreground leading-none truncate">
+            {projectName}
+          </h1>
         </div>
-        <h1 className="text-h1 font-display text-foreground leading-none truncate">
-          {projectName}
-        </h1>
+      </div>
+      <div className="flex flex-col sm:items-end gap-1.5 self-start sm:self-auto">
+        <div className="text-xs text-muted-foreground bg-muted border border-border rounded-md px-2.5 py-1 font-mono nums">
+          ID: {projectId || 'N/A'}
+        </div>
+        <div className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground nums">
+          {dataAsOf ? `Data as of ${dataAsOf}` : 'No accomplishment report yet'}
+        </div>
       </div>
     </div>
-    <div className="text-xs text-muted-foreground bg-muted border border-border rounded-md px-2.5 py-1 font-mono nums self-start sm:self-auto">
-      ID: {projectId || 'N/A'}
-    </div>
-  </div>
-);
+  );
+};
 
 type StatTone = 'neutral' | 'positive' | 'negative' | 'warning';
 
@@ -494,6 +477,10 @@ const ProjectTabs = ({
   </Tabs>
 );
 
+// Stateless aside from the Supabase client; instantiate once at module scope so
+// each render of ProjectProfilePage reuses the same service.
+const projectDetailsService = new ProjectDetailsService();
+
 export default function ProjectProfilePage() {
   const params = useParams();
   const router = useRouter();
@@ -501,8 +488,6 @@ export default function ProjectProfilePage() {
   const [project, setProject] = useState<ProjectDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const projectDetailsService = new ProjectDetailsService();
 
   useEffect(() => {
     const fetchProjectDetails = async () => {
@@ -543,6 +528,7 @@ export default function ProjectProfilePage() {
       <ProjectHeader
         projectName={project.project_name}
         projectId={stats.latestProjectDetails.project_id || project.id}
+        latestReportDate={project.latest_report_date}
         onBack={() => router.back()}
       />
       <ProjectStatsGrid stats={stats} />

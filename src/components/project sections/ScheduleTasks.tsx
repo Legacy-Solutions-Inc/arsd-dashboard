@@ -216,7 +216,7 @@ export function ScheduleTasks({ tasks, costItemsSecondaryData = [], targetCostTo
                         <div className="flex hover:bg-muted/40 transition-colors">
                           {weeklyAccomplishments.map((acc, index) => (
                             <div key={index} className="w-16 lg:w-20 flex-shrink-0 text-center p-2 lg:p-4 text-xs border-r border-gray-200 font-medium bg-blue-50 text-blue-800">
-                              {acc.periodicPhysical.toFixed(2)}
+                              {acc.periodicPhysical.toFixed(2)}%
                             </div>
                           ))}
                         </div>
@@ -230,7 +230,7 @@ export function ScheduleTasks({ tasks, costItemsSecondaryData = [], targetCostTo
                         <div className="flex hover:bg-muted/40 transition-colors">
                           {weeklyAccomplishments.map((acc, index) => (
                             <div key={index} className="w-16 lg:w-20 flex-shrink-0 text-center p-2 lg:p-3 text-xs border-r border-gray-200 font-medium bg-yellow-50 text-yellow-800">
-                              {acc.accumulativePhysical.toFixed(2)}
+                              {acc.accumulativePhysical.toFixed(2)}%
                             </div>
                           ))}
                         </div>

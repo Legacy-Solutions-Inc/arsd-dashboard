@@ -11,17 +11,26 @@ export interface ProjectDetails extends Project {
   monthly_costs?: any[];
   materials?: any[];
   purchase_orders?: any[];
+  /**
+   * `week_ending_date` of the latest accomplishment report consumed for this
+   * page load. Surfaces on the project header as "Data as of …" so PMs can
+   * tell whether the numbers reflect this week or three weeks ago.
+   * Null when no accomplishment report exists yet.
+   */
+  latest_report_date?: string | null;
 }
 
 export class ProjectDetailsService {
   private supabase = createClient();
 
   /**
-   * Get the latest accomplishment report ID for a project.
+   * Get the latest accomplishment report (id + week_ending_date) for a project.
    * Tries (1) latest approved+parsed, then (2) latest parsed-any-status,
    * then (3) latest approved (may not be parsed), then (4) latest of any kind.
    */
-  private async getLatestAccomplishmentReportId(projectId: string): Promise<string | null> {
+  private async getLatestAccomplishmentReport(
+    projectId: string,
+  ): Promise<{ id: string; week_ending_date: string | null } | null> {
     // 1) Latest APPROVED + successfully PARSED
     const { data: approvedParsed, error: approvedParsedError } = await this.supabase
       .from('accomplishment_reports')
@@ -35,7 +44,7 @@ export class ProjectDetailsService {
       .maybeSingle();
 
     if (approvedParsed && approvedParsed.id) {
-      return approvedParsed.id;
+      return { id: approvedParsed.id, week_ending_date: approvedParsed.week_ending_date ?? null };
     }
 
     if (approvedParsedError) {
@@ -54,7 +63,7 @@ export class ProjectDetailsService {
       .maybeSingle();
 
     if (anyParsed && anyParsed.id) {
-      return anyParsed.id;
+      return { id: anyParsed.id, week_ending_date: anyParsed.week_ending_date ?? null };
     }
 
     if (anyParsedError) {
@@ -73,7 +82,7 @@ export class ProjectDetailsService {
       .maybeSingle();
 
     if (approvedOnly && approvedOnly.id) {
-      return approvedOnly.id;
+      return { id: approvedOnly.id, week_ending_date: approvedOnly.week_ending_date ?? null };
     }
 
     if (approvedOnlyError) {
@@ -83,7 +92,7 @@ export class ProjectDetailsService {
     // 4) Last resort: latest report of any kind
     const { data: latestReport, error } = await this.supabase
       .from('accomplishment_reports')
-      .select('id')
+      .select('id, week_ending_date')
       .eq('project_id', projectId)
       .order('created_at', { ascending: false })
       .limit(1)
@@ -94,7 +103,8 @@ export class ProjectDetailsService {
       return null;
     }
 
-    return latestReport?.id || null;
+    if (!latestReport?.id) return null;
+    return { id: latestReport.id, week_ending_date: latestReport.week_ending_date ?? null };
   }
 
   /**
@@ -105,7 +115,7 @@ export class ProjectDetailsService {
    */
   async getProjectDetails(projectId: string): Promise<ProjectDetails | null> {
     try {
-      const [projectResult, latestReportId] = await Promise.all([
+      const [projectResult, latestReport] = await Promise.all([
         this.supabase
           .from('projects')
           .select(`
@@ -118,7 +128,7 @@ export class ProjectDetailsService {
           `)
           .eq('id', projectId)
           .single(),
-        this.getLatestAccomplishmentReportId(projectId),
+        this.getLatestAccomplishmentReport(projectId),
       ]);
 
       const { data: project, error: projectError } = projectResult;
@@ -128,7 +138,7 @@ export class ProjectDetailsService {
       }
 
       // No accomplishment report yet — return the project shell with empty arrays.
-      if (!latestReportId) {
+      if (!latestReport) {
         return {
           ...project,
           project_details: [],
@@ -139,9 +149,11 @@ export class ProjectDetailsService {
           monthly_costs: [],
           materials: [],
           purchase_orders: [],
+          latest_report_date: null,
         };
       }
 
+      const reportId = latestReport.id;
       const [
         projectDetails,
         projectCosts,
@@ -152,14 +164,14 @@ export class ProjectDetailsService {
         materials,
         purchaseOrders,
       ] = await Promise.all([
-        this.getProjectDetailsData(latestReportId),
-        this.getProjectCostsData(latestReportId),
-        this.getManHoursData(latestReportId),
-        this.getCostItemsData(latestReportId),
-        this.getCostItemsSecondaryData(latestReportId),
-        this.getMonthlyCostsData(latestReportId),
-        this.getMaterialsData(latestReportId),
-        this.getPurchaseOrdersData(latestReportId),
+        this.getProjectDetailsData(reportId),
+        this.getProjectCostsData(reportId),
+        this.getManHoursData(reportId),
+        this.getCostItemsData(reportId),
+        this.getCostItemsSecondaryData(reportId),
+        this.getMonthlyCostsData(reportId),
+        this.getMaterialsData(reportId),
+        this.getPurchaseOrdersData(reportId),
       ]);
 
       return {
@@ -172,6 +184,7 @@ export class ProjectDetailsService {
         monthly_costs: monthlyCosts,
         materials: materials,
         purchase_orders: purchaseOrders,
+        latest_report_date: latestReport.week_ending_date,
       };
     } catch (error) {
       console.error('Error fetching project details:', error);

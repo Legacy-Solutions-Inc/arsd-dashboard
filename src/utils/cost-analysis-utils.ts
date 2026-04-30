@@ -84,9 +84,13 @@ export const CHART_COLORS = {
 } as const;
 
 /**
- * Format currency values
+ * Format currency values. Rounds to whole pesos to avoid float-drift bleed
+ * (e.g. 54791382.0999999 → "₱54,791,382" instead of "₱54,791,382.0999999").
+ * Cents aren't tracked anywhere on construction-project totals, so integer
+ * display is correct for this UI.
  */
-export const formatCurrency = (value: number): string => `₱${value.toLocaleString()}`;
+export const formatCurrency = (value: number): string =>
+  `₱${Math.round(Number.isFinite(value) ? value : 0).toLocaleString('en-PH')}`;
 export const formatCurrencyM = (value: number): string => `₱${(value / 1000000).toFixed(1)}M`;
 export const formatHours = (value: number): string => `${value}h`;
 

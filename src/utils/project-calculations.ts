@@ -25,8 +25,10 @@ export const roundToTwoDecimals = (value: number): number => {
 };
 
 export const formatCurrency = (value: number | string | null | undefined): string => {
+  // Round to whole pesos to avoid float-drift bleed; cents aren't tracked on
+  // construction-project totals.
   const numValue = parseNumericValue(value, 0);
-  return `₱${numValue.toLocaleString()}`;
+  return `₱${Math.round(numValue).toLocaleString('en-PH')}`;
 };
 
 // Project calculation interfaces
