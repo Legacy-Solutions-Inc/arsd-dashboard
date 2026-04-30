@@ -74,6 +74,7 @@ const CostItemsChart = memo(({ data }: { data: any }) => {
     { name: 'Target', value: data.target || 0, fill: CHART_COLORS.target },
     { name: 'SWA', value: data.swa || 0, fill: CHART_COLORS.swa },
     { name: 'Billed', value: data.billed || 0, fill: CHART_COLORS.billed },
+    { name: 'Direct', value: data.direct || 0, fill: CHART_COLORS.direct },
   ];
 
   const directBreakdownData = [
