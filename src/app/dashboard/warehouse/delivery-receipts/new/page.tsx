@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ItemsRepeater, ItemEntry } from '@/components/warehouse/ItemsRepeater';
 import { FileUploader } from '@/components/warehouse/FileUploader';
@@ -19,6 +19,7 @@ export default function CreateDRPage() {
   const [nextNoLoading, setNextNoLoading] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const submittingRef = useRef(false);
 
   const loading = authLoading || projectsLoading || nextNoLoading;
   const warehouseman = (user?.display_name || 'Unknown').trim() || 'Unknown';
@@ -112,6 +113,8 @@ export default function CreateDRPage() {
   };
 
   const handleSubmit = async () => {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setSubmitError(null);
     setSubmitLoading(true);
     try {
@@ -148,6 +151,7 @@ export default function CreateDRPage() {
       setSubmitError(e instanceof Error ? e.message : 'Failed to create delivery receipt');
     } finally {
       setSubmitLoading(false);
+      submittingRef.current = false;
     }
   };
 

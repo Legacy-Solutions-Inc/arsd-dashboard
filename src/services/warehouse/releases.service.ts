@@ -9,6 +9,13 @@ import {
 
 export type ReleasesSupabaseClient = ReturnType<typeof createClient>;
 
+function parseWarehouseStoragePath(url: string): string | null {
+  const marker = '/warehouse/';
+  const idx = url.indexOf(marker);
+  if (idx === -1) return null;
+  return url.slice(idx + marker.length);
+}
+
 export class ReleasesService {
   public supabase: ReleasesSupabaseClient;
 
@@ -82,8 +89,9 @@ export class ReleasesService {
   async create(input: CreateReleaseFormInput & { attachment_url?: string }): Promise<ReleaseForm> {
     const { items, attachment_url, ...releaseData } = input;
 
-    // Get next release number
-    const releaseNo = await this.getNextReleaseNo();
+    // Atomic number generation via DB function — no race condition
+    const { data: releaseNo, error: noError } = await this.supabase.rpc('next_release_no');
+    if (noError || !releaseNo) throw new Error(`Failed to generate release number: ${noError?.message}`);
 
     // Insert release form
     const { data: release, error: releaseError } = await this.supabase
@@ -233,5 +241,47 @@ export class ReleasesService {
    */
   async getNextReleaseNoPublic(): Promise<string> {
     return this.getNextReleaseNo();
+  }
+
+  /**
+   * Hard delete a release form and its associated storage file.
+   * release_items rows are removed via FK ON DELETE CASCADE.
+   * Caller is responsible for the role check; pass a service-role client if RLS
+   * needs to be bypassed.
+   */
+  async delete(id: string): Promise<void> {
+    const { data: release, error: fetchError } = await this.supabase
+      .from('release_forms')
+      .select('attachment_url')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (fetchError) {
+      throw new Error(`Failed to fetch release form for delete: ${fetchError.message}`);
+    }
+
+    if (release?.attachment_url) {
+      const path = parseWarehouseStoragePath(release.attachment_url);
+      if (path) {
+        const { error: storageError } = await this.supabase.storage
+          .from('warehouse')
+          .remove([path]);
+        if (storageError) {
+          console.warn('Failed to remove release attachment', {
+            id,
+            message: storageError.message,
+          });
+        }
+      }
+    }
+
+    const { error: deleteError } = await this.supabase
+      .from('release_forms')
+      .delete()
+      .eq('id', id);
+
+    if (deleteError) {
+      throw new Error(`Failed to delete release form: ${deleteError.message}`);
+    }
   }
 }

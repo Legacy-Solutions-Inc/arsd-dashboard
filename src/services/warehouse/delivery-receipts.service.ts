@@ -9,6 +9,13 @@ import {
 
 export type DeliveryReceiptsSupabaseClient = ReturnType<typeof createClient>;
 
+function parseWarehouseStoragePath(url: string): string | null {
+  const marker = '/warehouse/';
+  const idx = url.indexOf(marker);
+  if (idx === -1) return null;
+  return url.slice(idx + marker.length);
+}
+
 export class DeliveryReceiptsService {
   public supabase: DeliveryReceiptsSupabaseClient;
 
@@ -82,8 +89,9 @@ export class DeliveryReceiptsService {
   async create(input: CreateDeliveryReceiptInput & { dr_photo_url?: string; delivery_proof_url?: string }): Promise<DeliveryReceipt> {
     const { items, dr_photo_url, delivery_proof_url, ...drData } = input;
 
-    // Get next DR number
-    const drNo = await this.getNextDrNo();
+    // Atomic number generation via DB function — no race condition
+    const { data: drNo, error: noError } = await this.supabase.rpc('next_dr_no');
+    if (noError || !drNo) throw new Error(`Failed to generate DR number: ${noError?.message}`);
 
     // Insert delivery receipt
     const { data: dr, error: drError } = await this.supabase
@@ -238,5 +246,50 @@ export class DeliveryReceiptsService {
    */
   async getNextDrNoPublic(): Promise<string> {
     return this.getNextDrNo();
+  }
+
+  /**
+   * Hard delete a delivery receipt and its associated storage files.
+   * dr_items rows are removed via FK ON DELETE CASCADE.
+   * Caller is responsible for the role check; pass a service-role client if RLS
+   * needs to be bypassed.
+   */
+  async delete(id: string): Promise<void> {
+    const { data: dr, error: fetchError } = await this.supabase
+      .from('delivery_receipts')
+      .select('dr_photo_url, delivery_proof_url')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (fetchError) {
+      throw new Error(`Failed to fetch delivery receipt for delete: ${fetchError.message}`);
+    }
+
+    if (dr) {
+      const paths = [dr.dr_photo_url, dr.delivery_proof_url]
+        .map((url) => (url ? parseWarehouseStoragePath(url) : null))
+        .filter((p): p is string => p !== null);
+
+      if (paths.length > 0) {
+        const { error: storageError } = await this.supabase.storage
+          .from('warehouse')
+          .remove(paths);
+        if (storageError) {
+          console.warn('Failed to remove DR storage files', {
+            id,
+            message: storageError.message,
+          });
+        }
+      }
+    }
+
+    const { error: deleteError } = await this.supabase
+      .from('delivery_receipts')
+      .delete()
+      .eq('id', id);
+
+    if (deleteError) {
+      throw new Error(`Failed to delete delivery receipt: ${deleteError.message}`);
+    }
   }
 }

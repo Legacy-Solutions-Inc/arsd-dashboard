@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { getCurrentWarehouseUser, WarehouseUser, canCreateDRRelease, canUnlockDRRelease, canViewAllProjects } from '@/lib/warehouse/rbac';
+import { getCurrentWarehouseUser, WarehouseUser, canCreateDRRelease, canUnlockDRRelease, canViewAllProjects, canHardDeleteDRRelease } from '@/lib/warehouse/rbac';
 
 export function useWarehouseAuth() {
   const [user, setUser] = useState<WarehouseUser | null>(null);
@@ -40,5 +40,6 @@ export function useWarehouseAuth() {
     canCreate: user ? canCreateDRRelease(user) : false,
     canUnlock: user ? canUnlockDRRelease(user) : false,
     canViewAll: user ? canViewAllProjects(user) : false,
+    canHardDelete: user ? canHardDeleteDRRelease(user) : false,
   };
 }

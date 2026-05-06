@@ -16,7 +16,7 @@ export default function ReleaseFormDetailPage() {
   const params = useParams();
   const router = useRouter();
   const releaseId = params?.id as string;
-  const { user, canUnlock } = useWarehouseAuth();
+  const { user, canUnlock, canHardDelete } = useWarehouseAuth();
 
   const [release, setRelease] = useState<ReleaseForm | null>(null);
   const [loading, setLoading] = useState(true);
@@ -30,6 +30,10 @@ export default function ReleaseFormDetailPage() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveLoading, setSaveLoading] = useState(false);
   const [lockError, setLockError] = useState<string | null>(null);
+  const [attachmentUploading, setAttachmentUploading] = useState(false);
+  const [attachmentError, setAttachmentError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const projectId = release?.project_id ?? '';
   const { ipowItems } = useIPOW(projectId);
@@ -164,6 +168,26 @@ export default function ReleaseFormDetailPage() {
     }
   };
 
+  const handleUploadAttachment = async (file: File | null) => {
+    if (!file || !release) return;
+    setAttachmentUploading(true);
+    setAttachmentError(null);
+    try {
+      const fd = new FormData();
+      fd.set('attachment', file);
+      const res = await fetch(`/api/warehouse/releases/${release.id}`, { method: 'PATCH', body: fd });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json?.error || 'Upload failed');
+      }
+      setRelease(await res.json());
+    } catch (e) {
+      setAttachmentError(e instanceof Error ? e.message : 'Upload failed');
+    } finally {
+      setAttachmentUploading(false);
+    }
+  };
+
   const handleLockToggle = async () => {
     if (!release) return;
 
@@ -181,6 +205,32 @@ export default function ReleaseFormDetailPage() {
       setRelease(updated);
     } catch (err) {
       setLockError('Failed to update lock status. Please try again.');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!release) return;
+    if (
+      !window.confirm(
+        'Are you sure you want to permanently delete this release form? This cannot be undone.',
+      )
+    ) {
+      return;
+    }
+    setDeleteError(null);
+    setDeleteLoading(true);
+    try {
+      const response = await fetch(`/api/warehouse/releases/${release.id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        const json = await response.json().catch(() => null);
+        throw new Error(json?.error || 'Failed to delete release form');
+      }
+      router.push('/dashboard/warehouse/releases');
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Failed to delete');
+      setDeleteLoading(false);
     }
   };
 
@@ -237,7 +287,7 @@ export default function ReleaseFormDetailPage() {
               <BadgeStatus locked={release.locked} />
             </div>
 
-            {(canUnlock || canEdit) && (
+            {(canUnlock || canEdit || canHardDelete) && (
               <div className="mt-3 flex flex-wrap gap-2 sm:justify-end">
                 {canUnlock && (
                   <button
@@ -282,6 +332,16 @@ export default function ReleaseFormDetailPage() {
                     </button>
                   </>
                 )}
+                {canHardDelete && !isEditing && (
+                  <button
+                    type="button"
+                    onClick={handleDelete}
+                    disabled={deleteLoading}
+                    className="inline-flex items-center justify-center gap-2 rounded-md border px-4 py-2.5 sm:py-2 text-sm font-medium transition-colors min-h-[44px] sm:min-h-0 text-red-700 border-red-300 bg-red-50/40 hover:bg-red-50 disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {deleteLoading ? 'Deleting…' : 'Delete'}
+                  </button>
+                )}
               </div>
             )}
 
@@ -304,6 +364,17 @@ export default function ReleaseFormDetailPage() {
             {saveError && (
               <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800">
                 {saveError}
+              </div>
+            )}
+            {deleteError && (
+              <div className="mt-3 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive flex items-start justify-between gap-3">
+                <span>{deleteError}</span>
+                <button
+                  onClick={() => setDeleteError(null)}
+                  className="font-medium text-destructive/80 hover:text-destructive shrink-0"
+                >
+                  Dismiss
+                </button>
               </div>
             )}
           </div>
@@ -442,10 +513,10 @@ export default function ReleaseFormDetailPage() {
         </ARSDCard>
 
         {/* Attachment */}
-        {release.attachment_url && (
-          <ARSDCard>
-            <div className="space-y-4">
-              <h2 className="text-lg font-bold text-foreground mb-4">Attachment</h2>
+        <ARSDCard>
+          <div className="space-y-4">
+            <h2 className="text-lg font-bold text-foreground mb-4">Attachment</h2>
+            {release.attachment_url ? (
               <a
                 href={release.attachment_url}
                 target="_blank"
@@ -454,9 +525,27 @@ export default function ReleaseFormDetailPage() {
               >
                 View Attachment
               </a>
-            </div>
-          </ARSDCard>
-        )}
+            ) : user?.role === 'warehouseman' ? (
+              <div className="flex flex-col gap-2">
+                <label className="btn-arsd-outline inline-flex items-center gap-2 cursor-pointer w-fit">
+                  {attachmentUploading ? 'Uploading…' : 'Upload Attachment'}
+                  <input
+                    type="file"
+                    accept="image/*,application/pdf"
+                    className="hidden"
+                    disabled={attachmentUploading}
+                    onChange={(e) => handleUploadAttachment(e.target.files?.[0] ?? null)}
+                  />
+                </label>
+                {attachmentError && (
+                  <p className="text-xs text-red-600">{attachmentError}</p>
+                )}
+              </div>
+            ) : (
+              <span className="text-gray-400 text-sm">No attachment</span>
+            )}
+          </div>
+        </ARSDCard>
       </div>
     </div>
   );
