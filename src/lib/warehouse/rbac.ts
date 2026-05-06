@@ -113,3 +113,11 @@ export function canUnlockDRRelease(user: WarehouseUser): boolean {
 export function canViewAllProjects(user: WarehouseUser): boolean {
   return user.role === 'superadmin' || user.role === 'purchasing' || user.role === 'material_control';
 }
+
+/**
+ * Can user permanently delete a DR or Release Form?
+ * Hard delete is destructive and superadmin-only.
+ */
+export function canHardDeleteDRRelease(user: WarehouseUser): boolean {
+  return user.role === 'superadmin';
+}

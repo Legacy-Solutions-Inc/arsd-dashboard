@@ -167,7 +167,7 @@ export default function WarehouseDashboardPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search by project, location, or warehouseman"
-                className="w-full rounded-md border border-border bg-card pl-9 pr-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-transparent"
+                className="w-full rounded-md border border-border bg-card pl-9 pr-3 py-2.5 sm:py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-transparent min-h-[44px] sm:min-h-0"
               />
             </div>
             {filteredProjects.length > 0 ? (
@@ -186,7 +186,7 @@ export default function WarehouseDashboardPage() {
                         type="button"
                         onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                         disabled={activePage === 1}
-                        className="inline-flex items-center rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="inline-flex items-center rounded-md border border-border bg-card px-3 py-2.5 sm:py-1.5 text-sm sm:text-xs font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] sm:min-h-0"
                       >
                         Previous
                       </button>
@@ -198,7 +198,7 @@ export default function WarehouseDashboardPage() {
                         type="button"
                         onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                         disabled={activePage === totalPages}
-                        className="inline-flex items-center rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="inline-flex items-center rounded-md border border-border bg-card px-3 py-2.5 sm:py-1.5 text-sm sm:text-xs font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] sm:min-h-0"
                       >
                         Next
                       </button>

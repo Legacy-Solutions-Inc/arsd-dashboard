@@ -74,8 +74,9 @@ export async function POST(request: NextRequest) {
 
     // Create release first to get ID for file upload (use server client for RLS)
     const service = new ReleasesService(supabase);
-    // Use service-role client for storage to avoid storage RLS issues
-    const storageService = new WarehouseStorageService(createServiceSupabaseClient());
+    // Use service-role client for storage and post-upload updates to avoid storage/RLS issues
+    const serviceSupabase = createServiceSupabaseClient();
+    const storageService = new WarehouseStorageService(serviceSupabase);
 
     const releaseInput: CreateReleaseFormInput = {
       project_id: projectId,
@@ -102,10 +103,17 @@ export async function POST(request: NextRequest) {
 
     // Update release with attachment URL if uploaded
     if (attachmentUrl) {
-      await service.supabase
+      const { error: updateError } = await serviceSupabase
         .from('release_forms')
         .update({ attachment_url: attachmentUrl })
         .eq('id', release.id);
+
+      if (updateError) {
+        console.error('Failed to update release attachment URL', {
+          releaseId: release.id,
+          message: updateError.message,
+        });
+      }
     }
 
     // Fetch final release with items

@@ -17,13 +17,15 @@ export default function DeliveryReceiptDetailPage() {
   const params = useParams();
   const router = useRouter();
   const drId = params?.id as string;
-  const { user, canUnlock } = useWarehouseAuth();
+  const { user, canUnlock, canHardDelete } = useWarehouseAuth();
 
   const [dr, setDR] = useState<DeliveryReceipt | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [previewImage, setPreviewImage] = useState<{ url: string; label: string } | null>(null);
   const [lockError, setLockError] = useState<string | null>(null);
+  const [photoUploading, setPhotoUploading] = useState<string | null>(null);
+  const [photoError, setPhotoError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editItems, setEditItems] = useState<ItemEntry[]>([]);
   const [editDate, setEditDate] = useState('');
@@ -32,6 +34,8 @@ export default function DeliveryReceiptDetailPage() {
   const [editWarehouseman, setEditWarehouseman] = useState('');
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveLoading, setSaveLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const projectId = dr?.project_id ?? '';
   const { ipowItems } = useIPOW(projectId);
@@ -179,6 +183,26 @@ export default function DeliveryReceiptDetailPage() {
     }
   };
 
+  const handleUploadPhoto = async (field: 'dr_photo' | 'delivery_proof', file: File | null) => {
+    if (!file || !dr) return;
+    setPhotoUploading(field);
+    setPhotoError(null);
+    try {
+      const fd = new FormData();
+      fd.set(field, file);
+      const res = await fetch(`/api/warehouse/delivery-receipts/${dr.id}`, { method: 'PATCH', body: fd });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json?.error || 'Upload failed');
+      }
+      setDR(await res.json());
+    } catch (e) {
+      setPhotoError(e instanceof Error ? e.message : 'Upload failed');
+    } finally {
+      setPhotoUploading(null);
+    }
+  };
+
   const handleLockToggle = async () => {
     if (!dr) return;
 
@@ -196,6 +220,32 @@ export default function DeliveryReceiptDetailPage() {
       setDR(updated);
     } catch (err) {
       setLockError('Failed to update lock status. Please try again.');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!dr) return;
+    if (
+      !window.confirm(
+        'Are you sure you want to permanently delete this delivery receipt? This cannot be undone.',
+      )
+    ) {
+      return;
+    }
+    setDeleteError(null);
+    setDeleteLoading(true);
+    try {
+      const response = await fetch(`/api/warehouse/delivery-receipts/${dr.id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        const json = await response.json().catch(() => null);
+        throw new Error(json?.error || 'Failed to delete delivery receipt');
+      }
+      router.push('/dashboard/warehouse/delivery-receipts');
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Failed to delete');
+      setDeleteLoading(false);
     }
   };
 
@@ -240,7 +290,7 @@ export default function DeliveryReceiptDetailPage() {
 
   return (
     <div className="min-h-[calc(100vh-6rem)] bg-background w-full">
-      <div className="w-full mx-4 sm:mx-6 lg:mx-8 py-4 sm:py-6 lg:py-8 space-y-4 sm:space-y-6">
+      <div className="w-full py-4 sm:py-6 lg:py-8 space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="relative">
           <div className="absolute inset-0 hidden"></div>
@@ -264,7 +314,7 @@ export default function DeliveryReceiptDetailPage() {
             </div>
 
             {/* Action row: lock + edit/save/cancel. Wraps on phones; right-aligned on tablet+. */}
-            {(canUnlock || canEdit) && (
+            {(canUnlock || canEdit || canHardDelete) && (
               <div className="mt-3 flex flex-wrap gap-2 sm:justify-end">
                 {canUnlock && (
                   <button
@@ -309,6 +359,16 @@ export default function DeliveryReceiptDetailPage() {
                     </button>
                   </>
                 )}
+                {canHardDelete && !isEditing && (
+                  <button
+                    type="button"
+                    onClick={handleDelete}
+                    disabled={deleteLoading}
+                    className="inline-flex items-center justify-center gap-2 rounded-md border px-4 py-2.5 sm:py-2 text-sm font-medium transition-colors min-h-[44px] sm:min-h-0 text-red-700 border-red-300 bg-red-50/40 hover:bg-red-50 disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {deleteLoading ? 'Deleting…' : 'Delete'}
+                  </button>
+                )}
               </div>
             )}
 
@@ -331,6 +391,17 @@ export default function DeliveryReceiptDetailPage() {
             {saveError && (
               <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800">
                 {saveError}
+              </div>
+            )}
+            {deleteError && (
+              <div className="mt-3 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive flex items-start justify-between gap-3">
+                <span>{deleteError}</span>
+                <button
+                  onClick={() => setDeleteError(null)}
+                  className="font-medium text-destructive/80 hover:text-destructive shrink-0"
+                >
+                  Dismiss
+                </button>
               </div>
             )}
           </div>
@@ -406,43 +477,62 @@ export default function DeliveryReceiptDetailPage() {
                   )}
                 </dd>
               </div>
-              {dr.dr_photo_url && (
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-red-200/20">
-                  <dt className="text-gray-600 shrink-0">DR Photo</dt>
-                  <dd className="font-medium break-words min-w-0">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-red-200/20">
+                <dt className="text-gray-600 shrink-0">DR Photo</dt>
+                <dd className="font-medium break-words min-w-0">
+                  {dr.dr_photo_url ? (
                     <button
                       type="button"
-                      onClick={() =>
-                        setPreviewImage({
-                          url: dr.dr_photo_url as string,
-                          label: 'Delivery Receipt Photo',
-                        })
-                      }
+                      onClick={() => setPreviewImage({ url: dr.dr_photo_url as string, label: 'Delivery Receipt Photo' })}
                       className="btn-arsd-outline inline-flex items-center gap-2"
                     >
                       View DR Photo
                     </button>
-                  </dd>
-                </div>
-              )}
-              {dr.delivery_proof_url && (
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-red-200/20">
-                  <dt className="text-gray-600 shrink-0">Delivery Proof</dt>
-                  <dd className="font-medium break-words min-w-0">
+                  ) : user?.role === 'warehouseman' ? (
+                    <label className="btn-arsd-outline inline-flex items-center gap-2 cursor-pointer">
+                      {photoUploading === 'dr_photo' ? 'Uploading…' : 'Upload DR Photo'}
+                      <input
+                        type="file"
+                        accept="image/*,application/pdf"
+                        className="hidden"
+                        disabled={!!photoUploading}
+                        onChange={(e) => handleUploadPhoto('dr_photo', e.target.files?.[0] ?? null)}
+                      />
+                    </label>
+                  ) : (
+                    <span className="text-gray-400 text-sm">No photo</span>
+                  )}
+                </dd>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-red-200/20">
+                <dt className="text-gray-600 shrink-0">Delivery Proof</dt>
+                <dd className="font-medium break-words min-w-0">
+                  {dr.delivery_proof_url ? (
                     <button
                       type="button"
-                      onClick={() =>
-                        setPreviewImage({
-                          url: dr.delivery_proof_url as string,
-                          label: 'Delivery Proof',
-                        })
-                      }
+                      onClick={() => setPreviewImage({ url: dr.delivery_proof_url as string, label: 'Delivery Proof' })}
                       className="btn-arsd-outline inline-flex items-center gap-2"
                     >
                       View Delivery Proof
                     </button>
-                  </dd>
-                </div>
+                  ) : user?.role === 'warehouseman' ? (
+                    <label className="btn-arsd-outline inline-flex items-center gap-2 cursor-pointer">
+                      {photoUploading === 'delivery_proof' ? 'Uploading…' : 'Upload Delivery Proof'}
+                      <input
+                        type="file"
+                        accept="image/*,application/pdf"
+                        className="hidden"
+                        disabled={!!photoUploading}
+                        onChange={(e) => handleUploadPhoto('delivery_proof', e.target.files?.[0] ?? null)}
+                      />
+                    </label>
+                  ) : (
+                    <span className="text-gray-400 text-sm">No photo</span>
+                  )}
+                </dd>
+              </div>
+              {photoError && (
+                <div className="py-2 text-xs text-red-600">{photoError}</div>
               )}
             </dl>
           </div>
@@ -501,24 +591,24 @@ export default function DeliveryReceiptDetailPage() {
       </div>
       {previewImage && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/50 px-4"
+          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-foreground/50 px-4 py-6"
           onClick={() => setPreviewImage(null)}
           role="dialog"
           aria-modal="true"
           aria-label="Image preview"
         >
           <div
-            className="relative w-full max-w-3xl bg-card rounded-lg shadow-lg-tinted border border-border p-4 sm:p-6"
+            className="relative w-full max-w-3xl bg-card rounded-lg shadow-lg-tinted border border-border p-4 sm:p-6 my-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base sm:text-lg font-semibold text-foreground">
+            <div className="flex items-center justify-between mb-4 gap-3">
+              <h2 className="text-base sm:text-lg font-semibold text-foreground min-w-0 truncate">
                 {previewImage.label}
               </h2>
               <button
                 type="button"
                 onClick={() => setPreviewImage(null)}
-                className="text-sm font-medium text-gray-600 hover:text-gray-900"
+                className="inline-flex items-center justify-center rounded-md border border-border bg-card px-3 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors min-h-[44px] shrink-0"
               >
                 Close
               </button>

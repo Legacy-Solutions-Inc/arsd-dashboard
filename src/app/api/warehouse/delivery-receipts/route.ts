@@ -123,8 +123,7 @@ export async function POST(request: NextRequest) {
       const { error: updateError } = await serviceSupabase
         .from('delivery_receipts')
         .update(updateData)
-        .eq('id', dr.id)
-        .eq('created_by', user.id);
+        .eq('id', dr.id);
 
       if (updateError) {
         console.error('Failed to update DR photo URLs', {

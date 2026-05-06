@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ItemsRepeater, ItemEntry } from '@/components/warehouse/ItemsRepeater';
 import { FileUploader } from '@/components/warehouse/FileUploader';
@@ -19,6 +19,7 @@ export default function CreateDRPage() {
   const [nextNoLoading, setNextNoLoading] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const submittingRef = useRef(false);
 
   const loading = authLoading || projectsLoading || nextNoLoading;
   const warehouseman = (user?.display_name || 'Unknown').trim() || 'Unknown';
@@ -112,6 +113,8 @@ export default function CreateDRPage() {
   };
 
   const handleSubmit = async () => {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setSubmitError(null);
     setSubmitLoading(true);
     try {
@@ -148,6 +151,7 @@ export default function CreateDRPage() {
       setSubmitError(e instanceof Error ? e.message : 'Failed to create delivery receipt');
     } finally {
       setSubmitLoading(false);
+      submittingRef.current = false;
     }
   };
 
@@ -205,7 +209,7 @@ export default function CreateDRPage() {
 
   return (
     <div className="min-h-[calc(100vh-6rem)] bg-background pb-24 w-full">
-      <div className="w-full mx-4 sm:mx-6 lg:mx-8 space-y-4 sm:space-y-6 lg:space-y-8 py-4 sm:py-6 lg:py-8">
+      <div className="w-full space-y-4 sm:space-y-6 lg:space-y-8 py-4 sm:py-6 lg:py-8">
         {/* Header */}
         <div className="relative">
           <div className="absolute inset-0 hidden"></div>
@@ -226,9 +230,9 @@ export default function CreateDRPage() {
             </div>
 
             {/* Progress Steps */}
-            <ol className="flex items-center justify-between mt-6 gap-2" aria-label="Form progress">
+            <ol className="flex items-center mt-6 gap-1 sm:gap-2 overflow-x-auto pb-1" aria-label="Form progress">
               {[1, 2, 3, 4].map((section) => {
-                const label = section === 1 ? 'Details' : section === 2 ? 'Items' : section === 3 ? 'Attachments' : 'Review';
+                const label = section === 1 ? 'Details' : section === 2 ? 'Items' : section === 3 ? 'Attach.' : 'Review';
                 const isActive = currentSection === section;
                 const isComplete = currentSection > section;
                 return (
@@ -244,7 +248,7 @@ export default function CreateDRPage() {
                     disabled={section > currentSection && currentSection < section}
                     aria-current={isActive ? 'step' : undefined}
                     aria-label={`Step ${section} of 4: ${label}${isComplete ? ' (complete)' : isActive ? ' (current)' : ''}`}
-                    className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors duration-150 flex-1 sm:flex-none ${
+                    className={`flex items-center gap-1.5 px-2 sm:px-4 py-2 rounded-lg text-xs font-medium transition-colors duration-150 whitespace-nowrap min-h-[44px] shrink-0 ${
                       isActive
                         ? 'bg-primary text-primary-foreground shadow-xs'
                         : isComplete
@@ -259,16 +263,13 @@ export default function CreateDRPage() {
                         {section}
                       </span>
                     )}
-                    {/* Show labels on every breakpoint so mobile users know where they are. */}
-                    <span className="text-[10px] sm:text-sm whitespace-nowrap truncate">
-                      {label}
-                    </span>
+                    <span>{label}</span>
                   </button>
                   </li>
                   {section < totalSections && (
                     <div
                       aria-hidden
-                      className={`flex-1 h-0.5 mx-1 sm:mx-2 transition-colors duration-150 ${
+                      className={`h-0.5 w-4 sm:w-8 shrink-0 transition-colors duration-150 ${
                         currentSection > section ? 'bg-emerald-500' : 'bg-border'
                       }`}
                     />

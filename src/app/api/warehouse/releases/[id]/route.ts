@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient, createServiceSupabaseClient } from '@/lib/supabase';
 import { ReleasesService } from '@/services/warehouse/releases.service';
+import { WarehouseStorageService } from '@/services/warehouse/warehouse-storage.service';
 
 export async function GET(
   request: NextRequest,
@@ -21,6 +22,37 @@ export async function GET(
   }
 }
 
+async function uploadReleaseAttachment(request: NextRequest, releaseId: string, userId: string): Promise<NextResponse> {
+  const supabase = await createServerSupabaseClient();
+  const { data: profile } = await supabase.from('profiles').select('role').eq('user_id', userId).single();
+  const ALLOWED = ['warehouseman', 'project_manager', 'project_inspector', 'superadmin'];
+  if (!profile || !ALLOWED.includes(profile.role)) {
+    return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
+  }
+
+  const formData = await request.formData();
+  const attachment = formData.get('attachment') as File | null;
+  if (!attachment) {
+    return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+  }
+
+  const serviceSupabase = createServiceSupabaseClient();
+  const storageService = new WarehouseStorageService(serviceSupabase);
+  const result = await storageService.uploadReleaseAttachment(releaseId, attachment);
+  if (!result.success) {
+    return NextResponse.json({ error: `Upload failed: ${result.error}` }, { status: 500 });
+  }
+
+  const { error } = await serviceSupabase
+    .from('release_forms')
+    .update({ attachment_url: result.url })
+    .eq('id', releaseId);
+  if (error) return NextResponse.json({ error: `DB update failed: ${error.message}` }, { status: 500 });
+
+  const service = new ReleasesService(supabase);
+  return NextResponse.json(await service.getById(releaseId));
+}
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -30,6 +62,10 @@ export async function PATCH(
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    if ((request.headers.get('content-type') || '').includes('multipart/form-data')) {
+      return uploadReleaseAttachment(request, params.id, user.id);
     }
 
     const { data: profile } = await supabase
@@ -46,23 +82,15 @@ export async function PATCH(
     const body = await request.json();
     const service = new ReleasesService(supabase);
 
-    // Currently only support lock/unlock
     if (typeof body.locked === 'boolean') {
       await service.updateLock(params.id, body.locked);
-      const updatedRelease = await service.getById(params.id);
-      return NextResponse.json(updatedRelease);
+      return NextResponse.json(await service.getById(params.id));
     }
 
-    return NextResponse.json(
-      { error: 'No valid fields to update' },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 });
   } catch (error) {
     console.error('Error updating release:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -136,6 +164,43 @@ export async function PUT(
     return NextResponse.json(updated);
   } catch (error) {
     console.error('Error updating release form:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const supabase = await createServerSupabaseClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single();
+
+    if (!profile || profile.role !== 'superadmin') {
+      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
+    }
+
+    const serviceSupabase = createServiceSupabaseClient();
+    const service = new ReleasesService(serviceSupabase);
+    await service.delete(params.id);
+
+    return new NextResponse(null, { status: 204 });
+  } catch (error) {
+    console.error('Error deleting release form:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

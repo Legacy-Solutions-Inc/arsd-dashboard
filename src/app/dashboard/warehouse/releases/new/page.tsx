@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ItemsRepeater, ItemEntry } from '@/components/warehouse/ItemsRepeater';
 import { FileUploader } from '@/components/warehouse/FileUploader';
@@ -19,6 +19,7 @@ export default function CreateReleasePage() {
   const [nextNoLoading, setNextNoLoading] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const submittingRef = useRef(false);
 
   const loading = authLoading || projectsLoading || nextNoLoading;
   const warehouseman = (user?.display_name || 'Unknown').trim() || 'Unknown';
@@ -76,6 +77,8 @@ export default function CreateReleasePage() {
   };
 
   const handleSubmit = async () => {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setSubmitError(null);
     setSubmitLoading(true);
     try {
@@ -106,6 +109,7 @@ export default function CreateReleasePage() {
       setSubmitError(e instanceof Error ? e.message : 'Failed to create release');
     } finally {
       setSubmitLoading(false);
+      submittingRef.current = false;
     }
   };
 
@@ -154,7 +158,7 @@ export default function CreateReleasePage() {
 
   return (
     <div className="min-h-[calc(100vh-6rem)] bg-background pb-24 w-full">
-      <div className="w-full mx-4 sm:mx-6 lg:mx-8 space-y-4 sm:space-y-6 lg:space-y-8 py-4 sm:py-6 lg:py-8">
+      <div className="w-full space-y-4 sm:space-y-6 lg:space-y-8 py-4 sm:py-6 lg:py-8">
         {/* Header */}
         <div className="relative">
           <div className="absolute inset-0 hidden"></div>

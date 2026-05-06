@@ -15,6 +15,12 @@ const nextConfig = {
                 port: '',
                 pathname: '/**',
             },
+            {
+                protocol: 'https',
+                hostname: 's3.arsd.co',
+                port: '',
+                pathname: '/**',
+            },
         ],
     },
     webpack: (config, { isServer }) => {

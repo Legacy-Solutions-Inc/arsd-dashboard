@@ -323,29 +323,27 @@ export default function StockMonitoringPage() {
           </div>
         )}
 
-        {/* Sticky Filter Bar */}
-        <div className="sticky top-0 z-40 bg-card border border-border rounded-md shadow-xs p-4">
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="   Search by WBS or item name..."
-                  className="mobile-form-input w-full pl-10"
-                />
-              </div>
+        {/* Filter Bar — only sticky on sm+ to avoid eating short mobile viewports */}
+        <div className="sm:sticky sm:top-0 sm:z-40 bg-card border border-border rounded-md shadow-xs p-4">
+          <div className="flex flex-col gap-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search by WBS or item name..."
+                className="mobile-form-input w-full pl-10"
+              />
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <select
                 value={selectedProjectId}
                 onChange={(e) => {
                   setSelectedProjectId(e.target.value);
                   router.push(`/dashboard/warehouse/stocks/${e.target.value}`);
                 }}
-                className="mobile-form-input min-w-[150px]"
+                className="mobile-form-input flex-1 min-w-0"
               >
                 {projects.map(p => (
                   <option key={p.id} value={p.id}>{p.project_name}</option>
@@ -362,7 +360,7 @@ export default function StockMonitoringPage() {
                       ? 'Preparing download…'
                       : 'Download stock ledger as Excel'
                 }
-                className="btn-arsd-outline mobile-button flex items-center gap-2 px-4 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center justify-center gap-2 rounded-md border border-primary text-primary hover:bg-primary/5 px-4 min-h-[44px] text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
               >
                 <Download className="h-4 w-4" />
                 <span className="hidden sm:inline">
@@ -403,7 +401,7 @@ export default function StockMonitoringPage() {
                 type="button"
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={activePage === 1}
-                className="btn-arsd-outline mobile-button px-3 py-1.5 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center justify-center rounded-md border border-border bg-card px-4 py-2.5 sm:py-1.5 text-sm sm:text-xs font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] sm:min-h-0"
               >
                 Previous
               </button>
@@ -415,7 +413,7 @@ export default function StockMonitoringPage() {
                 type="button"
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={activePage === totalPages}
-                className="btn-arsd-outline mobile-button px-3 py-1.5 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center justify-center rounded-md border border-border bg-card px-4 py-2.5 sm:py-1.5 text-sm sm:text-xs font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] sm:min-h-0"
               >
                 Next
               </button>
@@ -425,7 +423,7 @@ export default function StockMonitoringPage() {
 
         {/* Desktop View - Table */}
         <div className="hidden sm:block">
-          <ARSDTable>
+          <ARSDTable className="min-w-[800px]">
             <thead className="glass-table-header">
               {isWarehouseman ? (
                 <tr>

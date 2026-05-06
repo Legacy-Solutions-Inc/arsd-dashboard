@@ -10,8 +10,8 @@ interface ARSDCardProps {
 export function ARSDCard({ children, className = '', onClick, variant = 'default' }: ARSDCardProps) {
   const baseClass =
     variant === 'neutral'
-      ? 'bg-card border border-border rounded-lg p-6 shadow-xs'
-      : 'bg-card border border-border rounded-lg p-6 shadow-xs transition-colors duration-150 hover:border-foreground/15';
+      ? 'bg-card border border-border rounded-lg p-4 sm:p-6 shadow-xs'
+      : 'bg-card border border-border rounded-lg p-4 sm:p-6 shadow-xs transition-colors duration-150 hover:border-foreground/15';
   return (
     <div
       className={`${baseClass} ${className} ${onClick ? 'cursor-pointer' : ''}`}

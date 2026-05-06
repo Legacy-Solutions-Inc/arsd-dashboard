@@ -73,7 +73,7 @@ export class WarehouseStorageService {
         };
       }
 
-      // Get public URL
+      // Get public URL (bucket must be public — see migration 20260506000001)
       const { data: { publicUrl } } = this.supabase.storage
         .from(this.bucketName)
         .getPublicUrl(data.path);
