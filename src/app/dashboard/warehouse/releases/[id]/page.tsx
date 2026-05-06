@@ -265,7 +265,7 @@ export default function ReleaseFormDetailPage() {
 
   return (
     <div className="min-h-[calc(100vh-6rem)] bg-background w-full">
-      <div className="w-full mx-4 sm:mx-6 lg:mx-8 py-4 sm:py-6 lg:py-8 space-y-4 sm:space-y-6">
+      <div className="w-full py-4 sm:py-6 lg:py-8 space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="relative">
           <div className="absolute inset-0 hidden"></div>

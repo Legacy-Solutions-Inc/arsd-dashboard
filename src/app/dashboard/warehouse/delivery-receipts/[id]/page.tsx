@@ -290,7 +290,7 @@ export default function DeliveryReceiptDetailPage() {
 
   return (
     <div className="min-h-[calc(100vh-6rem)] bg-background w-full">
-      <div className="w-full mx-4 sm:mx-6 lg:mx-8 py-4 sm:py-6 lg:py-8 space-y-4 sm:space-y-6">
+      <div className="w-full py-4 sm:py-6 lg:py-8 space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="relative">
           <div className="absolute inset-0 hidden"></div>
@@ -591,24 +591,24 @@ export default function DeliveryReceiptDetailPage() {
       </div>
       {previewImage && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/50 px-4"
+          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-foreground/50 px-4 py-6"
           onClick={() => setPreviewImage(null)}
           role="dialog"
           aria-modal="true"
           aria-label="Image preview"
         >
           <div
-            className="relative w-full max-w-3xl bg-card rounded-lg shadow-lg-tinted border border-border p-4 sm:p-6"
+            className="relative w-full max-w-3xl bg-card rounded-lg shadow-lg-tinted border border-border p-4 sm:p-6 my-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base sm:text-lg font-semibold text-foreground">
+            <div className="flex items-center justify-between mb-4 gap-3">
+              <h2 className="text-base sm:text-lg font-semibold text-foreground min-w-0 truncate">
                 {previewImage.label}
               </h2>
               <button
                 type="button"
                 onClick={() => setPreviewImage(null)}
-                className="text-sm font-medium text-gray-600 hover:text-gray-900"
+                className="inline-flex items-center justify-center rounded-md border border-border bg-card px-3 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors min-h-[44px] shrink-0"
               >
                 Close
               </button>

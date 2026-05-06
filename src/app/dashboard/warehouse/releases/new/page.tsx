@@ -158,7 +158,7 @@ export default function CreateReleasePage() {
 
   return (
     <div className="min-h-[calc(100vh-6rem)] bg-background pb-24 w-full">
-      <div className="w-full mx-4 sm:mx-6 lg:mx-8 space-y-4 sm:space-y-6 lg:space-y-8 py-4 sm:py-6 lg:py-8">
+      <div className="w-full space-y-4 sm:space-y-6 lg:space-y-8 py-4 sm:py-6 lg:py-8">
         {/* Header */}
         <div className="relative">
           <div className="absolute inset-0 hidden"></div>
