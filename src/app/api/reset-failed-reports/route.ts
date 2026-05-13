@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createServerSupabaseClient, createServiceSupabaseClient } from '@/lib/supabase';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * POST /api/reset-failed-reports
  *

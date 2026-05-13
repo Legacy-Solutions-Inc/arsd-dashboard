@@ -12,6 +12,7 @@ Steps:
 1. **Pick the path**: `/api/cron/<descriptive-kebab-name>`. Create the file at `src/app/api/cron/<name>/route.ts`.
 2. **Route handler** must:
    - Export an async `GET(request: NextRequest)` handler — Vercel Cron sends GET only.
+   - Set `export const dynamic = 'force-dynamic';` so Next.js does not pre-execute the handler during build. Cron handlers always do real I/O; pre-rendering them either hangs the build (S3/NAS calls) or triggers unwanted side-effects.
    - Set `export const maxDuration = 300;` (5 min). Raise only if the workload genuinely needs longer; lower if you can guarantee faster execution.
    - Delegate the actual work to a service in `src/services/<domain>/`. Do not put business logic in the route handler.
    - Return `NextResponse.json({ success, ...result, timestamp: new Date().toISOString() })` on both success and failure paths so logs are diffable.

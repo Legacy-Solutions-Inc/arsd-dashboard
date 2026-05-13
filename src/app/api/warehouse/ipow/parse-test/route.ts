@@ -3,6 +3,8 @@ import { createServerSupabaseClient } from '@/lib/supabase';
 import { AccomplishmentReportParser } from '@/lib/accomplishment-report-parser';
 import { AccomplishmentDataService } from '@/services/accomplishment-reports/accomplishment-data.service';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * ADMIN-ONLY TEST ROUTE - Safe for production testing
  * POST /api/warehouse/ipow/parse-test

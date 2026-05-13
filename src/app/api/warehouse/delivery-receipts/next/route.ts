@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { DeliveryReceiptsService } from '@/services/warehouse/delivery-receipts.service';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const service = new DeliveryReceiptsService();
