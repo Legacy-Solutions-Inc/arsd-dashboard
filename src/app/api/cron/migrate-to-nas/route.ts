@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { runNasMover } from '@/services/storage/nas-mover.service';
 
+export const dynamic = 'force-dynamic';
 export const maxDuration = 300;
 
 /**

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { StorageCleanupService } from '@/services/storage/storage-cleanup.service';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/cron/cleanup-storage
  * 

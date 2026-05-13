@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { deleteByUrl } from '@/services/storage/delete-by-url';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * POST /api/storage/delete-file
  *

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { AutoParseService } from '@/services/accomplishment-reports/auto-parse.service';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * POST /api/accomplishment-reports/parse-approved
  *
