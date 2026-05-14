@@ -122,7 +122,8 @@ function IPOWCombobox({ ipowItems, onSelect }: IPOWComboboxProps) {
               {ipowItems.map((ipow) => (
                 <CommandItem
                   key={ipow.id}
-                  value={`${ipow.wbs ?? ''} ${ipow.item_description} ${ipow.resource ?? ''} ${ipow.unit ?? ''}`}
+                  value={ipow.id}
+                  keywords={[ipow.wbs, ipow.item_description, ipow.resource, ipow.unit].filter((k): k is string => Boolean(k))}
                   onSelect={() => {
                     onSelect(ipow);
                     setOpen(false);
