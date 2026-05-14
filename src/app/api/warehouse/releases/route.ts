@@ -4,6 +4,8 @@ import { ReleasesService } from '@/services/warehouse/releases.service';
 import { WarehouseStorageService } from '@/services/warehouse/warehouse-storage.service';
 import { CreateReleaseFormInput } from '@/types/warehouse';
 
+export const maxDuration = 60;
+
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();

@@ -2,8 +2,22 @@
 
 import React, { useState, useCallback, useMemo } from 'react';
 import { ARSDCard } from './ARSDCard';
-import { X, List } from 'lucide-react';
+import { X, List, ChevronsUpDown } from 'lucide-react';
 import { IPOWItem } from '@/types/warehouse';
+import { Button } from '@/components/ui/button';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
 
 export interface ItemEntry {
   itemDescription: string;
@@ -74,6 +88,72 @@ function isIpowMatched(entry: ItemEntry, ipowItems: IPOWItem[]): boolean {
   );
 }
 
+interface IPOWComboboxProps {
+  ipowItems: IPOWItem[];
+  onSelect: (item: IPOWItem) => void;
+}
+
+function IPOWCombobox({ ipowItems, onSelect }: IPOWComboboxProps) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full min-h-[44px] justify-between border bg-background font-normal text-muted-foreground"
+        >
+          Select an item from IPOW...
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent
+        side="bottom"
+        sideOffset={4}
+        className="w-[var(--radix-popover-trigger-width)] p-0"
+      >
+        <Command>
+          <CommandInput placeholder="Search items..." />
+          <CommandList className="max-h-[260px] overflow-y-auto">
+            <CommandEmpty>No items found.</CommandEmpty>
+            <CommandGroup>
+              {ipowItems.map((ipow) => (
+                <CommandItem
+                  key={ipow.id}
+                  value={`${ipow.wbs ?? ''} ${ipow.item_description} ${ipow.resource ?? ''} ${ipow.unit ?? ''}`}
+                  onSelect={() => {
+                    onSelect(ipow);
+                    setOpen(false);
+                  }}
+                  className="flex flex-col items-start gap-1 py-3"
+                >
+                  <div className="flex w-full items-start gap-2">
+                    {ipow.wbs && (
+                      <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                        {ipow.wbs}
+                      </span>
+                    )}
+                    <span className="min-w-0 flex-1 break-words text-sm text-foreground">
+                      {ipow.item_description}
+                    </span>
+                  </div>
+                  {(ipow.resource || ipow.unit) && (
+                    <span className="pl-0.5 text-xs text-muted-foreground">
+                      {[ipow.resource, ipow.unit].filter(Boolean).join(' · ')}
+                    </span>
+                  )}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 export function ItemsRepeater({
   items,
   onAdd,
@@ -138,28 +218,14 @@ export function ItemsRepeater({
                 <label className="block text-xs font-medium text-foreground mb-1">
                   <List className="inline h-3.5 w-3.5 mr-1" aria-hidden /> From IPOW
                 </label>
-                <select
-                  className="mobile-form-input w-full text-sm"
-                  value=""
-                  onChange={(e) => {
-                    const idx = e.target.value ? parseInt(e.target.value, 10) : -1;
-                    e.target.value = '';
-                    if (idx >= 0 && ipowItems[idx]) {
-                      const ipow = ipowItems[idx];
-                      onUpdate(index, 'itemDescription', ipow.item_description);
-                      onUpdate(index, 'unit', ipow.unit || 'EA');
-                      onUpdate(index, 'wbs', ipow.wbs);
-                    }
+                <IPOWCombobox
+                  ipowItems={ipowItems}
+                  onSelect={(ipow) => {
+                    onUpdate(index, 'itemDescription', ipow.item_description);
+                    onUpdate(index, 'unit', ipow.unit || 'EA');
+                    onUpdate(index, 'wbs', ipow.wbs);
                   }}
-                  aria-label="Fill from IPOW list"
-                >
-                  <option value="">Select an item from IPOW...</option>
-                  {ipowItems.map((ipow, i) => (
-                    <option key={ipow.id} value={i}>
-                      {[ipow.wbs, ipow.item_description, ipow.resource, ipow.unit].filter(Boolean).join(' · ')}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
             )}
             <div>

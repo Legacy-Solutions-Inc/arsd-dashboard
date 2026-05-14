@@ -6,6 +6,15 @@ export interface UploadResult {
   error?: string;
 }
 
+const MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
+const ALLOWED_UPLOAD_MIME_TYPES: string[] = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/heic',
+  'image/heif',
+];
+
 export type WarehouseStorageSupabaseClient = ReturnType<typeof createClient>;
 
 export class WarehouseStorageService {
@@ -50,9 +59,27 @@ export class WarehouseStorageService {
   }
 
   /**
+   * Validate an upload before it hits storage. Returns a user-friendly
+   * error message when invalid, or null when the file is acceptable.
+   */
+  private validateFile(file: File): string | null {
+    if (file.size > MAX_UPLOAD_BYTES) {
+      return 'File is too large (max 15 MB). Please use a smaller photo.';
+    }
+    if (!file.type || !ALLOWED_UPLOAD_MIME_TYPES.includes(file.type)) {
+      return 'Unsupported file type. Please upload a JPG, PNG, WebP, or HEIC image.';
+    }
+    return null;
+  }
+
+  /**
    * Generic file upload to warehouse bucket
    */
   private async uploadFile(filePath: string, file: File): Promise<UploadResult> {
+    const validationError = this.validateFile(file);
+    if (validationError) {
+      return { success: false, error: validationError };
+    }
     try {
       const { data, error } = await this.supabase.storage
         .from(this.bucketName)

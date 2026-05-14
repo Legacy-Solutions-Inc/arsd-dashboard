@@ -3,6 +3,8 @@ import { createServerSupabaseClient, createServiceSupabaseClient } from '@/lib/s
 import { ReleasesService } from '@/services/warehouse/releases.service';
 import { WarehouseStorageService } from '@/services/warehouse/warehouse-storage.service';
 
+export const maxDuration = 60;
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
