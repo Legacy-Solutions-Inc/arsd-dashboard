@@ -21,6 +21,7 @@ export function FileUploader({
 }: FileUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [compressing, setCompressing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const picked = e.target.files?.[0] || null;
@@ -28,10 +29,19 @@ export function FileUploader({
       onChange(null);
       return;
     }
+    setError(null);
     setCompressing(true);
     try {
-      const processed = await compressImage(picked);
+      const processed = await compressImage(picked, {}, 'throw');
       onChange(processed);
+    } catch (err) {
+      onChange(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Image couldn't be processed. Please try a different photo."
+      );
     } finally {
       setCompressing(false);
     }
@@ -39,6 +49,7 @@ export function FileUploader({
 
   const handleRemove = () => {
     onChange(null);
+    setError(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -118,6 +129,8 @@ export function FileUploader({
           </button>
         )}
       </div>
+
+      {error && <p className="text-sm text-destructive">{error}</p>}
     </div>
   );
 }

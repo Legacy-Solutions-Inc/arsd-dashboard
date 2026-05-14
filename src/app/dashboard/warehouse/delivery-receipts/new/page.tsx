@@ -11,6 +11,8 @@ import { useIPOW } from '@/hooks/warehouse/useIPOW';
 import { UniversalLoading } from '@/components/ui/universal-loading';
 import { ArrowLeft, FileText, Package, Upload as UploadIcon, CheckCircle, Send } from 'lucide-react';
 
+const SUBMIT_TIMEOUT_MS = 60000;
+
 export default function CreateDRPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useWarehouseAuth();
@@ -117,6 +119,7 @@ export default function CreateDRPage() {
     submittingRef.current = true;
     setSubmitError(null);
     setSubmitLoading(true);
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
     try {
       const items = formData.items.map((it) => {
         const key = makeKey(it.wbs ?? null, it.itemDescription);
@@ -138,9 +141,12 @@ export default function CreateDRPage() {
       fd.set('items', JSON.stringify(items));
       if (formData.drPhoto) fd.set('dr_photo', formData.drPhoto);
       if (formData.deliveryProof) fd.set('delivery_proof', formData.deliveryProof);
+      const controller = new AbortController();
+      timeoutId = setTimeout(() => controller.abort(), SUBMIT_TIMEOUT_MS);
       const res = await fetch('/api/warehouse/delivery-receipts', {
         method: 'POST',
-        body: fd
+        body: fd,
+        signal: controller.signal
       });
       if (!res.ok) {
         const json = await res.json().catch(() => ({}));
@@ -148,8 +154,13 @@ export default function CreateDRPage() {
       }
       router.push('/dashboard/warehouse/delivery-receipts');
     } catch (e) {
-      setSubmitError(e instanceof Error ? e.message : 'Failed to create delivery receipt');
+      if (e instanceof Error && e.name === 'AbortError') {
+        setSubmitError('Upload timed out — check your connection and try again.');
+      } else {
+        setSubmitError(e instanceof Error ? e.message : 'Failed to create delivery receipt');
+      }
     } finally {
+      if (timeoutId) clearTimeout(timeoutId);
       setSubmitLoading(false);
       submittingRef.current = false;
     }

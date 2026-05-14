@@ -11,6 +11,8 @@ import { useIPOW } from '@/hooks/warehouse/useIPOW';
 import { UniversalLoading } from '@/components/ui/universal-loading';
 import { ArrowLeft, Package, Upload as UploadIcon, FileText } from 'lucide-react';
 
+const SUBMIT_TIMEOUT_MS = 60000;
+
 export default function CreateReleasePage() {
   const router = useRouter();
   const { user, loading: authLoading } = useWarehouseAuth();
@@ -81,6 +83,7 @@ export default function CreateReleasePage() {
     submittingRef.current = true;
     setSubmitError(null);
     setSubmitLoading(true);
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
     try {
       const items = formData.items.map((it) => ({
         item_description: it.itemDescription,
@@ -96,9 +99,12 @@ export default function CreateReleasePage() {
       fd.set('items', JSON.stringify(items));
       if (formData.purpose) fd.set('purpose', formData.purpose);
       if (formData.attachment) fd.set('attachment', formData.attachment);
+      const controller = new AbortController();
+      timeoutId = setTimeout(() => controller.abort(), SUBMIT_TIMEOUT_MS);
       const res = await fetch('/api/warehouse/releases', {
         method: 'POST',
-        body: fd
+        body: fd,
+        signal: controller.signal
       });
       if (!res.ok) {
         const json = await res.json().catch(() => ({}));
@@ -106,8 +112,13 @@ export default function CreateReleasePage() {
       }
       router.push('/dashboard/warehouse/releases');
     } catch (e) {
-      setSubmitError(e instanceof Error ? e.message : 'Failed to create release');
+      if (e instanceof Error && e.name === 'AbortError') {
+        setSubmitError('Upload timed out — check your connection and try again.');
+      } else {
+        setSubmitError(e instanceof Error ? e.message : 'Failed to create release');
+      }
     } finally {
+      if (timeoutId) clearTimeout(timeoutId);
       setSubmitLoading(false);
       submittingRef.current = false;
     }

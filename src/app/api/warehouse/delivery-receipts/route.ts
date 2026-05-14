@@ -4,6 +4,8 @@ import { DeliveryReceiptsService } from '@/services/warehouse/delivery-receipts.
 import { WarehouseStorageService } from '@/services/warehouse/warehouse-storage.service';
 import { CreateDeliveryReceiptInput } from '@/types/warehouse';
 
+export const maxDuration = 60;
+
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
@@ -72,6 +74,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (!drPhoto) {
+      return NextResponse.json(
+        { error: 'DR photo is required' },
+        { status: 400 }
+      );
+    }
+
     const items = JSON.parse(itemsJson);
 
     // Create DR first to get ID for file uploads (service uses user-scoped client for RLS)
@@ -99,10 +108,22 @@ export async function POST(request: NextRequest) {
     if (drPhoto) {
       const result = await storageService.uploadDRPhoto(dr.id, drPhoto);
       if (!result.success) {
-        console.error('Failed to upload DR photo', { drId: dr.id, error: result.error });
-      } else {
-        drPhotoUrl = result.url;
+        try {
+          await new DeliveryReceiptsService(serviceSupabase).delete(dr.id);
+        } catch (rollbackError) {
+          console.error('Failed to roll back DR after photo upload failure', {
+            drId: dr.id,
+            rollbackError,
+          });
+        }
+        return NextResponse.json(
+          {
+            error: `DR photo upload failed: ${result.error ?? 'unknown error'}. The delivery receipt was not saved — please try again.`,
+          },
+          { status: 502 }
+        );
       }
+      drPhotoUrl = result.url;
     }
 
     if (deliveryProof) {
