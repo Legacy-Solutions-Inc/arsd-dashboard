@@ -3,7 +3,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { MobileItemCard } from '@/components/warehouse/MobileItemCard';
-import { ARSDTable } from '@/components/warehouse/ARSDTable';
 import { AlertBadge } from '@/components/warehouse/AlertBadge';
 import { useWarehouseProjects } from '@/hooks/warehouse/useWarehouseProjects';
 import { useWarehouseAuth } from '@/hooks/warehouse/useWarehouseAuth';
@@ -13,6 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Search, Download, Filter } from 'lucide-react';
 import { downloadStockLedger, EmptyLedgerError } from '@/lib/stock-ledger-export';
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 
 interface StockItem {
   wbs: string | null;
@@ -238,7 +238,8 @@ export default function StockMonitoringPage() {
     const query = searchQuery.toLowerCase();
     return stockItems.filter(item =>
       (item.wbs ?? '').toLowerCase().includes(query) ||
-      item.item_description.toLowerCase().includes(query)
+      item.item_description.toLowerCase().includes(query) ||
+      (item.resource ?? '').toLowerCase().includes(query)
     );
   }, [stockItems, searchQuery]);
 
@@ -332,8 +333,8 @@ export default function StockMonitoringPage() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by WBS or item name..."
-                className="mobile-form-input w-full pl-10"
+                placeholder="Search by WBS, item, or resource..."
+                className="w-full pl-10 pr-4 py-3 text-base border border-border bg-card rounded-md focus:ring-2 focus:ring-ring/40 focus:border-transparent"
               />
             </div>
             <div className="flex flex-wrap gap-2">
@@ -422,36 +423,37 @@ export default function StockMonitoringPage() {
         )}
 
         {/* Desktop View - Table */}
-        <div className="hidden sm:block">
-          <ARSDTable className="min-w-[800px]">
-            <thead className="glass-table-header">
+        <TooltipProvider delayDuration={300}>
+        <div className="hidden sm:block overflow-x-auto rounded-lg border border-border bg-card">
+          <table className="min-w-max text-sm">
+            <thead>
               {isWarehouseman ? (
-                <tr>
-                  <th className="glass-table-header-cell min-w-[6rem]">WBS</th>
-                  <th className="glass-table-header-cell">Item Description</th>
-                  <th className="glass-table-header-cell w-0 max-w-[24rem]">Resource</th>
-                  <th className="glass-table-header-cell text-center whitespace-nowrap">PO</th>
-                  <th className="glass-table-header-cell text-center whitespace-nowrap">Undelivered</th>
-                  <th className="glass-table-header-cell text-center whitespace-nowrap">Delivered</th>
-                  <th className="glass-table-header-cell text-center whitespace-nowrap">Utilized</th>
-                  <th className="glass-table-header-cell text-center whitespace-nowrap">Running Balance</th>
-                  <th className="glass-table-header-cell text-center">Alerts</th>
+                <tr className="bg-muted/40 border-b border-border">
+                  <th className="sticky z-20 bg-muted px-3 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap w-[5rem] min-w-[5rem] left-0">WBS</th>
+                  <th className="sticky z-20 bg-muted px-3 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap w-[14rem] min-w-[14rem] left-[5rem]">Item Description</th>
+                  <th className="sticky z-20 bg-muted px-3 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap w-[14rem] min-w-[14rem] max-w-[14rem] left-[19rem] border-r-2 border-border"><span className="block truncate">Resource</span></th>
+                  <th className="px-3 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">PO</th>
+                  <th className="px-3 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">Undelivered</th>
+                  <th className="px-3 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">Delivered</th>
+                  <th className="px-3 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">Utilized</th>
+                  <th className="px-3 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">Running Balance</th>
+                  <th className="px-3 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">Alerts</th>
                 </tr>
               ) : (
-                <tr>
-                  <th className="glass-table-header-cell min-w-[6rem]">WBS</th>
-                  <th className="glass-table-header-cell">Item Description</th>
-                  <th className="glass-table-header-cell w-0 max-w-[24rem]">Resource</th>
-                  <th className="glass-table-header-cell text-center whitespace-nowrap">IPOW Qty</th>
-                  <th className="glass-table-header-cell text-center whitespace-nowrap">Total IPOW Cost</th>
-                  <th className="glass-table-header-cell text-center whitespace-nowrap">PO</th>
-                  <th className="glass-table-header-cell text-center whitespace-nowrap">Unit Cost</th>
-                  <th className="glass-table-header-cell text-center whitespace-nowrap">Total Unit Cost</th>
-                  <th className="glass-table-header-cell text-center whitespace-nowrap">Undelivered</th>
-                  <th className="glass-table-header-cell text-center whitespace-nowrap">Delivered</th>
-                  <th className="glass-table-header-cell text-center whitespace-nowrap">Utilized</th>
-                  <th className="glass-table-header-cell text-center whitespace-nowrap">Running Balance</th>
-                  <th className="glass-table-header-cell text-center whitespace-nowrap">Variance</th>
+                <tr className="bg-muted/40 border-b border-border">
+                  <th className="sticky z-20 bg-muted px-3 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap w-[5rem] min-w-[5rem] left-0">WBS</th>
+                  <th className="sticky z-20 bg-muted px-3 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap w-[14rem] min-w-[14rem] left-[5rem]">Item Description</th>
+                  <th className="sticky z-20 bg-muted px-3 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap w-[14rem] min-w-[14rem] max-w-[14rem] left-[19rem] border-r-2 border-border"><span className="block truncate">Resource</span></th>
+                  <th className="px-3 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">IPOW Qty</th>
+                  <th className="px-3 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">Total IPOW Cost</th>
+                  <th className="px-3 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">PO</th>
+                  <th className="px-3 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">Unit Cost</th>
+                  <th className="px-3 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">Total Unit Cost</th>
+                  <th className="px-3 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">Undelivered</th>
+                  <th className="px-3 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">Delivered</th>
+                  <th className="px-3 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">Utilized</th>
+                  <th className="px-3 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">Running Balance</th>
+                  <th className="px-3 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">Variance</th>
                 </tr>
               )}
             </thead>
@@ -468,25 +470,30 @@ export default function StockMonitoringPage() {
 
                   if (isWarehouseman) {
                     return (
-                      <tr key={index} className="glass-table-row">
-                        <td className="glass-table-cell font-mono text-xs min-w-[6rem]" title={item.wbs ?? undefined}>{item.wbs ?? '–'}</td>
-                        <td className="glass-table-cell text-center font-medium" title={item.item_description}>{item.item_description}</td>
-                        <td className="glass-table-cell text-center max-w-[24rem] truncate" title={item.resource ?? undefined}>
-                          {item.resource ?? '–'}
-                        </td>
-                        <td className="glass-table-cell text-center whitespace-nowrap">
-                          {effectivePO.toLocaleString()}
-                        </td>
-                        <td className="glass-table-cell text-center whitespace-nowrap">
-                          {(effectivePO - item.delivered).toLocaleString()}
-                        </td>
-                        <td className="glass-table-cell text-center whitespace-nowrap">{item.delivered.toLocaleString()}</td>
-                        <td className="glass-table-cell text-center whitespace-nowrap">{item.utilized.toLocaleString()}</td>
-                        <td className={`glass-table-cell text-center whitespace-nowrap font-bold ${isLowStock ? 'text-red-600' : ''}`}>
-                          {item.running_balance.toLocaleString()}
-                        </td>
-                        <td className="glass-table-cell text-center">
-                          <div className="flex flex-wrap gap-1 justify-center">
+                      <tr key={index} className="border-b border-border/50 group/row transition-colors">
+                        <td className="sticky z-10 bg-card group-hover/row:bg-muted transition-colors px-3 py-3 w-[5rem] min-w-[5rem] left-0 font-mono text-xs" title={item.wbs ?? undefined}>{item.wbs ?? '–'}</td>
+                        <td className="sticky z-10 bg-card group-hover/row:bg-muted transition-colors px-3 py-3 w-[14rem] min-w-[14rem] left-[5rem] font-medium" title={item.item_description}>{item.item_description}</td>
+                        <td className="sticky z-10 bg-card group-hover/row:bg-muted transition-colors px-3 py-3 w-[14rem] min-w-[14rem] max-w-[14rem] left-[19rem] border-r-2 border-border">{item.resource ? (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="line-clamp-2 leading-snug text-sm cursor-default">
+                                {item.resource}
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="right" className="max-w-xs whitespace-normal">
+                              {item.resource}
+                            </TooltipContent>
+                          </Tooltip>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">–</span>
+                        )}</td>
+                        <td className="group-hover/row:bg-muted/30 transition-colors px-3 py-3 text-right tabular-nums whitespace-nowrap">{effectivePO.toLocaleString()}</td>
+                        <td className="group-hover/row:bg-muted/30 transition-colors px-3 py-3 text-right tabular-nums whitespace-nowrap">{(effectivePO - item.delivered).toLocaleString()}</td>
+                        <td className="group-hover/row:bg-muted/30 transition-colors px-3 py-3 text-right tabular-nums whitespace-nowrap">{item.delivered.toLocaleString()}</td>
+                        <td className="group-hover/row:bg-muted/30 transition-colors px-3 py-3 text-right tabular-nums whitespace-nowrap">{item.utilized.toLocaleString()}</td>
+                        <td className={`group-hover/row:bg-muted/30 transition-colors px-3 py-3 text-right tabular-nums whitespace-nowrap font-semibold ${isLowStock ? 'text-destructive' : ''}`}>{item.running_balance.toLocaleString()}</td>
+                        <td className="group-hover/row:bg-muted/30 transition-colors px-3 py-3 text-center whitespace-nowrap">
+                          <div className="flex gap-1 justify-center">
                             {isLowStock && <AlertBadge type="low_stock" />}
                             {isOverIPOWDelivered && <AlertBadge type="over_ipow_delivered" />}
                             {isOverIPOWUtilized && <AlertBadge type="over_ipow_utilized" />}
@@ -497,20 +504,31 @@ export default function StockMonitoringPage() {
                   }
 
                   return (
-                    <tr key={index} className="glass-table-row">
-                      <td className="glass-table-cell font-mono text-xs min-w-[6rem]" title={item.wbs ?? undefined}>{item.wbs ?? '–'}</td>
-                      <td className="glass-table-cell text-center font-medium" title={item.item_description}>{item.item_description}</td>
-                      <td className="glass-table-cell text-center max-w-[24rem] truncate" title={item.resource ?? undefined}>
-                        {item.resource ?? '–'}
-                      </td>
-                      <td className="glass-table-cell text-center whitespace-nowrap">{item.ipow_qty.toLocaleString()}</td>
-                      <td className="glass-table-cell text-center whitespace-nowrap">₱{item.total_cost.toLocaleString()}</td>
-                      <td className="glass-table-cell text-center whitespace-nowrap">
+                    <tr key={index} className="border-b border-border/50 group/row transition-colors">
+                      <td className="sticky z-10 bg-card group-hover/row:bg-muted transition-colors px-3 py-3 w-[5rem] min-w-[5rem] left-0 font-mono text-xs" title={item.wbs ?? undefined}>{item.wbs ?? '–'}</td>
+                      <td className="sticky z-10 bg-card group-hover/row:bg-muted transition-colors px-3 py-3 w-[14rem] min-w-[14rem] left-[5rem] font-medium" title={item.item_description}>{item.item_description}</td>
+                      <td className="sticky z-10 bg-card group-hover/row:bg-muted transition-colors px-3 py-3 w-[14rem] min-w-[14rem] max-w-[14rem] left-[19rem] border-r-2 border-border">{item.resource ? (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="line-clamp-2 leading-snug text-sm cursor-default">
+                                {item.resource}
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="right" className="max-w-xs whitespace-normal">
+                              {item.resource}
+                            </TooltipContent>
+                          </Tooltip>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">–</span>
+                        )}</td>
+                      <td className="group-hover/row:bg-muted/30 transition-colors px-3 py-3 text-right tabular-nums whitespace-nowrap">{item.ipow_qty.toLocaleString()}</td>
+                      <td className="group-hover/row:bg-muted/30 transition-colors px-3 py-3 text-right tabular-nums whitespace-nowrap">₱{item.total_cost.toLocaleString()}</td>
+                      <td className="group-hover/row:bg-muted/30 transition-colors px-3 py-3 text-center tabular-nums whitespace-nowrap">
                         {canEditPO ? (
                           <input
                             type="text"
                             inputMode="decimal"
-                            className="mobile-form-input w-28 text-center mx-auto"
+                            className="w-24 block mx-auto bg-muted/50 hover:bg-muted text-right tabular-nums text-sm rounded border border-border/60 hover:border-border focus:outline-none focus:ring-1 focus:ring-ring/40 px-2 py-0.5 transition-colors"
                             value={Number.isFinite(effectivePO) ? effectivePO : 0}
                             onChange={(e) => {
                               const safeNewPO = Number(e.target.value) || 0;
@@ -540,12 +558,12 @@ export default function StockMonitoringPage() {
                           effectivePO.toLocaleString()
                         )}
                       </td>
-                      <td className="glass-table-cell text-center whitespace-nowrap">
+                      <td className="group-hover/row:bg-muted/30 transition-colors px-3 py-3 text-center tabular-nums whitespace-nowrap">
                         {canEditPO ? (
                           <input
                             type="text"
                             inputMode="decimal"
-                            className="mobile-form-input w-32 text-center mx-auto"
+                            className="w-28 block mx-auto bg-muted/50 hover:bg-muted text-right tabular-nums text-sm rounded border border-border/60 hover:border-border focus:outline-none focus:ring-1 focus:ring-ring/40 px-2 py-0.5 transition-colors"
                             value={Number.isFinite(effectiveUnitCost) ? effectiveUnitCost : 0}
                             onChange={(e) => {
                               const parsed = Number(e.target.value);
@@ -576,18 +594,12 @@ export default function StockMonitoringPage() {
                           `₱${effectiveUnitCost.toLocaleString()}`
                         )}
                       </td>
-                      <td className="glass-table-cell text-center whitespace-nowrap">
-                        ₱{effectiveTotalUnitCost.toLocaleString()}
-                      </td>
-                      <td className="glass-table-cell text-center whitespace-nowrap">
-                        {(effectivePO - item.delivered).toLocaleString()}
-                      </td>
-                      <td className="glass-table-cell text-center whitespace-nowrap">{item.delivered.toLocaleString()}</td>
-                      <td className="glass-table-cell text-center whitespace-nowrap">{item.utilized.toLocaleString()}</td>
-                      <td className={`glass-table-cell text-center whitespace-nowrap font-bold ${isLowStock ? 'text-red-600' : ''}`}>
-                        {item.running_balance.toLocaleString()}
-                      </td>
-                      <td className={`glass-table-cell text-center whitespace-nowrap ${item.variance > 0 ? 'text-orange-600' : item.variance < 0 ? 'text-blue-600' : ''}`}>
+                      <td className="group-hover/row:bg-muted/30 transition-colors px-3 py-3 text-right tabular-nums whitespace-nowrap">₱{effectiveTotalUnitCost.toLocaleString()}</td>
+                      <td className="group-hover/row:bg-muted/30 transition-colors px-3 py-3 text-right tabular-nums whitespace-nowrap">{(effectivePO - item.delivered).toLocaleString()}</td>
+                      <td className="group-hover/row:bg-muted/30 transition-colors px-3 py-3 text-right tabular-nums whitespace-nowrap">{item.delivered.toLocaleString()}</td>
+                      <td className="group-hover/row:bg-muted/30 transition-colors px-3 py-3 text-right tabular-nums whitespace-nowrap">{item.utilized.toLocaleString()}</td>
+                      <td className={`group-hover/row:bg-muted/30 transition-colors px-3 py-3 text-right tabular-nums whitespace-nowrap font-semibold ${isLowStock ? 'text-destructive' : ''}`}>{item.running_balance.toLocaleString()}</td>
+                      <td className={`group-hover/row:bg-muted/30 transition-colors px-3 py-3 text-right tabular-nums whitespace-nowrap ${item.variance > 0 ? 'text-orange-600' : item.variance < 0 ? 'text-blue-600' : ''}`}>
                         {item.variance > 0 ? '+' : ''}{item.variance.toLocaleString()}
                       </td>
                     </tr>
@@ -595,7 +607,7 @@ export default function StockMonitoringPage() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={13} className="glass-table-cell text-center py-12">
+                  <td colSpan={isWarehouseman ? 9 : 13} className="px-3 py-12 text-center">
                     <p className="text-gray-600 font-medium">No items found</p>
                     <p className="text-sm text-gray-500 mt-2">
                       {searchQuery ? 'Try adjusting your search' : 'No stock items available for this project'}
@@ -604,8 +616,9 @@ export default function StockMonitoringPage() {
                 </tr>
               )}
             </tbody>
-          </ARSDTable>
+          </table>
         </div>
+        </TooltipProvider>
 
       {/* Confirm PO Update Dialog */}
       <Dialog
