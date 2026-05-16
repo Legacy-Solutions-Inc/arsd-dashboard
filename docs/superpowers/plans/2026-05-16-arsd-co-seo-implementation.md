@@ -793,6 +793,9 @@ A markdown report listing:
 
 ## Task 16: GEO content optimization (deferred — separate session)
 
+**COMPLETED 2026-05-17.** Planner ran GEO analysis on /, /our-services, /about-us; produced 14 BEFORE→AFTER content blocks + 2 new paragraph insertions; user approved all 14; executor applied them verbatim across 5 files (src/app/page.tsx, src/app/our-services/page.tsx, src/app/about-us/AboutUsPageClient.tsx, src/constants/services-data.ts, src/constants/about-us-data.ts). Service ×5 JSON-LD on /our-services automatically upgraded via services-data.ts flow-through. FAQPage JSON-LD text-match integrity preserved. Build clean (tsc 0 errors). Every AFTER fragment verified in view-source. 5 operator-confirmation items remain (NSCP claim, in-house staffing, defects-liability process, government-client claim, fleet specifics) — operator should verify these before publishing if any are inaccurate, or leave as written if confirmed.
+
+
 **Why deferred:** This task implements the output of the `geo-content-optimizer` skill audit (separate executor session, prompt already drafted). It depends on Tasks 1-13 shipping first — GEO content placed on a non-indexed page does nothing.
 
 **Files (anticipated):**

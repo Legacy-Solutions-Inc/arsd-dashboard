@@ -59,13 +59,10 @@ export default function RootLayout({
                 postalCode: '5000',
                 addressCountry: 'PH',
               },
-              contactPoint: [{
-                '@type': 'ContactPoint',
-                telephone: '+63-33-337-7347',
-                contactType: 'customer service',
-                areaServed: 'PH',
-                email: 'contact@arsd.co',
-              }],
+              contactPoint: [
+                { '@type': 'ContactPoint', telephone: '+63-33-337-7347', contactType: 'customer service', areaServed: 'PH' },
+                { '@type': 'ContactPoint', telephone: '+63-918-991-1042', contactType: 'customer service', areaServed: 'PH' },
+              ],
             }),
           }}
         />

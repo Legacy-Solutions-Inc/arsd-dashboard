@@ -33,7 +33,7 @@ export default function AboutUsPageClient() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: EASE_SHARP, delay: 0.1 }}
           >
-            From humble beginnings in labor contracting to a full-service construction company trusted across the Philippines.
+            ARSD Construction Corporation is a PCAB Category A licensed general contractor based in Iloilo City, Philippines. Founded in 1998 and SEC-registered since 2007, we have completed 500+ construction projects for 100+ clients across Western Visayas over 25+ years.
           </motion.p>
         </div>
       </section>

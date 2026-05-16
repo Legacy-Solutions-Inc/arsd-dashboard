@@ -22,7 +22,7 @@ const SERVICES_FAQS: { q: string; a: string }[] = [
   },
   {
     q: "What is the minimum project size ARSD accepts?",
-    a: "We work on a range of project sizes. Contact us at +63 33 337-7347 or via the form at /contact-us to discuss your specific requirements.",
+    a: "We work on a range of project sizes. Contact our office at (033) 337 7347, our mobile at +63 918 991 1042, or via the form at /contact-us to discuss your specific requirements.",
   },
   {
     q: "How long does a typical construction project take?",
@@ -101,7 +101,7 @@ export default function Services() {
                 Construction Services in Iloilo: Building, Land Development, Waterproofing &amp; Aggregates
               </h1>
               <p className="text-[#a09890] leading-relaxed mb-10 max-w-[50ch]">
-                From residential homes to commercial complexes, we deliver construction services that stand the test of time.
+                ARSD Construction Corporation, a PCAB Category A licensed general contractor based in Iloilo City, delivers five construction service lines across Western Visayas: building construction, design &amp; plan preparation, land development, waterproofing, and aggregates supply.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link href="/contact-us">
@@ -195,9 +195,12 @@ export default function Services() {
       <section className="py-16 sm:py-20 bg-[#111111]">
         <div className="responsive-container">
           <SectionEyebrow className="mb-4">Our Fleet</SectionEyebrow>
-          <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl tracking-tight text-[#f0ede8] uppercase mb-12">
+          <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl tracking-tight text-[#f0ede8] uppercase mb-6">
             Equipment &amp; Fleet
           </h2>
+          <p className="text-[#a09890] leading-relaxed max-w-[65ch] mb-12">
+            ARSD operates its own heavy equipment fleet, transport vehicles, and on-site tools — enabling us to self-perform earthworks, concrete placement, material delivery, and finishing work without subcontracting equipment.
+          </p>
           <div className="grid md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-[#2a2626]">
             {SERVICES_DATA.equipmentOverview.map((group, idx) => (
               <div

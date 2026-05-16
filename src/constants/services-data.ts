@@ -24,7 +24,7 @@ export const SERVICES_DATA = {
       icon: "Building", // We'll use string references and map them in components
       title: "Building Construction",
       subtitle: "Complete Construction Solutions",
-      description: "From residential homes to commercial complexes, we deliver exceptional construction services that stand the test of time.",
+      description: "ARSD builds residential homes, commercial buildings, hospitals, and industrial facilities throughout Iloilo and Western Visayas. As a PCAB Category A contractor, we deliver projects from foundation through final handover, including structural concrete, masonry, finishes, and MEP coordination.",
       features: [
         "Residential homes and hospitals",
         "Commercial buildings and offices",
@@ -37,7 +37,7 @@ export const SERVICES_DATA = {
       icon: "PenTool",
       title: "Design & Plan Preparation",
       subtitle: "Professional Design Services",
-      description: "Our expert architects and engineers create innovative designs that meet your vision and exceed industry standards.",
+      description: "ARSD's in-house architects and engineers prepare architectural and structural drawings for residential, commercial, and industrial projects in the Philippines. We handle building permit documentation for Iloilo City and surrounding municipalities, plus structural analysis aligned with the National Structural Code of the Philippines (NSCP).",
       features: [
         "Architectural design and planning",
         "Structural engineering analysis",
@@ -50,7 +50,7 @@ export const SERVICES_DATA = {
       icon: "MapPin",
       title: "Land Development",
       subtitle: "Infrastructure Development",
-      description: "Transform raw land into developed properties with our comprehensive land development and infrastructure services.",
+      description: "ARSD develops raw land parcels into ready-to-build sites across Western Visayas. Services include site surveying, clearing and grubbing, mass earthworks, road construction and paving, drainage installation, and underground utility lines for water, power, and telecommunications.",
       features: [
         "Site surveying and analysis",
         "Earthworks and excavation",
@@ -63,7 +63,7 @@ export const SERVICES_DATA = {
       icon: "Droplets",
       title: "Waterproofing",
       subtitle: "Protection Solutions",
-      description: "Expert waterproofing solutions to protect your structures from water damage and ensure long-term durability.",
+      description: "ARSD installs waterproofing systems for roof decks, basements, foundations, retaining walls, and water tanks. We use liquid-applied membranes, cementitious coatings, and sheet membrane systems for residential, commercial, and industrial structures in Iloilo and across the Philippines.",
       features: [
         "Roof waterproofing systems",
         "Basement and foundation waterproofing",
@@ -76,7 +76,7 @@ export const SERVICES_DATA = {
       icon: "Truck",
       title: "Supply Aggregates",
       subtitle: "Material Supply & Logistics",
-      description: "Quality construction materials and aggregates delivered to your project site with reliable logistics and competitive pricing.",
+      description: "ARSD supplies sand, gravel, crushed stone, and concrete aggregates to construction projects in Iloilo and surrounding areas. Materials are delivered by our own transport fleet (6-wheel and 10-wheel dump trucks, tipper trucks, and transit mixers) directly to job sites.",
       features: [
         "Sand and gravel supply",
         "Concrete aggregates",
@@ -92,25 +92,25 @@ export const SERVICES_DATA = {
     {
       step: "01",
       title: "Consultation",
-      description: "Initial meeting to understand your requirements and vision",
+      description: "On-site or office consultation in Iloilo City to scope the project, walk the site, and clarify budget and timeline requirements.",
       icon: "Users"
     },
     {
       step: "02",
       title: "Design & Planning",
-      description: "Detailed architectural plans and project timeline development",
+      description: "Architectural and structural plans prepared by licensed professionals, paired with a detailed Gantt-chart schedule and bill of materials for client approval before contract signing.",
       icon: "PenTool"
     },
     {
       step: "03",
       title: "Construction",
-      description: "Professional execution with regular progress updates",
+      description: "On-site construction by ARSD field crews and equipment, with weekly progress reports, milestone-based billing, and a dedicated project manager assigned per site.",
       icon: "Hammer"
     },
     {
       step: "04",
       title: "Completion",
-      description: "Final inspection, handover, and ongoing support",
+      description: "Joint final inspection with the client, punch-list resolution, formal handover with as-built drawings, and a defects-liability period covering the agreed warranty term.",
       icon: "CheckCircle"
     }
   ],

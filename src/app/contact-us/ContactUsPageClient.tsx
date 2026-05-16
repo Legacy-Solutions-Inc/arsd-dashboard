@@ -51,7 +51,7 @@ export default function ContactUsPageClient() {
     setErrors({});
     const subject = `New inquiry from ${firstName} ${lastName}`;
     const body = `Name: ${firstName} ${lastName}%0D%0AEmail: ${email}%0D%0APhone: ${phone}%0D%0ACompany: ${company}%0D%0ABudget: ${budget}%0D%0ATimeline: ${timeline}%0D%0A%0D%0ADetails:%0D%0A${encodeURIComponent(message)}`;
-    const mailto = `mailto:${CONTACT_INFO.email.primary}?subject=${encodeURIComponent(subject)}&body=${body}`;
+    const mailto = `mailto:${CONTACT_INFO.email}?subject=${encodeURIComponent(subject)}&body=${body}`;
     window.location.href = mailto;
     setSubmitted(true);
   };
@@ -100,8 +100,12 @@ export default function ContactUsPageClient() {
               <Phone className="w-5 h-5 text-arsd-red mb-3" />
               <p className="text-xs uppercase tracking-widest text-[#a09890] mb-2">Phone</p>
               <p className="text-sm text-[#f0ede8] leading-relaxed">
-                <a href={`tel:${CONTACT_INFO.phone.tel}`} className="hover:text-arsd-red transition-colors">
-                  {CONTACT_INFO.phone.display}
+                <a href={`tel:${CONTACT_INFO.phone.landline.tel}`} className="hover:text-arsd-red transition-colors">
+                  {CONTACT_INFO.phone.landline.display}
+                </a>
+                <br />
+                <a href={`tel:${CONTACT_INFO.phone.mobile.tel}`} className="hover:text-arsd-red transition-colors">
+                  {CONTACT_INFO.phone.mobile.display}
                 </a>
               </p>
             </div>
@@ -110,8 +114,8 @@ export default function ContactUsPageClient() {
               <Mail className="w-5 h-5 text-arsd-red mb-3" />
               <p className="text-xs uppercase tracking-widest text-[#a09890] mb-2">Email</p>
               <p className="text-sm text-[#f0ede8]">
-                <a href={`mailto:${CONTACT_INFO.email.primary}`} className="hover:text-arsd-red transition-colors">
-                  {CONTACT_INFO.email.display}
+                <a href={`mailto:${CONTACT_INFO.email}`} className="hover:text-arsd-red transition-colors">
+                  {CONTACT_INFO.email}
                 </a>
               </p>
             </div>

@@ -3,7 +3,7 @@ import ContactUsPageClient from './ContactUsPageClient';
 
 export const metadata: Metadata = {
   title: 'Contact ARSD Construction — Iloilo City General Contractor',
-  description: 'Get in touch with ARSD Construction Corporation at Figueroa St., Arevalo, Iloilo City. Phone +63 33 337-7347. Request a construction quote for projects across Western Visayas.',
+  description: 'Get in touch with ARSD Construction Corporation at Figueroa St., Arevalo, Iloilo City. Office phone (033) 337 7347, mobile +63 918 991 1042. Request a construction quote for projects across Western Visayas.',
   alternates: { canonical: 'https://arsd.co/contact-us' },
 };
 
@@ -20,7 +20,11 @@ export default function ContactUsPage() {
             name: 'ARSD Construction Corporation',
             image: 'https://arsd.co/images/arsd-logo.png',
             telephone: '+63-33-337-7347',
-            email: 'contact@arsd.co',
+            email: 'a_dupit@yahoo.com',
+            contactPoint: [
+              { '@type': 'ContactPoint', telephone: '+63-33-337-7347', contactType: 'customer service', areaServed: 'PH' },
+              { '@type': 'ContactPoint', telephone: '+63-918-991-1042', contactType: 'customer service', areaServed: 'PH' },
+            ],
             url: 'https://arsd.co',
             priceRange: '$$',
             parentOrganization: { '@id': 'https://arsd.co/#organization' },

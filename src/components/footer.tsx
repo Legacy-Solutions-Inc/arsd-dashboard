@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Mail, MapPin } from "lucide-react";
+import { Mail, MapPin, Phone } from "lucide-react";
 import { FacebookIcon } from "@/components/ui/facebook-icon";
 import { CONTACT_INFO } from "@/constants/contact-info";
 import { CREDENTIALS } from "@/constants/about-us-data";
@@ -58,9 +58,21 @@ export default function Footer() {
             <h3 className="text-xs uppercase tracking-widest font-semibold text-[#f0ede8] mb-4">Contact</h3>
             <ul className="space-y-3">
               <li>
-                <a href={`mailto:${CONTACT_INFO.email.primary}`} className="flex items-start gap-2 text-sm text-[#a09890] hover:text-arsd-red transition-colors">
+                <a href={`tel:${CONTACT_INFO.phone.landline.tel}`} className="flex items-start gap-2 text-sm text-[#a09890] hover:text-arsd-red transition-colors">
+                  <Phone className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                  {CONTACT_INFO.phone.landline.display}
+                </a>
+              </li>
+              <li>
+                <a href={`tel:${CONTACT_INFO.phone.mobile.tel}`} className="flex items-start gap-2 text-sm text-[#a09890] hover:text-arsd-red transition-colors">
+                  <Phone className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                  {CONTACT_INFO.phone.mobile.display}
+                </a>
+              </li>
+              <li>
+                <a href={`mailto:${CONTACT_INFO.email}`} className="flex items-start gap-2 text-sm text-[#a09890] hover:text-arsd-red transition-colors">
                   <Mail className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                  {CONTACT_INFO.email.display}
+                  {CONTACT_INFO.email}
                 </a>
               </li>
               <li>
@@ -103,7 +115,7 @@ export default function Footer() {
             <a href={CONTACT_INFO.social.facebook.url} target="_blank" rel="noopener noreferrer" className="text-[#a09890] hover:text-arsd-red transition-colors" aria-label="Facebook">
               <FacebookIcon className="w-5 h-5" />
             </a>
-            <a href={`mailto:${CONTACT_INFO.email.primary}`} className="text-[#a09890] hover:text-arsd-red transition-colors" aria-label="Email">
+            <a href={`mailto:${CONTACT_INFO.email}`} className="text-[#a09890] hover:text-arsd-red transition-colors" aria-label="Email">
               <Mail className="w-5 h-5" />
             </a>
           </div>

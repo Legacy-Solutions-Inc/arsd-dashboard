@@ -25,11 +25,11 @@ export const metadata: Metadata = {
 };
 
 const SERVICES_DATA: ServiceItem[] = [
-  { num: "01", title: "Building Construction", desc: "Commercial, residential, and industrial projects executed with precision." },
-  { num: "02", title: "Design & Plan Preparation", desc: "Compliance-focused planning and design aligned with project goals." },
-  { num: "03", title: "Land Development", desc: "Site preparation, roadworks, utilities, and earthmoving solutions." },
-  { num: "04", title: "Waterproofing", desc: "Certified waterproofing systems for long-term durability." },
-  { num: "05", title: "Supply Aggregates", desc: "Reliable supply of sand, gravel, and construction materials." },
+  { num: "01", title: "Building Construction", desc: "Residential homes, commercial buildings, hospitals, and industrial facilities — built across Iloilo and Western Visayas." },
+  { num: "02", title: "Design & Plan Preparation", desc: "Architectural and structural drawings, permit documentation, and engineering analysis by PCAB-licensed professionals." },
+  { num: "03", title: "Land Development", desc: "Site surveying, earthworks, road construction, and utilities installation for raw-land parcels." },
+  { num: "04", title: "Waterproofing", desc: "Roof, basement, and foundation waterproofing systems for residential and commercial structures." },
+  { num: "05", title: "Supply Aggregates", desc: "Sand, gravel, crushed stone, and concrete aggregates supplied directly to construction sites in Iloilo and surrounding areas." },
 ];
 
 const HOMEPAGE_FAQS: { q: string; a: string }[] = [
@@ -51,7 +51,7 @@ const HOMEPAGE_FAQS: { q: string; a: string }[] = [
   },
   {
     q: "How can I request a project quote?",
-    a: "Call +63 33 337-7347 or visit our office at Figueroa St., Bonifacio, Arevalo, Iloilo City. You can also submit the contact form at /contact-us.",
+    a: "Call our office at (033) 337 7347 or our mobile at +63 918 991 1042, or visit us at Figueroa St., Bonifacio, Arevalo, Iloilo City. You can also submit the contact form at /contact-us.",
   },
 ];
 
@@ -95,7 +95,7 @@ export default async function Home() {
               Our Services
             </h2>
             <p className="text-[#a09890] max-w-[55ch] leading-relaxed">
-              End-to-end construction from groundwork to handover.
+              ARSD Construction Corporation provides five construction services across Western Visayas: building construction, design &amp; plan preparation, land development, waterproofing, and aggregates supply. As a PCAB Category A licensed general contractor (License No. 36037), we handle residential, commercial, and industrial projects from groundwork through handover.
             </p>
           </div>
 
@@ -119,7 +119,7 @@ export default async function Home() {
               ARSD Construction
             </h2>
             <p className="text-[#a09890] mb-6 leading-relaxed max-w-[55ch]">
-              Founded with courage, honesty, and dedication in 1998. From humble labor contracting beginnings to a full-service construction company trusted across the Philippines.
+              ARSD Construction Corporation was founded in 1998 in Iloilo City, Philippines, starting in labor contracting before incorporating as a full-service general contractor. Today we are SEC-registered (CS 2007 28366) and hold PCAB Category A License No. 36037 — the highest contractor category in the Philippines for general engineering and building work.
             </p>
             <div className="flex flex-wrap gap-3">
               <a href="/about-us" className="inline-flex items-center px-5 py-2.5 bg-arsd-red text-white text-sm font-semibold rounded hover:bg-red-700 transition-colors">
@@ -134,10 +134,10 @@ export default async function Home() {
           {/* Flat 2×2 credential grid — NO white card boxes */}
           <div className="grid grid-cols-2 divide-x divide-y divide-[#2a2626] border border-[#2a2626]">
             {[
-              { label: "PCAB", desc: "Licensed Contractor" },
-              { label: "PhilGEPS", desc: "Registered Supplier" },
-              { label: "SEC", desc: "Duly Registered" },
-              { label: "25+ yrs", desc: "Industry Experience" },
+              { label: "PCAB", desc: "Category A · No. 36037" },
+              { label: "PhilGEPS", desc: "Cert. 2010-63063" },
+              { label: "SEC", desc: "Reg. CS 2007 28366" },
+              { label: "25+ yrs", desc: "Since 1998" },
             ].map((item) => (
               <div key={item.label} className="p-6 text-center">
                 <div className="font-display text-2xl font-bold text-[#f0ede8] mb-1">{item.label}</div>
@@ -151,6 +151,9 @@ export default async function Home() {
       {/* Stats Section */}
       <section className="py-16 sm:py-20 lg:py-24 bg-[#111111] border-y border-[#2a2626]">
         <div className="responsive-container">
+          <p className="text-[#a09890] max-w-[55ch] mx-auto text-center leading-relaxed mb-12 sm:mb-16">
+            Across 25+ years in business, ARSD has completed more than 500 construction projects for over 100 clients throughout Iloilo and Western Visayas.
+          </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-0 sm:divide-x sm:divide-[#2a2626]">
             {[
               { value: 500, suffix: "+", label: "Projects Completed" },
