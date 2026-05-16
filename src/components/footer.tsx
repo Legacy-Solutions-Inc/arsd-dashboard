@@ -43,6 +43,7 @@ export default function Footer() {
                 { href: "/projects", label: "Projects" },
                 { href: "/about-us", label: "About ARSD" },
                 { href: "/contact-us", label: "Contact Us" },
+                { href: "/sign-in", label: "Sign In" },
               ].map(({ href, label }) => (
                 <li key={href}>
                   <Link href={href} className="text-sm text-[#a09890] hover:text-arsd-red transition-colors">
