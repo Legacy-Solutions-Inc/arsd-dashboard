@@ -9,13 +9,50 @@ import { AnimatedNumber } from "@/components/AnimatedNumber";
 import { PageCTA } from "@/components/PageCTA";
 import { ServicesListAnimated } from "@/components/ServicesListAnimated";
 import type { ServiceItem } from "@/components/ServicesListAnimated";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'ARSD Construction Corporation — PCAB-Licensed General Contractor in Iloilo Since 1998',
+  description: 'PCAB Category A licensed general contractor in Iloilo City, Philippines. 25+ years, 500+ completed projects. Building construction, land development, waterproofing, aggregates.',
+  alternates: { canonical: 'https://arsd.co/' },
+  openGraph: {
+    title: 'ARSD Construction Corporation — Iloilo General Contractor',
+    description: 'PCAB Category A. 25+ years. 500+ projects across Western Visayas.',
+    url: 'https://arsd.co/',
+    siteName: 'ARSD Construction Corporation',
+    type: 'website',
+  },
+};
 
 const SERVICES_DATA: ServiceItem[] = [
-  { num: "01", title: "Building Construction", desc: "Commercial, residential, and industrial projects executed with precision." },
-  { num: "02", title: "Design & Plan Preparation", desc: "Compliance-focused planning and design aligned with project goals." },
-  { num: "03", title: "Land Development", desc: "Site preparation, roadworks, utilities, and earthmoving solutions." },
-  { num: "04", title: "Waterproofing", desc: "Certified waterproofing systems for long-term durability." },
-  { num: "05", title: "Supply Aggregates", desc: "Reliable supply of sand, gravel, and construction materials." },
+  { num: "01", title: "Building Construction", desc: "Residential homes, commercial buildings, hospitals, and industrial facilities — built across Iloilo and Western Visayas." },
+  { num: "02", title: "Design & Plan Preparation", desc: "Architectural and structural drawings, permit documentation, and engineering analysis by PCAB-licensed professionals." },
+  { num: "03", title: "Land Development", desc: "Site surveying, earthworks, road construction, and utilities installation for raw-land parcels." },
+  { num: "04", title: "Waterproofing", desc: "Roof, basement, and foundation waterproofing systems for residential and commercial structures." },
+  { num: "05", title: "Supply Aggregates", desc: "Sand, gravel, crushed stone, and concrete aggregates supplied directly to construction sites in Iloilo and surrounding areas." },
+];
+
+const HOMEPAGE_FAQS: { q: string; a: string }[] = [
+  {
+    q: "Is ARSD Construction Corporation PCAB-licensed?",
+    a: "Yes. ARSD holds PCAB Category A License No. 36037 from the Philippine Contractors Accreditation Board, qualifying us for large-scale general construction contracts.",
+  },
+  {
+    q: "How long has ARSD Construction been in business?",
+    a: "ARSD Construction Corporation was founded in 1998 in Iloilo City and has completed 500+ projects across Western Visayas over 25+ years.",
+  },
+  {
+    q: "Where does ARSD operate?",
+    a: "We are based in Iloilo City, Philippines, and primarily serve clients across Western Visayas. Contact us for projects elsewhere in the Philippines.",
+  },
+  {
+    q: "What types of construction does ARSD handle?",
+    a: "Building construction, design & plan preparation, land development, waterproofing, and supply of aggregates. See /our-services for full scope.",
+  },
+  {
+    q: "How can I request a project quote?",
+    a: "Call our office at (033) 337 7347 or our mobile at +63 918 991 1042, or visit us at Figueroa St., Bonifacio, Arevalo, Iloilo City. You can also submit the contact form at /contact-us.",
+  },
 ];
 
 /** Homepage for ARSD Construction.*/
@@ -58,7 +95,7 @@ export default async function Home() {
               Our Services
             </h2>
             <p className="text-[#a09890] max-w-[55ch] leading-relaxed">
-              End-to-end construction from groundwork to handover.
+              ARSD Construction Corporation provides five construction services across Western Visayas: building construction, design &amp; plan preparation, land development, waterproofing, and aggregates supply. As a PCAB Category A licensed general contractor (License No. 36037), we handle residential, commercial, and industrial projects from groundwork through handover.
             </p>
           </div>
 
@@ -82,7 +119,7 @@ export default async function Home() {
               ARSD Construction
             </h2>
             <p className="text-[#a09890] mb-6 leading-relaxed max-w-[55ch]">
-              Founded with courage, honesty, and dedication in 1998. From humble labor contracting beginnings to a full-service construction company trusted across the Philippines.
+              ARSD Construction Corporation was founded in 1998 in Iloilo City, Philippines, starting in labor contracting before incorporating as a full-service general contractor. Today we are SEC-registered (CS 2007 28366) and hold PCAB Category A License No. 36037 — the highest contractor category in the Philippines for general engineering and building work.
             </p>
             <div className="flex flex-wrap gap-3">
               <a href="/about-us" className="inline-flex items-center px-5 py-2.5 bg-arsd-red text-white text-sm font-semibold rounded hover:bg-red-700 transition-colors">
@@ -97,10 +134,10 @@ export default async function Home() {
           {/* Flat 2×2 credential grid — NO white card boxes */}
           <div className="grid grid-cols-2 divide-x divide-y divide-[#2a2626] border border-[#2a2626]">
             {[
-              { label: "PCAB", desc: "Licensed Contractor" },
-              { label: "PhilGEPS", desc: "Registered Supplier" },
-              { label: "SEC", desc: "Duly Registered" },
-              { label: "25+ yrs", desc: "Industry Experience" },
+              { label: "PCAB", desc: "Category A · No. 36037" },
+              { label: "PhilGEPS", desc: "Cert. 2010-63063" },
+              { label: "SEC", desc: "Reg. CS 2007 28366" },
+              { label: "25+ yrs", desc: "Since 1998" },
             ].map((item) => (
               <div key={item.label} className="p-6 text-center">
                 <div className="font-display text-2xl font-bold text-[#f0ede8] mb-1">{item.label}</div>
@@ -114,6 +151,9 @@ export default async function Home() {
       {/* Stats Section */}
       <section className="py-16 sm:py-20 lg:py-24 bg-[#111111] border-y border-[#2a2626]">
         <div className="responsive-container">
+          <p className="text-[#a09890] max-w-[55ch] mx-auto text-center leading-relaxed mb-12 sm:mb-16">
+            Across 25+ years in business, ARSD has completed more than 500 construction projects for over 100 clients throughout Iloilo and Western Visayas.
+          </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-0 sm:divide-x sm:divide-[#2a2626]">
             {[
               { value: 500, suffix: "+", label: "Projects Completed" },
@@ -190,6 +230,48 @@ export default async function Home() {
             </a>
           </div>
         </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section id="faq" className="py-16 sm:py-20 lg:py-24 bg-[#111111]">
+        <div className="responsive-container">
+          <div className="mb-10 sm:mb-14">
+            <SectionEyebrow className="mb-3">Common Questions</SectionEyebrow>
+            <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl tracking-tight text-[#f0ede8] uppercase">
+              Frequently Asked Questions
+            </h2>
+          </div>
+          <div className="divide-y divide-[#2a2626] border-y border-[#2a2626] max-w-3xl">
+            {HOMEPAGE_FAQS.map((faq) => (
+              <details key={faq.q} className="group py-5">
+                <summary className="cursor-pointer list-none flex items-start justify-between gap-4 text-[#f0ede8] font-display text-lg sm:text-xl uppercase tracking-tight">
+                  <span>{faq.q}</span>
+                  <span
+                    aria-hidden="true"
+                    className="text-arsd-red text-2xl leading-none flex-shrink-0 transition-transform group-open:rotate-45"
+                  >
+                    +
+                  </span>
+                </summary>
+                <p className="mt-3 text-[#a09890] leading-relaxed max-w-[65ch]">{faq.a}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'FAQPage',
+              mainEntity: HOMEPAGE_FAQS.map((faq) => ({
+                '@type': 'Question',
+                name: faq.q,
+                acceptedAnswer: { '@type': 'Answer', text: faq.a },
+              })),
+            }),
+          }}
+        />
       </section>
 
       {/* CTA Section */}

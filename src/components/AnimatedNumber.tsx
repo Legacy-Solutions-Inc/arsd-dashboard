@@ -17,6 +17,9 @@ export function AnimatedNumber({ value, suffix = "", duration = 2 }: AnimatedNum
 
   useEffect(() => {
     if (isInView) {
+      if (ref.current) {
+        ref.current.textContent = "0" + suffix;
+      }
       const controls = animate(motionValue, value, {
         duration,
         ease: EASE_SHARP,
@@ -32,7 +35,7 @@ export function AnimatedNumber({ value, suffix = "", duration = 2 }: AnimatedNum
 
   return (
     <span ref={ref} className="font-display">
-      0{suffix}
+      {value}{suffix}
     </span>
   );
 }

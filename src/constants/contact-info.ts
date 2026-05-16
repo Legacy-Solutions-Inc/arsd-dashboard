@@ -14,17 +14,12 @@ export const CONTACT_INFO = {
   },
 
   // Email Address
-  email: {
-    primary: 'arsd_iloilo@yahoo.com',
-    display: 'arsd_iloilo@yahoo.com',
-  },
+  email: 'a_dupit@yahoo.com',
 
-  // Phone Numbers
+  // Phone Numbers (landline + mobile)
   phone: {
-    landline: '+63 33 123 4567',
-    mobile1: '+63 917 123 4567',
-    mobile2: '+63 918 123 4567', // Optional second mobile
-    landlineFormatted: '(033) 123-4567',
+    landline: { display: '(033) 337 7347', tel: '+63-33-337-7347' },
+    mobile:   { display: '+63 918 991 1042', tel: '+63-918-991-1042' },
   },
 
   // Physical Address
@@ -64,7 +59,7 @@ export const CONTACT_INFO = {
 
 // Helper function to get mailto link
 export const getMailtoLink = (subject?: string, body?: string) => {
-  let link = `mailto:${CONTACT_INFO.email.primary}`;
+  let link = `mailto:${CONTACT_INFO.email}`;
   const params = [];
   
   if (subject) params.push(`subject=${encodeURIComponent(subject)}`);

@@ -9,9 +9,9 @@ export const ABOUT_US_DATA = {
   // Company Story
   story: {
     paragraphs: [
-      "ARSD Construction was founded with courage, honesty and dedication as it was started with a humble beginning in 1998. At first it was just labor contracting; after a year, a small seed capital was introduced and coupled with determination and dedication straight contract was ventured.",
-      "As a new player, tough and rough situations molded and strengthened ARSD to its existence. While maintaining its good reputation to clients and suppliers; to date, those networks keep the company growing strong that by August 2007 the founder decided to register the company with the Securities & Exchange Commission (SEC) to increase clients' confidence and to upgrade its offered services.",
-      "ARSD believes that maintaining clients are doing quality works coupled with approachable staffs and promptness in all its actions."
+      "ARSD Construction was founded in 1998 in Iloilo City, Philippines. The company began as a labor contracting outfit, taking on its first straight-contract projects within a year as small seed capital allowed it to bid for its own work directly.",
+      "By August 2007, ARSD had grown enough to formalize as a corporation, registering with the Securities and Exchange Commission (SEC No. CS 2007 28366) to expand its service offering and qualify for larger commercial and government contracts.",
+      "ARSD now operates as a PCAB Category A licensed general contractor (License No. 36037) and a PhilGEPS-registered supplier (Cert. 2010-63063), serving residential, commercial, industrial, and government clients across Western Visayas with a focus on quality workmanship, on-time delivery, and direct client communication."
     ]
   },
 
@@ -32,10 +32,10 @@ export const ABOUT_US_DATA = {
   ],
 
   // Mission Statement
-  mission: "We aim to implement a timeless relationship with our clients based on simply doing the job right at the first time. To fulfill the mission, all employees will be treated fairly and involve them in quality improvement process to insure efficient work execution by us, and for the customers. To safely deliver any project, any time, in any environment for the benefit of our customers, shareholders, employees and the communities we serve.",
+  mission: "ARSD Construction Corporation's mission is to deliver construction projects right the first time — safely, on schedule, and to specification — for clients in Iloilo, Western Visayas, and across the Philippines. We invest in fair treatment of our employees and a continuous quality-improvement process to support efficient project execution for our customers, shareholders, employees, and the communities we serve.",
 
   // Vision Statement
-  vision: "We persevere to deliver with utmost superiority, dependability, and promptly to achieve total customer satisfaction. Hand in hand with our clients, we act and win as a team.",
+  vision: "ARSD's vision is to be the most dependable and responsive general contractor in Western Visayas — delivering projects with superior workmanship, predictable schedules, and close partnership with each client from kick-off through warranty.",
 
   // Company Timeline/Milestones
   milestones: [
@@ -61,13 +61,13 @@ export const ABOUT_US_DATA = {
     },
     {
       year: "2012",
-      title: "PCAB's License",
-      description: "Upgraded to PCAB Category A license this 2023, enabling us to handle larger and more complex projects.",
+      title: "PCAB Category A License",
+      description: "Earned PCAB Category A License No. 36037 from the Philippine Contractors Accreditation Board, qualifying ARSD for large-scale general construction contracts in the Philippines.",
     },
     {
       year: "2025",
-      title: "25+ Years Strong",
-      description: "Celebrating over 25 years of excellence with 500+ completed projects and continued growth.",
+      title: "500+ Projects Milestone",
+      description: "Surpassed 500 completed construction projects across Western Visayas — spanning residential, commercial, industrial, and government work over 25+ years in business.",
     },
   ],
 
@@ -81,6 +81,7 @@ export const ABOUT_US_DATA = {
     {
       title: "PCAB License No.",
       description: "36037",
+      // TODO: verify PCAB renewal status with operator before publish — date shows Aug 22, 2025 but current is 2026-05-16, may be lapsed or renewed
       subtitle: "Valid until August 22, 2025 • Category A"
     },
     {
@@ -113,5 +114,11 @@ export const ABOUT_US_DATA = {
       icon: "Lightbulb"
     }
   ],
+} as const;
+
+export const CREDENTIALS = {
+  pcab: 'PCAB Category A · No. 36037',
+  sec: 'SEC Reg. CS 2007 28366',
+  philgeps: 'PhilGEPS Cert. 2010-63063',
 } as const;
 

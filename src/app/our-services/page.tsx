@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
@@ -8,9 +9,73 @@ import { SERVICES_DATA } from "@/constants/services-data";
 import { SectionEyebrow } from "@/components/SectionEyebrow";
 import { PageCTA } from "@/components/PageCTA";
 
+export const metadata: Metadata = {
+  title: 'Construction Services in Iloilo — Building, Land Development, Waterproofing | ARSD',
+  description: 'Five construction services from a PCAB-licensed Iloilo contractor: building construction, design & plan preparation, land development, waterproofing, and aggregates supply.',
+  alternates: { canonical: 'https://arsd.co/our-services' },
+};
+
+const SERVICES_FAQS: { q: string; a: string }[] = [
+  {
+    q: "Is ARSD licensed for large-scale construction projects?",
+    a: "Yes. ARSD Construction Corporation holds PCAB Category A License No. 36037, which authorizes us to undertake large-scale general construction contracts throughout the Philippines.",
+  },
+  {
+    q: "What is the minimum project size ARSD accepts?",
+    a: "We work on a range of project sizes. Contact our office at (033) 337 7347, our mobile at +63 918 991 1042, or via the form at /contact-us to discuss your specific requirements.",
+  },
+  {
+    q: "How long does a typical construction project take?",
+    a: "Project timelines depend on scope and complexity. After an initial site assessment and design review, we provide a detailed project schedule before contract signing.",
+  },
+  {
+    q: "Does ARSD offer design and build services?",
+    a: "Yes. Design & Plan Preparation is one of our five core services. We can handle both the design phase and full construction execution for eligible projects.",
+  },
+  {
+    q: "Which areas does ARSD serve?",
+    a: "ARSD is based in Iloilo City and primarily serves clients across Western Visayas. We accept projects elsewhere in the Philippines — contact us to discuss scope and logistics.",
+  },
+  {
+    q: "How do I verify ARSD's PCAB license?",
+    a: "You can verify PCAB License No. 36037 directly with the Philippine Contractors Accreditation Board at pcab.dti.gov.ph. Our license falls under Category A (General Engineering and Building).",
+  },
+];
+
 export default function Services() {
   return (
-    <div className="min-h-[100dvh] bg-[#111111]">
+    <>
+      {SERVICES_DATA.mainServices.map((service) => (
+        <script
+          key={service.title}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Service',
+              serviceType: service.title,
+              provider: { '@id': 'https://arsd.co/#localbusiness' },
+              areaServed: { '@type': 'AdministrativeArea', name: 'Western Visayas, Philippines' },
+              description: service.description,
+            }),
+          }}
+        />
+      ))}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            mainEntity: SERVICES_FAQS.map((faq) => ({
+              '@type': 'Question',
+              name: faq.q,
+              acceptedAnswer: { '@type': 'Answer', text: faq.a },
+            })),
+          }),
+        }}
+      />
+      <div className="min-h-[100dvh] bg-[#111111]">
       <Navbar />
 
       {/* Hero Section — asymmetric split, image left */}
@@ -33,10 +98,10 @@ export default function Services() {
             <div className="max-w-lg">
               <SectionEyebrow className="mb-4">Professional Construction Services</SectionEyebrow>
               <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl tracking-tighter text-[#f0ede8] uppercase leading-none mb-6">
-                Building<br />Excellence<br />Since 1998
+                Construction Services in Iloilo: Building, Land Development, Waterproofing &amp; Aggregates
               </h1>
               <p className="text-[#a09890] leading-relaxed mb-10 max-w-[50ch]">
-                From residential homes to commercial complexes, we deliver construction services that stand the test of time.
+                ARSD Construction Corporation, a PCAB Category A licensed general contractor based in Iloilo City, delivers five construction service lines across Western Visayas: building construction, design &amp; plan preparation, land development, waterproofing, and aggregates supply.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link href="/contact-us">
@@ -130,9 +195,12 @@ export default function Services() {
       <section className="py-16 sm:py-20 bg-[#111111]">
         <div className="responsive-container">
           <SectionEyebrow className="mb-4">Our Fleet</SectionEyebrow>
-          <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl tracking-tight text-[#f0ede8] uppercase mb-12">
+          <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl tracking-tight text-[#f0ede8] uppercase mb-6">
             Equipment &amp; Fleet
           </h2>
+          <p className="text-[#a09890] leading-relaxed max-w-[65ch] mb-12">
+            ARSD operates its own heavy equipment fleet, transport vehicles, and on-site tools — enabling us to self-perform earthworks, concrete placement, material delivery, and finishing work without subcontracting equipment.
+          </p>
           <div className="grid md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-[#2a2626]">
             {SERVICES_DATA.equipmentOverview.map((group, idx) => (
               <div
@@ -156,6 +224,32 @@ export default function Services() {
         </div>
       </section>
 
+      {/* FAQ Section */}
+      <section id="faq" className="py-16 sm:py-20 bg-[#1c1c1c]">
+        <div className="responsive-container">
+          <SectionEyebrow className="mb-4">Common Questions</SectionEyebrow>
+          <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl tracking-tight text-[#f0ede8] uppercase mb-12">
+            Frequently Asked Questions
+          </h2>
+          <div className="divide-y divide-[#2a2626] border-y border-[#2a2626] max-w-3xl">
+            {SERVICES_FAQS.map((faq) => (
+              <details key={faq.q} className="group py-5">
+                <summary className="cursor-pointer list-none flex items-start justify-between gap-4 text-[#f0ede8] font-display text-lg sm:text-xl uppercase tracking-tight">
+                  <span>{faq.q}</span>
+                  <span
+                    aria-hidden="true"
+                    className="text-arsd-red text-2xl leading-none flex-shrink-0 transition-transform group-open:rotate-45"
+                  >
+                    +
+                  </span>
+                </summary>
+                <p className="mt-3 text-[#a09890] leading-relaxed max-w-[65ch]">{faq.a}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <PageCTA
         heading="Ready to Build Your Dream Project?"
@@ -168,5 +262,6 @@ export default function Services() {
 
       <Footer />
     </div>
+    </>
   );
 }
