@@ -81,6 +81,7 @@ export const ABOUT_US_DATA = {
     {
       title: "PCAB License No.",
       description: "36037",
+      // TODO: verify PCAB renewal status with operator before publish — date shows Aug 22, 2025 but current is 2026-05-16, may be lapsed or renewed
       subtitle: "Valid until August 22, 2025 • Category A"
     },
     {
@@ -113,5 +114,11 @@ export const ABOUT_US_DATA = {
       icon: "Lightbulb"
     }
   ],
+} as const;
+
+export const CREDENTIALS = {
+  pcab: 'PCAB Category A · No. 36037',
+  sec: 'SEC Reg. CS 2007 28366',
+  philgeps: 'PhilGEPS Cert. 2010-63063',
 } as const;
 

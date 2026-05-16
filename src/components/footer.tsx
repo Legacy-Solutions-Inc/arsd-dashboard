@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Mail, MapPin } from "lucide-react";
 import { FacebookIcon } from "@/components/ui/facebook-icon";
 import { CONTACT_INFO } from "@/constants/contact-info";
+import { CREDENTIALS } from "@/constants/about-us-data";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -10,8 +11,8 @@ export default function Footer() {
   return (
     <footer className="bg-[#0d0d0d] border-t border-[#2a2626]">
       <div className="responsive-container py-16 sm:py-20">
-        {/* Main grid: 3 columns on large, 1 on mobile */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 sm:gap-12 mb-12">
+        {/* Main grid: 4 columns on xl, 2 on sm, 1 on mobile */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-10 sm:gap-12 mb-12">
 
           {/* Column 1: Brand */}
           <div>
@@ -42,7 +43,6 @@ export default function Footer() {
                 { href: "/projects", label: "Projects" },
                 { href: "/about-us", label: "About ARSD" },
                 { href: "/contact-us", label: "Contact Us" },
-                { href: "/sign-in", label: "Sign In" },
               ].map(({ href, label }) => (
                 <li key={href}>
                   <Link href={href} className="text-sm text-[#a09890] hover:text-arsd-red transition-colors">
@@ -80,6 +80,16 @@ export default function Footer() {
                   {CONTACT_INFO.social.facebook.handle}
                 </a>
               </li>
+            </ul>
+          </div>
+
+          {/* Column 4: Licensed & Registered */}
+          <div>
+            <h3 className="text-xs uppercase tracking-widest font-semibold text-[#f0ede8] mb-4">Licensed &amp; Registered</h3>
+            <ul className="space-y-2">
+              <li className="text-sm text-[#a09890]">{CREDENTIALS.pcab}</li>
+              <li className="text-sm text-[#a09890]">{CREDENTIALS.sec}</li>
+              <li className="text-sm text-[#a09890]">{CREDENTIALS.philgeps}</li>
             </ul>
           </div>
         </div>

@@ -15,16 +15,14 @@ export const CONTACT_INFO = {
 
   // Email Address
   email: {
-    primary: 'arsd_iloilo@yahoo.com',
-    display: 'arsd_iloilo@yahoo.com',
+    primary: 'contact@arsd.co',
+    display: 'contact@arsd.co',
   },
 
   // Phone Numbers
   phone: {
-    landline: '+63 33 123 4567',
-    mobile1: '+63 917 123 4567',
-    mobile2: '+63 918 123 4567', // Optional second mobile
-    landlineFormatted: '(033) 123-4567',
+    display: '+63 33 337-7347',
+    tel: '+63-33-337-7347',
   },
 
   // Physical Address

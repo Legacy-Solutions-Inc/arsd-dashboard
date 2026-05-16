@@ -22,7 +22,7 @@ export default function Hero() {
           </p>
 
           <h1 className="font-display text-6xl md:text-7xl lg:text-8xl tracking-tighter text-[#f0ede8] leading-none uppercase mb-6">
-            ARSD Construction<br />Corporation
+            Iloilo Construction Company — PCAB-Licensed General Contractor Since 1998
           </h1>
 
           <p className="text-lg text-[#a09890] mb-8 max-w-[50ch]">
