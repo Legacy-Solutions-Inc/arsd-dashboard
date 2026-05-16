@@ -110,7 +110,7 @@ export default function Navbar() {
               Contact
             </Link>
 
-            <Link href="/contact-us" className="px-4 py-2 bg-arsd-red text-white text-sm font-semibold rounded hover:bg-red-700 transition-colors">
+            <Link href="/contact-us#quote" className="px-4 py-2 bg-arsd-red text-white text-sm font-semibold rounded hover:bg-red-700 transition-colors">
               Get a Quote
             </Link>
 
@@ -200,7 +200,7 @@ export default function Navbar() {
               </Link>
 
               <Link
-                href="/contact-us"
+                href="/contact-us#quote"
                 className="px-4 py-2 bg-arsd-red text-white text-sm font-semibold rounded hover:bg-red-700 transition-colors text-center"
                 onClick={() => setMobileMenuOpen(false)}
               >

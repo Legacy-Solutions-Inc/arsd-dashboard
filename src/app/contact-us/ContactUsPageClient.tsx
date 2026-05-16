@@ -134,7 +134,7 @@ export default function ContactUsPageClient() {
       </section>
 
       {/* Contact Form & What to Expect */}
-      <section className="py-16 sm:py-20 bg-[#111111]">
+      <section id="quote" className="py-16 sm:py-20 bg-[#111111]">
         <div className="responsive-container">
           <div className="grid lg:grid-cols-2 gap-12">
             {/* Contact Form */}
