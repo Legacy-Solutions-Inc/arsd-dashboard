@@ -98,6 +98,8 @@ NAS_S3_ENDPOINT                # NAS MinIO endpoint, e.g. https://s3.arsd.co
 NAS_S3_ACCESS_KEY_ID           # NAS MinIO service account access key (server-only)
 NAS_S3_SECRET_ACCESS_KEY       # NAS MinIO service account secret key (server-only)
 CRON_SECRET                    # Vercel-managed secret for cron route auth (set in Vercel dashboard)
+RESEND_API_KEY                 # Resend API key for warehouse BOQ email alerts (server-only)
+RESEND_FROM_EMAIL              # Verified Resend sender, e.g. "ARSD Warehouse <warehouse@arsd.co>" (server-only)
 ```
 
 ## Key Patterns

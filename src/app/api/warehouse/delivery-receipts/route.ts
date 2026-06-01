@@ -3,6 +3,7 @@ import { createServerSupabaseClient, createServiceSupabaseClient } from '@/lib/s
 import { DeliveryReceiptsService } from '@/services/warehouse/delivery-receipts.service';
 import { WarehouseStorageService } from '@/services/warehouse/warehouse-storage.service';
 import { CreateDeliveryReceiptInput } from '@/types/warehouse';
+import { alertOnBoqViolations } from '@/services/warehouse/boq-alert.service';
 
 export const maxDuration = 60;
 
@@ -156,6 +157,18 @@ export async function POST(request: NextRequest) {
 
     // Fetch final DR with items
     const finalDr = await service.getById(dr.id);
+
+    // Non-blocking BOQ violation email alert — must never affect the response.
+    try {
+      await alertOnBoqViolations({
+        supabase: serviceSupabase,
+        projectId,
+        kind: 'delivery_receipt',
+        record: finalDr,
+      });
+    } catch (e) {
+      console.error('BOQ alert failed (non-blocking):', e);
+    }
 
     return NextResponse.json(finalDr, { status: 201 });
   } catch (error) {

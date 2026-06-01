@@ -4,14 +4,7 @@ import { DeliveryReceiptsService } from '@/services/warehouse/delivery-receipts.
 import { ReleasesService } from '@/services/warehouse/releases.service';
 import { IPOWService } from '@/services/warehouse/ipow.service';
 import { StockItem } from '@/types/warehouse';
-
-function normalizeDescription(s: string): string {
-  return s.trim().toLowerCase();
-}
-
-function matchItem(normKey: string, itemDescription: string | null | undefined): boolean {
-  return normalizeDescription(itemDescription ?? '') === normKey;
-}
+import { normalizeDescription, matchItemToIpow } from '@/lib/warehouse/boq-match';
 
 function makeOverrideKey(wbs: string | null, description: string): string {
   return `${wbs ?? 'null'}|${normalizeDescription(description)}`;
@@ -54,19 +47,12 @@ export async function GET(
     // When we have IPOW data, use it as the master list of items (WBS, ipow_qty, total_cost from IPOW)
     if (ipowItems.length > 0) {
       const stockItems: StockItem[] = ipowItems.map((ipow) => {
-        const normKey = normalizeDescription(ipow.item_description);
         const delivered = deliveryReceipts.reduce((sum, dr) => {
-          const match = dr.items?.find((item) =>
-            (item.wbs && item.wbs === ipow.wbs) ||
-            (!item.wbs && matchItem(normKey, item.item_description))
-          );
+          const match = dr.items?.find((item) => matchItemToIpow(item, ipow));
           return sum + (match?.qty_in_dr ?? 0);
         }, 0);
         const utilized = releaseForms.reduce((sum, rel) => {
-          const match = rel.items?.find((item) =>
-            (item.wbs && item.wbs === ipow.wbs) ||
-            (!item.wbs && matchItem(normKey, item.item_description))
-          );
+          const match = rel.items?.find((item) => matchItemToIpow(item, ipow));
           return sum + (match?.qty ?? 0);
         }, 0);
         const running_balance = delivered - utilized;
@@ -123,12 +109,12 @@ export async function GET(
     const stockItems: StockItem[] = Array.from(descriptionByKey.entries()).map(([normKey, item_description]) => {
       let unit: string | undefined;
       const delivered = deliveryReceipts.reduce((sum, dr) => {
-        const match = dr.items?.find((item) => matchItem(normKey, item.item_description));
+        const match = dr.items?.find((item) => normalizeDescription(item.item_description) === normKey);
         if (match && !unit) unit = match.unit;
         return sum + (match?.qty_in_dr ?? 0);
       }, 0);
       const utilized = releaseForms.reduce((sum, rel) => {
-        const match = rel.items?.find((item) => matchItem(normKey, item.item_description));
+        const match = rel.items?.find((item) => normalizeDescription(item.item_description) === normKey);
         if (match && !unit) unit = match.unit;
         return sum + (match?.qty ?? 0);
       }, 0);
