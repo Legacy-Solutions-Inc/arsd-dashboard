@@ -3,6 +3,7 @@ import { createServerSupabaseClient, createServiceSupabaseClient } from '@/lib/s
 import { ReleasesService } from '@/services/warehouse/releases.service';
 import { WarehouseStorageService } from '@/services/warehouse/warehouse-storage.service';
 import { CreateReleaseFormInput } from '@/types/warehouse';
+import { alertOnBoqViolations } from '@/services/warehouse/boq-alert.service';
 
 export const maxDuration = 60;
 
@@ -120,6 +121,18 @@ export async function POST(request: NextRequest) {
 
     // Fetch final release with items
     const finalRelease = await service.getById(release.id);
+
+    // Non-blocking BOQ violation email alert — must never affect the response.
+    try {
+      await alertOnBoqViolations({
+        supabase: serviceSupabase,
+        projectId,
+        kind: 'release',
+        record: finalRelease,
+      });
+    } catch (e) {
+      console.error('BOQ alert failed (non-blocking):', e);
+    }
 
     return NextResponse.json(finalRelease, { status: 201 });
   } catch (error) {
