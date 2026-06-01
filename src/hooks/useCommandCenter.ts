@@ -41,14 +41,18 @@ function toMetric(projectId: string, details: { project_costs?: any[]; project_d
   const latestCost = details?.project_costs?.[0];
   const latestDetail = details?.project_details?.[0];
   if (!latestCost || !latestDetail) return null;
-  const { targetProgress, actualProgress, slippage } = calculateLeaderboardStats(latestCost, latestDetail);
+  const { targetProgress, actualProgress } = calculateLeaderboardStats(latestCost, latestDetail);
+  // Match the leaderboard's slippage exactly (handles the target_percentage === 1.0 quirk).
+  const adjustedTarget = targetProgress === 1.0 ? targetProgress * 100 : targetProgress;
+  const siteEngineerName = latestDetail.site_engineer_name;
   return {
     projectId,
     actualProgress,
     targetProgress,
-    slippage: roundToTwoDecimals(slippage),
+    slippage: roundToTwoDecimals(actualProgress - adjustedTarget),
     contractAmount: parseNumericValue(latestDetail.contract_amount),
     committedCost: parseNumericValue(latestCost.direct_cost_total),
+    siteEngineerName: typeof siteEngineerName === 'string' ? siteEngineerName : undefined,
   };
 }
 

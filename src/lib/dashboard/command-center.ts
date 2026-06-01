@@ -31,6 +31,7 @@ export interface ProjectMetric {
   slippage: number; // actual − target; negative = behind
   contractAmount: number; // allocated
   committedCost: number; // direct cost incurred to date
+  siteEngineerName?: string; // from the parsed detail row; fallback when no PM is assigned
 }
 
 export interface KpiSummary {
@@ -75,8 +76,8 @@ export interface BudgetSummary {
 export interface EngineerStat {
   name: string;
   email?: string;
-  score: number; // 0..100, derived from avg slippage
-  onTimePct: number; // 0..100, derived from avg slippage
+  avgSlippage: number; // mean of per-project slippage (actual − target %); negative = behind
+  barValue: number; // 0..100 on-track proxy, used only for the bar width
   projectsCount: number;
 }
 
@@ -282,11 +283,27 @@ export function summarizeBudget(metrics: ProjectMetric[], burn: number[]): Budge
   return { committed, allocated, headroomPct, onBudget: committed <= allocated, burn };
 }
 
-/** Clamp(100 + avgSlippage) — a behind project (negative slippage) reads below 100% on-time. */
+/** Clamp(100 + avgSlippage) — a behind engineer (negative slippage) reads below 100. */
 export function deriveOnTimePct(slippage: number): number {
   return Math.max(0, Math.min(100, Math.round(100 + slippage)));
 }
 
+/**
+ * A metric is a real performance signal only when there's a contract baseline AND some
+ * target/actual progress. Filters out empty/all-zero parsed reports — e.g. an engineer
+ * whose project has a row but no real cost data yet, which would otherwise read as a
+ * misleading 0.00% slippage and out-rank engineers with genuine (negative) numbers.
+ */
+export function hasProgressSignal(m: ProjectMetric): boolean {
+  return m.contractAmount > 0 && (m.targetProgress > 0 || m.actualProgress > 0);
+}
+
+/**
+ * Top site engineers ranked by average slippage — mirrors the leaderboard page's
+ * engineer aggregation: name resolves to the assigned PM, falling back to the parsed
+ * `site_engineer_name`; ranking is by avg slippage (less-negative = better). Projects
+ * without a real progress signal are skipped (see `hasProgressSignal`).
+ */
 export function rankEngineers(
   projects: Project[],
   metricsById: Record<string, ProjectMetric>,
@@ -294,9 +311,10 @@ export function rankEngineers(
 ): EngineerStat[] {
   const agg = new Map<string, { name: string; email?: string; slips: number[] }>();
   for (const p of projects) {
-    const name = p.project_manager?.display_name?.trim();
     const metric = metricsById[p.id];
-    if (!name || !metric) continue;
+    if (!metric || !hasProgressSignal(metric)) continue;
+    const name = p.project_manager?.display_name?.trim() || metric.siteEngineerName?.trim();
+    if (!name) continue;
     const key = p.project_manager?.email ? `${name}__${p.project_manager.email}` : name;
     const entry = agg.get(key) ?? { name, email: p.project_manager?.email || undefined, slips: [] };
     entry.slips.push(metric.slippage);
@@ -304,16 +322,16 @@ export function rankEngineers(
   }
   return Array.from(agg.values())
     .map((e) => {
-      const avg = roundToTwoDecimals(e.slips.reduce((a, b) => a + b, 0) / e.slips.length);
+      const avgSlippage = roundToTwoDecimals(e.slips.reduce((a, b) => a + b, 0) / e.slips.length);
       return {
         name: e.name,
         email: e.email,
-        score: deriveOnTimePct(avg),
-        onTimePct: deriveOnTimePct(avg),
+        avgSlippage,
+        barValue: deriveOnTimePct(avgSlippage),
         projectsCount: e.slips.length,
       };
     })
-    .sort((a, b) => b.score - a.score || b.projectsCount - a.projectsCount || a.name.localeCompare(b.name))
+    .sort((a, b) => b.avgSlippage - a.avgSlippage || b.projectsCount - a.projectsCount || a.name.localeCompare(b.name))
     .slice(0, limit);
 }
 
@@ -324,7 +342,10 @@ export function buildSchedule(
   limit = 6,
 ): ScheduleRow[] {
   return projects
-    .filter((p) => p.status === 'in_progress' && metricsById[p.id])
+    .filter((p) => {
+      const m = metricsById[p.id];
+      return p.status === 'in_progress' && !!m && hasProgressSignal(m);
+    })
     .map((p) => {
       const m = metricsById[p.id];
       return {

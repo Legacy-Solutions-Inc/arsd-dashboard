@@ -1,10 +1,18 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, ArrowUpDown, Edit, MapPin, Plus, Search, SlidersHorizontal } from 'lucide-react';
+import { ArrowRight, ArrowUpDown, ChevronLeft, ChevronRight, Edit, Eye, MapPin, MoreHorizontal, Plus, Search, SlidersHorizontal } from 'lucide-react';
 import { Project, getProjectStatusText } from '@/types/projects';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import type { ProjectMetric } from '@/lib/dashboard/command-center';
 import { Bar, InitialsAvatar, SectionLabel } from './viz';
@@ -24,6 +32,8 @@ interface PortfolioTableProps {
   canCreate: boolean;
   canViewLeaderboard: boolean;
 }
+
+const ITEMS_PER_PAGE = 5;
 
 const FILTERS: { key: FilterKey; label: string }[] = [
   { key: 'all', label: 'All' },
@@ -142,6 +152,7 @@ export function PortfolioTable(props: PortfolioTableProps) {
   const [query, setQuery] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('updated');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const [currentPage, setCurrentPage] = useState(1);
 
   const counts = useMemo(
     () => ({
@@ -171,6 +182,18 @@ export function PortfolioTable(props: PortfolioTableProps) {
       return 0;
     });
   }, [projects, filter, query, sortKey, sortDir, progressByProjectId]);
+
+  const totalPages = Math.max(1, Math.ceil(visible.length / ITEMS_PER_PAGE));
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginated = visible.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  // Reset to the first page whenever the result set changes; clamp if it shrinks.
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filter, query]);
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+  }, [currentPage, totalPages]);
 
   const onSort = (k: SortKey) => {
     if (k === sortKey) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
@@ -248,14 +271,24 @@ export function PortfolioTable(props: PortfolioTableProps) {
           <>
             {/* Mobile cards */}
             <div className="block lg:hidden divide-y divide-border">
-              {visible.map((p) => (
+              {paginated.map((p) => (
                 <MobileRow key={p.id} project={p} {...props} />
               ))}
             </div>
 
             {/* Desktop table */}
             <div className="hidden lg:block overflow-x-auto scrollbar-glass">
-              <table className="w-full border-collapse">
+              <table className="w-full min-w-[1080px] table-fixed border-collapse">
+                <colgroup>
+                  <col className="w-[24%]" />
+                  <col className="w-[15%]" />
+                  <col className="w-[15%]" />
+                  <col className="w-[15%]" />
+                  <col className="w-[12%]" />
+                  <col className="w-[9%]" />
+                  <col className="w-[8%]" />
+                  <col className="w-[56px]" />
+                </colgroup>
                 <thead>
                   <tr className="bg-muted/40 border-b border-border">
                     <SortHeader label="Project" sortKey="name" active={sortKey === 'name'} dir={sortDir} onSort={onSort} />
@@ -269,19 +302,21 @@ export function PortfolioTable(props: PortfolioTableProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {visible.map((p) => (
+                  {paginated.map((p) => (
                     <tr key={p.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors align-top">
                       <td className="py-4 px-3">
                         <div className="font-mono text-[11px] text-primary bg-primary/10 px-2 py-0.5 rounded inline-block mb-1.5 nums">
                           {p.parsed_project_id || p.project_id}
                         </div>
-                        <div className="text-sm font-medium text-foreground max-w-[16rem]">{p.project_name}</div>
+                        <div className="text-sm font-medium text-foreground leading-snug line-clamp-2" title={p.project_name}>
+                          {p.project_name}
+                        </div>
                       </td>
                       <td className="py-4 px-3"><PersonCell name={p.project_manager?.display_name} email={p.project_manager?.email} /></td>
                       <td className="py-4 px-3"><PersonCell name={p.warehouseman?.display_name} email={p.warehouseman?.email} /></td>
                       <td className="py-4 px-3">
-                        <div className="text-sm text-foreground max-w-[12rem]">{p.client}</div>
-                        <div className="flex items-center gap-1 text-[11px] text-muted-foreground mt-0.5"><MapPin className="h-3 w-3" /><span className="truncate">{p.location}</span></div>
+                        <div className="text-sm text-foreground line-clamp-2" title={p.client}>{p.client}</div>
+                        <div className="flex items-center gap-1 text-[11px] text-muted-foreground mt-0.5"><MapPin className="h-3 w-3 shrink-0" /><span className="truncate">{p.location}</span></div>
                       </td>
                       <td className="py-4 px-3"><ProgressCell metric={progressByProjectId[p.id]} loading={detailsLoading} /></td>
                       <td className="py-4 px-3"><StatusPill status={p.status} /></td>
@@ -293,23 +328,14 @@ export function PortfolioTable(props: PortfolioTableProps) {
                         )}
                       </td>
                       <td className="py-4 px-3">
-                        <div className="flex items-center justify-end gap-1.5">
-                          {canEdit && (
-                            <Button variant="outline" size="sm" onClick={() => props.onEditProject(p)} aria-label={`Edit ${p.project_name}`}>
-                              <Edit className="h-3.5 w-3.5" />
-                              Edit
-                            </Button>
-                          )}
-                          <Button
-                            variant={hasReports(p) ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={() => props.onViewProject(p)}
-                            disabled={!hasReports(p)}
-                            title={hasReports(p) ? 'View project details' : 'No approved reports with parsed data available'}
-                            aria-label={`View ${p.project_name}`}
-                          >
-                            <ArrowRight className="h-3.5 w-3.5" />
-                          </Button>
+                        <div className="flex justify-end">
+                          <RowActions
+                            project={p}
+                            reportsReady={hasReports(p)}
+                            canEdit={canEdit}
+                            onView={() => props.onViewProject(p)}
+                            onEdit={() => props.onEditProject(p)}
+                          />
                         </div>
                       </td>
                     </tr>
@@ -321,12 +347,119 @@ export function PortfolioTable(props: PortfolioTableProps) {
         )}
 
         {/* Footer */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-5 py-3 border-t border-border bg-muted/20 text-[11px] font-mono uppercase tracking-wide text-muted-foreground">
-          <span className="nums">Showing {visible.length} of {projects.length} projects</span>
-          <span>Stats update as reports are approved</span>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-5 py-3 border-t border-border bg-muted/20">
+          <span className="text-[11px] font-mono uppercase tracking-wide text-muted-foreground nums">
+            {visible.length === 0
+              ? 'No projects'
+              : `Showing ${startIndex + 1}–${Math.min(startIndex + ITEMS_PER_PAGE, visible.length)} of ${visible.length} projects`}
+          </span>
+          {totalPages > 1 ? (
+            <Pagination page={currentPage} totalPages={totalPages} onPage={setCurrentPage} />
+          ) : (
+            <span className="hidden sm:block text-[11px] font-mono uppercase tracking-wide text-muted-foreground">
+              Stats update as reports are approved
+            </span>
+          )}
         </div>
       </div>
     </section>
+  );
+}
+
+function RowActions({
+  project,
+  reportsReady,
+  canEdit,
+  onView,
+  onEdit,
+}: {
+  project: Project;
+  reportsReady: boolean;
+  canEdit: boolean;
+  onView: () => void;
+  onEdit: () => void;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-8 h-8 p-0 text-muted-foreground hover:text-foreground data-[state=open]:bg-muted data-[state=open]:text-foreground"
+          aria-label={`Actions for ${project.project_name}`}
+        >
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-52">
+        <DropdownMenuLabel className="text-[10px] font-mono uppercase tracking-[0.12em] text-muted-foreground">
+          Actions
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem disabled={!reportsReady} onClick={onView} className="cursor-pointer">
+          <Eye className="h-4 w-4" />
+          View details
+        </DropdownMenuItem>
+        {canEdit && (
+          <DropdownMenuItem onClick={onEdit} className="cursor-pointer">
+            <Edit className="h-4 w-4" />
+            Edit project
+          </DropdownMenuItem>
+        )}
+        {!reportsReady && (
+          <p className="px-2 pt-1.5 text-[11px] leading-snug text-muted-foreground">
+            No approved report with parsed data yet.
+          </p>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+function Pagination({
+  page,
+  totalPages,
+  onPage,
+}: {
+  page: number;
+  totalPages: number;
+  onPage: (p: number) => void;
+}) {
+  const items: (number | 'ellipsis')[] = [];
+  for (let p = 1; p <= totalPages; p++) {
+    if (p === 1 || p === totalPages || (p >= page - 1 && p <= page + 1)) {
+      items.push(p);
+    } else if (items[items.length - 1] !== 'ellipsis') {
+      items.push('ellipsis');
+    }
+  }
+
+  return (
+    <div className="flex items-center justify-center gap-1">
+      <Button variant="outline" size="sm" className="w-8 h-8 p-0" onClick={() => onPage(page - 1)} disabled={page === 1} aria-label="Previous page">
+        <ChevronLeft className="h-4 w-4" />
+      </Button>
+      {items.map((it, i) =>
+        it === 'ellipsis' ? (
+          <span key={`ellipsis-${i}`} className="px-1.5 text-muted-foreground text-sm">…</span>
+        ) : (
+          <Button
+            key={it}
+            variant={it === page ? 'default' : 'outline'}
+            size="sm"
+            className={cn('w-8 h-8 p-0 nums', it === page && 'pointer-events-none')}
+            onClick={() => onPage(it)}
+            aria-current={it === page ? 'page' : undefined}
+            aria-label={`Page ${it}`}
+          >
+            {it}
+          </Button>
+        ),
+      )}
+      <Button variant="outline" size="sm" className="w-8 h-8 p-0" onClick={() => onPage(page + 1)} disabled={page === totalPages} aria-label="Next page">
+        <ChevronRight className="h-4 w-4" />
+      </Button>
+    </div>
   );
 }
 

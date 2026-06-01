@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { ArrowDown, ArrowRight, ArrowUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { CommandCenterData } from '@/lib/dashboard/command-center';
 import { Bar, CommandCard, InitialsAvatar } from './viz';
@@ -41,15 +41,30 @@ export function EngineerCard({
                     {String(i + 1).padStart(2, '0')}
                   </span>
                   <InitialsAvatar name={e.name} className={cn('w-7 h-7', i === 0 && 'bg-primary/10 text-primary')} />
-                  <span className="text-sm font-medium text-foreground truncate">{e.name}</span>
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium text-foreground truncate">{e.name}</div>
+                    <div className="text-[10px] text-muted-foreground truncate">
+                      {e.projectsCount} project{e.projectsCount !== 1 ? 's' : ''}
+                      {e.email ? ` · ${e.email}` : ''}
+                    </div>
+                  </div>
                 </div>
                 <div className="text-right shrink-0">
-                  <div className="text-base font-display font-bold text-foreground leading-none nums">{e.score}</div>
-                  <div className="text-[10px] text-muted-foreground nums">{e.onTimePct}% on-time</div>
+                  <div
+                    className={cn(
+                      'flex items-center justify-end gap-0.5 text-sm font-semibold nums',
+                      e.avgSlippage < 0 ? 'text-primary' : 'text-emerald-600 dark:text-emerald-400',
+                    )}
+                  >
+                    {e.avgSlippage < 0 ? <ArrowDown className="h-3.5 w-3.5" /> : <ArrowUp className="h-3.5 w-3.5" />}
+                    {e.avgSlippage > 0 ? '+' : ''}
+                    {e.avgSlippage.toFixed(2)}%
+                  </div>
+                  <div className="text-[10px] text-muted-foreground">Avg slippage</div>
                 </div>
               </div>
               <Bar
-                value={e.score}
+                value={e.barValue}
                 className={i === 0 ? 'bg-primary' : 'bg-foreground/40'}
                 heightClassName="h-1"
                 trackClassName="mt-2"
