@@ -1,9 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowDown, ArrowRight, ArrowUp } from 'lucide-react';
+import { ArrowDown, ArrowRight, ArrowUp, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { CommandCenterData } from '@/lib/dashboard/command-center';
+import type { CommandCenterData, WarehouseActivityRow, WarehouseStatus } from '@/lib/dashboard/command-center';
 import { Bar, CommandCard, InitialsAvatar } from './viz';
 import { EmptyHint } from './overview-cards';
 
@@ -77,44 +77,69 @@ export function EngineerCard({
   );
 }
 
-// --- Warehouse inventory --------------------------------------------------
+// --- Warehouse: per-project delivery & release activity -------------------
+
+const WH_STATUS: Record<WarehouseStatus, { label: string; dot: string; tone: string }> = {
+  up_to_date: { label: 'up to date', dot: 'bg-emerald-600 dark:bg-emerald-400', tone: 'text-emerald-600 dark:text-emerald-400' },
+  idle: { label: 'idle', dot: 'bg-amber-500', tone: 'text-amber-600 dark:text-amber-400' },
+  no_activity: { label: 'no activity', dot: 'bg-muted-foreground/50', tone: 'text-muted-foreground' },
+  unassigned: { label: 'unassigned', dot: 'bg-primary', tone: 'text-primary' },
+};
 
 export function WarehouseCard({ data, delay }: { data: CommandCenterData; delay: number }) {
   const action =
-    data.inventoryLowCount > 0 ? (
+    data.warehouseFlags > 0 ? (
       <span className="text-[11px] font-mono uppercase tracking-wide text-primary nums">
-        {data.inventoryLowCount} low
+        {data.warehouseFlags} need attention
       </span>
     ) : null;
 
   return (
-    <CommandCard label="Warehouse" title="Inventory levels" action={action} delay={delay}>
-      {data.inventory.length === 0 ? (
-        <EmptyHint>No warehouse stock visible for your role.</EmptyHint>
+    <CommandCard label="Warehouse" title="Delivery & release activity" action={action} delay={delay}>
+      {data.warehouse.length === 0 ? (
+        <EmptyHint>No warehouse activity visible for your role.</EmptyHint>
       ) : (
-        <div className="space-y-3">
-          {data.inventory.map((it) => {
-            const pct = it.total > 0 ? (it.current / it.total) * 100 : 0;
-            return (
-              <div key={it.name} className="space-y-1">
-                <div className="flex items-center justify-between gap-3 text-sm">
-                  <span className="text-foreground truncate">{it.name}</span>
-                  <span className="text-muted-foreground nums text-xs shrink-0">
-                    {it.current.toLocaleString()} / {it.total.toLocaleString()}
-                    {it.unit ? ` ${it.unit}` : ''}
-                  </span>
-                </div>
-                <Bar
-                  value={pct}
-                  className={it.low ? 'bg-primary' : 'bg-emerald-600 dark:bg-emerald-400'}
-                  heightClassName="h-1.5"
-                />
-              </div>
-            );
-          })}
+        <div className="divide-y divide-border">
+          {data.warehouse.map((row) => (
+            <WarehouseRow key={row.projectId} row={row} />
+          ))}
         </div>
       )}
     </CommandCard>
+  );
+}
+
+function WarehouseRow({ row }: { row: WarehouseActivityRow }) {
+  const s = WH_STATUS[row.status];
+  return (
+    <div className="py-2.5 first:pt-0 last:pb-0">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-sm font-medium text-foreground truncate">{row.projectName}</span>
+        <span className="text-[11px] font-mono text-muted-foreground nums shrink-0">
+          DR {row.drCount} · RF {row.rfCount}
+        </span>
+      </div>
+      <div className="mt-1 flex items-center justify-between gap-3">
+        {row.warehousemanName ? (
+          <div className="flex items-center gap-2 min-w-0">
+            <InitialsAvatar name={row.warehousemanName} className="w-5 h-5 text-[9px]" />
+            <span className="text-xs text-muted-foreground truncate">{row.warehousemanName}</span>
+          </div>
+        ) : (
+          <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground italic min-w-0">
+            <span className="w-5 h-5 rounded-full border border-dashed border-border flex items-center justify-center shrink-0">
+              <Plus className="h-3 w-3" />
+            </span>
+            Unassigned
+          </span>
+        )}
+        <div className="flex items-center gap-1.5 text-[11px] shrink-0">
+          <span className={cn('w-1.5 h-1.5 rounded-full', s.dot)} aria-hidden />
+          <span className={s.tone}>{s.label}</span>
+          <span className="text-muted-foreground nums">· {row.lastActivityLabel}</span>
+        </div>
+      </div>
+    </div>
   );
 }
 

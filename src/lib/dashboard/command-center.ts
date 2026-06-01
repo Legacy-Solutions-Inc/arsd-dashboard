@@ -11,13 +11,13 @@
  *  - The cost-tracking sparkline reflects weekly *approved-report activity*, not a true
  *    weekly cost-burn series (which would require a per-project progress-trend fetch).
  *    See `weeklyApprovedSeries`. The committed/allocated/headroom figures are real.
- *  - Warehouse "low" is a derived threshold, not a stored flag. See `aggregateInventory`.
+ *  - Warehouse status (up to date / idle / no activity / unassigned) is DERIVED from DR/RF
+ *    counts, recency, and warehouseman assignment — DR/RF have no status field of their own.
  */
 
 import type { Project } from '@/types/projects';
 import type { AccomplishmentReport } from '@/types/accomplishment-reports';
-import type { StockItem } from '@/types/warehouse';
-import { parseNumericValue, roundToTwoDecimals } from '@/utils/project-calculations';
+import { roundToTwoDecimals } from '@/utils/project-calculations';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -90,12 +90,24 @@ export interface ScheduleRow {
   behind: boolean;
 }
 
-export interface InventoryStat {
-  name: string;
-  unit?: string;
-  current: number;
-  total: number;
-  low: boolean;
+export type WarehouseStatus = 'up_to_date' | 'idle' | 'no_activity' | 'unassigned';
+
+/** Per-project DR/RF tallies fetched by the hook; assembled into rows below. */
+export interface WarehouseActivityCount {
+  drCount: number;
+  rfCount: number;
+  lastActivity: string | null; // ISO date of the most recent DR or RF
+}
+
+export interface WarehouseActivityRow {
+  projectId: string;
+  projectName: string;
+  warehousemanName?: string;
+  drCount: number;
+  rfCount: number;
+  lastActivity: string | null;
+  lastActivityLabel: string;
+  status: WarehouseStatus;
 }
 
 export interface CommandCenterData {
@@ -111,14 +123,15 @@ export interface CommandCenterData {
   budget: BudgetSummary;
   engineers: EngineerStat[];
   schedule: ScheduleRow[];
-  inventory: InventoryStat[];
-  inventoryLowCount: number;
+  warehouse: WarehouseActivityRow[];
+  warehouseFlags: number; // projects whose status needs attention
   progressByProjectId: Record<string, ProjectMetric>;
 }
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
 const RECENT_WINDOW_DAYS = 30;
-const LOW_STOCK_RATIO = 0.2; // running balance ≤ 20% of IPOW qty ⇒ "low"
+const IDLE_DAYS = 14; // no DR/RF in this many days ⇒ "idle"
 
 // ---------------------------------------------------------------------------
 // Small formatting helpers
@@ -362,31 +375,67 @@ export function buildSchedule(
     .slice(0, limit);
 }
 
-/** Aggregate per-project stock items into portfolio-wide inventory levels. */
-export function aggregateInventory(
-  perProjectStocks: StockItem[][],
+/** Short relative age, e.g. "today", "3d", "2w", "5mo", "—". */
+export function formatRelativeShort(dateIso: string | null, now: Date): string {
+  if (!dateIso) return '—';
+  const days = Math.floor((now.getTime() - new Date(dateIso).getTime()) / DAY_MS);
+  if (days <= 0) return 'today';
+  if (days < 7) return `${days}d`;
+  if (days < 30) return `${Math.floor(days / 7)}w`;
+  if (days < 365) return `${Math.floor(days / 30)}mo`;
+  return `${Math.floor(days / 365)}y`;
+}
+
+/**
+ * Derive a project's warehouse status from assignment + DR/RF activity. Priority:
+ * unassigned warehouseman → no activity logged → idle (stale) → up to date.
+ */
+export function deriveWarehouseStatus(
+  hasWarehouseman: boolean,
+  drCount: number,
+  rfCount: number,
+  lastActivity: string | null,
+  now: Date,
+): WarehouseStatus {
+  if (!hasWarehouseman) return 'unassigned';
+  if (drCount === 0 && rfCount === 0) return 'no_activity';
+  if (lastActivity && (now.getTime() - new Date(lastActivity).getTime()) / DAY_MS > IDLE_DAYS) return 'idle';
+  return 'up_to_date';
+}
+
+const WAREHOUSE_STATUS_RANK: Record<WarehouseStatus, number> = {
+  unassigned: 0,
+  idle: 1,
+  no_activity: 2,
+  up_to_date: 3,
+};
+
+/** Build per-project warehouse-activity rows, most-urgent first, capped at `limit`. */
+export function buildWarehouseActivity(
+  projects: Project[],
+  countsById: Record<string, WarehouseActivityCount>,
+  now: Date,
   limit = 6,
-): { inventory: InventoryStat[]; lowCount: number } {
-  const byItem = new Map<string, { name: string; unit?: string; current: number; total: number }>();
-  for (const items of perProjectStocks) {
-    for (const it of items) {
-      const key = it.item_description.trim().toLowerCase();
-      const entry = byItem.get(key) ?? { name: it.item_description.trim(), unit: it.unit, current: 0, total: 0 };
-      entry.current += parseNumericValue(it.running_balance);
-      entry.total += parseNumericValue(it.ipow_qty) || parseNumericValue(it.delivered);
-      entry.unit = entry.unit || it.unit;
-      byItem.set(key, entry);
-    }
-  }
+): { rows: WarehouseActivityRow[]; flags: number } {
+  const all: WarehouseActivityRow[] = projects.map((p) => {
+    const c = countsById[p.id] ?? { drCount: 0, rfCount: 0, lastActivity: null };
+    const hasWarehouseman = !!(p.warehouseman_id || p.warehouseman);
+    return {
+      projectId: p.id,
+      projectName: p.project_name,
+      warehousemanName: p.warehouseman?.display_name,
+      drCount: c.drCount,
+      rfCount: c.rfCount,
+      lastActivity: c.lastActivity,
+      lastActivityLabel: formatRelativeShort(c.lastActivity, now),
+      status: deriveWarehouseStatus(hasWarehouseman, c.drCount, c.rfCount, c.lastActivity, now),
+    };
+  });
 
-  const all = Array.from(byItem.values()).map((e) => ({
-    name: e.name,
-    unit: e.unit,
-    current: Math.round(e.current),
-    total: Math.round(e.total),
-    low: e.total > 0 ? e.current / e.total <= LOW_STOCK_RATIO : e.current <= 0,
-  }));
+  const flags = all.filter((r) => r.status !== 'up_to_date').length;
+  const rank = (r: WarehouseActivityRow) => WAREHOUSE_STATUS_RANK[r.status];
+  const recency = (r: WarehouseActivityRow) => (r.lastActivity ? new Date(r.lastActivity).getTime() : 0);
+  all.sort((a, b) => rank(a) - rank(b) || recency(b) - recency(a) || a.projectName.localeCompare(b.projectName));
 
-  const sorted = all.sort((a, b) => Number(b.low) - Number(a.low) || b.total - a.total);
-  return { inventory: sorted.slice(0, limit), lowCount: all.filter((i) => i.low).length };
+  return { rows: all.slice(0, limit), flags };
 }

@@ -2,14 +2,13 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import type { Project } from '@/types/projects';
-import type { StockItem } from '@/types/warehouse';
 import { ProjectDetailsService } from '@/services/projects/project-details.service';
 import { calculateLeaderboardStats, parseNumericValue, roundToTwoDecimals } from '@/utils/project-calculations';
 import { useAllAccomplishmentReports } from './useAccomplishmentReports';
 import {
-  aggregateInventory,
   buildReportsTrend,
   buildSchedule,
+  buildWarehouseActivity,
   computeKpiDeltas,
   groupByRegion,
   rankEngineers,
@@ -20,19 +19,29 @@ import {
   weeklyCumulative,
   type CommandCenterData,
   type ProjectMetric,
+  type WarehouseActivityCount,
 } from '@/lib/dashboard/command-center';
 
 const BATCH_SIZE = 5; // mirrors the leaderboard page's concurrency-limited batching
 
-/** Fetch a project's warehouse stock items; resolves to [] when the caller lacks access. */
-async function fetchStocks(projectId: string): Promise<StockItem[]> {
+/** Fetch a project's DR + RF tallies; resolves to zeros when the caller lacks access. */
+async function fetchWarehouseCounts(projectId: string): Promise<WarehouseActivityCount> {
   try {
-    const res = await fetch(`/api/warehouse/stocks/${projectId}`);
-    if (!res.ok) return [];
-    const data = await res.json();
-    return Array.isArray(data) ? data : [];
+    const [drRes, rfRes] = await Promise.all([
+      fetch(`/api/warehouse/delivery-receipts?projectId=${projectId}`),
+      fetch(`/api/warehouse/releases?projectId=${projectId}`),
+    ]);
+    const drs = drRes.ok ? await drRes.json() : [];
+    const rfs = rfRes.ok ? await rfRes.json() : [];
+    const drList: any[] = Array.isArray(drs) ? drs : [];
+    const rfList: any[] = Array.isArray(rfs) ? rfs : [];
+    const dates = [...drList, ...rfList]
+      .map((x) => x?.date)
+      .filter((d): d is string => typeof d === 'string');
+    const lastActivity = dates.length ? dates.reduce((a, b) => (a > b ? a : b)) : null;
+    return { drCount: drList.length, rfCount: rfList.length, lastActivity };
   } catch {
-    return [];
+    return { drCount: 0, rfCount: 0, lastActivity: null };
   }
 }
 
@@ -67,7 +76,7 @@ function toMetric(projectId: string, details: { project_costs?: any[]; project_d
 export function useCommandCenter(projects: Project[], projectsLoading: boolean): CommandCenterData {
   const { reports } = useAllAccomplishmentReports();
   const [metricsById, setMetricsById] = useState<Record<string, ProjectMetric>>({});
-  const [perProjectStocks, setPerProjectStocks] = useState<StockItem[][]>([]);
+  const [warehouseCounts, setWarehouseCounts] = useState<Record<string, WarehouseActivityCount>>({});
   const [detailsLoading, setDetailsLoading] = useState(true);
   const [progressPct, setProgressPct] = useState(0);
 
@@ -80,7 +89,7 @@ export function useCommandCenter(projects: Project[], projectsLoading: boolean):
       setProgressPct(projects.length === 0 ? 100 : 0);
       const detailsService = new ProjectDetailsService();
       const metrics: Record<string, ProjectMetric> = {};
-      const stocks: StockItem[][] = [];
+      const counts: Record<string, WarehouseActivityCount> = {};
 
       const batches: Project[][] = [];
       for (let i = 0; i < projects.length; i += BATCH_SIZE) batches.push(projects.slice(i, i + BATCH_SIZE));
@@ -88,24 +97,24 @@ export function useCommandCenter(projects: Project[], projectsLoading: boolean):
       for (let b = 0; b < batches.length; b++) {
         const results = await Promise.all(
           batches[b].map(async (p) => {
-            const [details, projectStocks] = await Promise.all([
+            const [details, whCounts] = await Promise.all([
               p.has_parsed_data === false ? Promise.resolve(null) : detailsService.getProjectDetails(p.id),
-              fetchStocks(p.id),
+              fetchWarehouseCounts(p.id),
             ]);
-            return { metric: toMetric(p.id, details), projectStocks };
+            return { projectId: p.id, metric: toMetric(p.id, details), whCounts };
           }),
         );
         if (cancelled) return;
         for (const r of results) {
           if (r.metric) metrics[r.metric.projectId] = r.metric;
-          if (r.projectStocks.length) stocks.push(r.projectStocks);
+          counts[r.projectId] = r.whCounts;
         }
         setProgressPct(Math.round(((b + 1) / batches.length) * 100));
       }
 
       if (cancelled) return;
       setMetricsById(metrics);
-      setPerProjectStocks(stocks);
+      setWarehouseCounts(counts);
       setDetailsLoading(false);
     };
 
@@ -119,7 +128,7 @@ export function useCommandCenter(projects: Project[], projectsLoading: boolean):
     const now = new Date();
     const metricList = Object.values(metricsById);
     const { trend, deltaPct } = buildReportsTrend(reports);
-    const { inventory, lowCount } = aggregateInventory(perProjectStocks);
+    const { rows: warehouse, flags: warehouseFlags } = buildWarehouseActivity(projects, warehouseCounts, now);
 
     return {
       detailsLoading,
@@ -139,9 +148,9 @@ export function useCommandCenter(projects: Project[], projectsLoading: boolean):
       budget: summarizeBudget(metricList, weeklyApprovedSeries(reports, now)),
       engineers: rankEngineers(projects, metricsById),
       schedule: buildSchedule(projects, metricsById),
-      inventory,
-      inventoryLowCount: lowCount,
+      warehouse,
+      warehouseFlags,
       progressByProjectId: metricsById,
     };
-  }, [projects, reports, metricsById, perProjectStocks, detailsLoading, progressPct]);
+  }, [projects, reports, metricsById, warehouseCounts, detailsLoading, progressPct]);
 }
